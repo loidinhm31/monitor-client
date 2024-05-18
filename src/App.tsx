@@ -9,7 +9,7 @@ const App = () => {
   useEffect(() => {
     let eventSource: EventSource;
     if (openCamera) {
-      eventSource = new EventSource("http://127.0.0.1:8080/sensors/eyes/event", {
+      eventSource = new EventSource("http://127.0.0.1:8081/sensors/eyes/event", {
         withCredentials: true
       });
       eventSource.onmessage = (event) => {
@@ -38,7 +38,7 @@ const App = () => {
 
   const turnCameraOn = async () => {
     try {
-      await axios.post("http://127.0.0.1:8080/sensors/eyes/on", null, {
+      await axios.post("http://127.0.0.1:8081/sensors/eyes/on", null, {
         headers: {
           Authorization: auth
         },
@@ -51,7 +51,7 @@ const App = () => {
 
   const turnCameraOff = async () => {
     try {
-      await axios.post("http://127.0.0.1:8080/sensors/eyes/off", null, {
+      await axios.post("http://127.0.0.1:8081/sensors/eyes/off", null, {
         headers: {
           Authorization: auth
         },
