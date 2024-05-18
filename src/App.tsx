@@ -1,32 +1,47 @@
-import { useState } from "react";
-import useWebSocket from "react-use-websocket";
 import axios from "axios";
+import { useEffect, useState } from "react";
 
 const App = () => {
   const [openCamera, setOpenCamera] = useState<boolean>(false);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const auth = "Basic " + btoa("admin:password"); // Use the same credentials as in the server
 
-  useWebSocket("ws://127.0.0.1:8080/ws/", {
-    onOpen: () => console.log("WebSocket connection established."),
-    onMessage: (message) => {
-      if (message.data instanceof Blob) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          setImageSrc(reader.result as string);
-        };
-        reader.readAsDataURL(message.data);
+  useEffect(() => {
+    let eventSource: EventSource;
+    if (openCamera) {
+      eventSource = new EventSource("http://127.0.0.1:8080/sensors/eyes/event", {
+        withCredentials: true
+      });
+      eventSource.onmessage = (event) => {
+        const base64Image = event.data;
+        setImageSrc(`data:image/jpeg;base64,${base64Image}`);
+      };
+      eventSource.onerror = (event: Event) => {
+        console.error("Event source has failed");
+        if ((event as unknown as EventSource).readyState === EventSource.CLOSED) {
+          (eventSource as EventSource).close();
+        }
+      };
+    }
+    return () => {
+      if (eventSource) {
+        console.log(`Closing stream...`);
+        eventSource.close();
+        console.log(`Closed stream, trying to close camera if needed...`);
+
+        turnCameraOff().then(() => {
+          console.log("End => Camera closed");
+        });
       }
-    },
-    onClose: () => console.log("WebSocket connection closed.")
-  });
+    };
+  }, [openCamera]);
 
   const turnCameraOn = async () => {
     try {
-      await axios.post("http://127.0.0.1:8080/camera/on", {}, {
+      await axios.post("http://127.0.0.1:8080/sensors/eyes/on", null, {
         headers: {
           Authorization: auth
-        }
+        },
       });
       setOpenCamera(true);
     } catch (error) {
@@ -36,10 +51,10 @@ const App = () => {
 
   const turnCameraOff = async () => {
     try {
-      await axios.post("http://127.0.0.1:8080/camera/off", {}, {
+      await axios.post("http://127.0.0.1:8080/sensors/eyes/off", null, {
         headers: {
           Authorization: auth
-        }
+        },
       });
       setOpenCamera(false);
     } catch (error) {
