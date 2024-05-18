@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import useWebSocket from "react-use-websocket";
 import axios from "axios";
 
-const App: React.FC = () => {
+const App = () => {
   const [openCamera, setOpenCamera] = useState<boolean>(false);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const auth = "Basic " + btoa("admin:password"); // Use the same credentials as in the server
 
   useWebSocket("ws://127.0.0.1:8080/ws/", {
     onOpen: () => console.log("WebSocket connection established."),
-    onMessage: (message: MessageEvent) => {
+    onMessage: (message) => {
       if (message.data instanceof Blob) {
         const reader = new FileReader();
         reader.onload = () => {
@@ -22,7 +23,11 @@ const App: React.FC = () => {
 
   const turnCameraOn = async () => {
     try {
-      await axios.post("http://127.0.0.1:8080/camera/on");
+      await axios.post("http://127.0.0.1:8080/camera/on", {}, {
+        headers: {
+          Authorization: auth
+        }
+      });
       setOpenCamera(true);
     } catch (error) {
       console.error("Error turning camera on:", error);
@@ -31,7 +36,11 @@ const App: React.FC = () => {
 
   const turnCameraOff = async () => {
     try {
-      await axios.post("http://127.0.0.1:8080/camera/off");
+      await axios.post("http://127.0.0.1:8080/camera/off", {}, {
+        headers: {
+          Authorization: auth
+        }
+      });
       setOpenCamera(false);
     } catch (error) {
       console.error("Error turning camera off:", error);
