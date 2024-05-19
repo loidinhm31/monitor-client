@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { SystemInfo } from "./models/sensors.tsx";
 
@@ -9,13 +9,17 @@ const App = () => {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [selectedEyesIndex, setSelectedEyesIndex] = useState<number>(-1);
   const [eyesStatus, setEyesStatus] = useState<boolean>(false);
+  const [recording, setRecording] = useState<boolean>(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const auth = "Basic " + btoa("admin:password"); // Use the same credentials as in the server
 
   useEffect(() => {
     const fetchSystemInfo = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8081/sensors", {
+        const response = await axios.get("http://127.0.0.1:8081/system", {
           headers: {
             Authorization: auth
           }
@@ -42,6 +46,7 @@ const App = () => {
       eventSource.onmessage = (event) => {
         const base64Image = event.data;
         setImageSrc(`data:image/jpeg;base64,${base64Image}`);
+        drawImage(base64Image);
       };
       eventSource.onerror = (event: Event) => {
         console.error("Event source has failed");
@@ -116,6 +121,59 @@ const App = () => {
     }
   };
 
+  const drawImage = (base64Image: string) => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+      img.onload = () => {
+        ctx?.clearRect(0, 0, canvas.width, canvas.height);
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+      img.src = `data:image/jpeg;base64,${base64Image}`;
+    }
+  };
+
+  const startRecording = () => {
+    if (!canvasRef.current) return;
+
+    const stream = canvasRef.current.captureStream();
+    const mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm; codecs=vp9" });
+
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        recordedChunksRef.current.push(event.data);
+      }
+    };
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
+      const url = URL.createObjectURL(blob);
+      const now = new Date();
+      const timestamp = now.toISOString().replace(/T/, "_").replace(/:/g, "_").split(".")[0];
+      const fileName = `recorded-video_${timestamp}.webm`;
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    mediaRecorderRef.current = mediaRecorder;
+    recordedChunksRef.current = [];
+    mediaRecorder.start();
+    setRecording(true);
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setRecording(false);
+    }
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -146,9 +204,13 @@ const App = () => {
           }
         </button>
         {openEyes && imageSrc ? (
-          <>
+          <>l
             <img src={imageSrc} alt="Camera Stream" />
             <button onClick={captureImage}>Capture Image</button>
+            <button onClick={recording ? stopRecording : startRecording}>
+              {recording ? "Stop Recording" : "Start Recording"}
+            </button>
+            <canvas ref={canvasRef} style={{ display: "none" }} width="640" height="480"></canvas>
           </>
         ) : (
           <p>Loading...</p>
