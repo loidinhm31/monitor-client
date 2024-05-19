@@ -5,6 +5,6 @@ export interface SystemInfo {
 }
 
 export interface Eye {
-  index: number | null;
+  index?: number;
   name: string;
 }

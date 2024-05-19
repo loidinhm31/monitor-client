@@ -7,7 +7,7 @@ const App = () => {
   const [openEyes, setOpenEyes] = useState<boolean>(false);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
-  const [selectedEyesIndex, setSelectedEyesIndex] = useState<number | null>(null);
+  const [selectedEyesIndex, setSelectedEyesIndex] = useState<number>(-1);
   const [eyesStatus, setEyesStatus] = useState<boolean>(false);
 
   const auth = "Basic " + btoa("admin:password"); // Use the same credentials as in the server
@@ -15,14 +15,13 @@ const App = () => {
   useEffect(() => {
     const fetchSystemInfo = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8081/sensors/eyes", {
+        const response = await axios.get("http://127.0.0.1:8081/sensors", {
           headers: {
             Authorization: auth
           }
         });
         const systemInfo: SystemInfo = await response.data;
         systemInfo.eyes.unshift({
-          index: null,
           name: "Select eyes"
         });
         setSystemInfo(response.data);
@@ -90,7 +89,7 @@ const App = () => {
 
   const selectEyes = (index: string) => {
     const currIndex = Number(index);
-    if (selectedEyesIndex !== null && currIndex !== selectedEyesIndex) {
+    if (selectedEyesIndex >= 0 && currIndex !== selectedEyesIndex) {
       if (openEyes) {
         setEyesStatus(false);
       }
@@ -100,6 +99,21 @@ const App = () => {
       }
     }
     setSelectedEyesIndex(currIndex);
+  };
+
+  const captureImage = () => {
+    if (imageSrc) {
+      const now = new Date();
+      const timestamp = now.toISOString().replace(/T/, "_").replace(/:/g, "_").split(".")[0];
+      const fileName = `captured-image_${timestamp}.jpg`;
+
+      const link = document.createElement("a");
+      link.href = imageSrc;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   return (
@@ -115,8 +129,8 @@ const App = () => {
             <select onChange={(event) => {
               selectEyes(event.target.value);
             }}>
-              {systemInfo.eyes.map((eye) => (
-                <option key={eye.index} value={eye.index || -1}>
+              {systemInfo.eyes.map((eye, index) => (
+                <option key={index} value={eye.index}>
                   {eye.name}
                 </option>
               ))}
@@ -125,13 +139,20 @@ const App = () => {
         ) : (
           <p>Loading system information...</p>
         )}
-        <button onClick={() => turnEyes(eyesStatus)} disabled={selectedEyesIndex === null || selectedEyesIndex < 0}>
-          {eyesStatus && !openEyes && (selectedEyesIndex !== null && selectedEyesIndex >= 0) ?
+        <button onClick={() => turnEyes(eyesStatus)} disabled={selectedEyesIndex < 0}>
+          {eyesStatus && !openEyes && selectedEyesIndex >= 0 ?
             "Turn Eyes On" :
             "Turn Eyes Off"
           }
         </button>
-        {openEyes && imageSrc ? <img src={imageSrc} alt="Camera Stream" /> : <p>Loading...</p>}
+        {openEyes && imageSrc ? (
+          <>
+            <img src={imageSrc} alt="Camera Stream" />
+            <button onClick={captureImage}>Capture Image</button>
+          </>
+        ) : (
+          <p>Loading...</p>
+        )}
       </header>
     </div>
   );
