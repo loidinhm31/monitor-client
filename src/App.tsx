@@ -1,14 +1,42 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 
+import { SystemInfo } from "./models/sensors.tsx";
+
 const App = () => {
-  const [openCamera, setOpenCamera] = useState<boolean>(false);
+  const [openEyes, setOpenEyes] = useState<boolean>(false);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
+  const [selectedEyesIndex, setSelectedEyesIndex] = useState<number | null>(null);
+  const [eyesStatus, setEyesStatus] = useState<boolean>(false);
+
   const auth = "Basic " + btoa("admin:password"); // Use the same credentials as in the server
 
   useEffect(() => {
+    const fetchSystemInfo = async () => {
+      try {
+        const response = await axios.get("http://127.0.0.1:8081/sensors/eyes", {
+          headers: {
+            Authorization: auth
+          }
+        });
+        const systemInfo: SystemInfo = await response.data;
+        systemInfo.eyes.unshift({
+          index: null,
+          name: "Select eyes"
+        });
+        setSystemInfo(response.data);
+      } catch (error) {
+        console.error("Error fetching system information:", error);
+      }
+    };
+
+    fetchSystemInfo();
+  }, []);
+
+  useEffect(() => {
     let eventSource: EventSource;
-    if (openCamera) {
+    if (openEyes) {
       eventSource = new EventSource("http://127.0.0.1:8081/sensors/eyes/event", {
         withCredentials: true
       });
@@ -27,48 +55,83 @@ const App = () => {
       if (eventSource) {
         console.log(`Closing stream...`);
         eventSource.close();
-        console.log(`Closed stream, trying to close camera if needed...`);
+        console.log(`Closed stream, trying to close eyes if needed...`);
 
-        turnCameraOff().then(() => {
-          console.log("End => Camera closed");
+        turnEyes(false).then(() => {
+          console.log("End => Eyes closed");
         });
       }
     };
-  }, [openCamera]);
+  }, [openEyes]);
 
-  const turnCameraOn = async () => {
+  const turnEyes = async (eyesStatus: boolean) => {
     try {
-      await axios.post("http://127.0.0.1:8081/sensors/eyes/on", null, {
+      const body = {
+        action: eyesStatus ? "on" : "off",
+        index: selectedEyesIndex
+      };
+
+      await axios.post("http://127.0.0.1:8081/sensors/eyes", body, {
         headers: {
           Authorization: auth
         },
       });
-      setOpenCamera(true);
+      if (eyesStatus) {
+        setOpenEyes(true);
+        setEyesStatus(false);
+      } else {
+        setOpenEyes(false);
+        setEyesStatus(true);
+      }
     } catch (error) {
-      console.error("Error turning camera on:", error);
+      console.error("Error occurred at change eyes:", error);
     }
   };
 
-  const turnCameraOff = async () => {
-    try {
-      await axios.post("http://127.0.0.1:8081/sensors/eyes/off", null, {
-        headers: {
-          Authorization: auth
-        },
-      });
-      setOpenCamera(false);
-    } catch (error) {
-      console.error("Error turning camera off:", error);
+  const selectEyes = (index: string) => {
+    const currIndex = Number(index);
+    if (selectedEyesIndex !== null && currIndex !== selectedEyesIndex) {
+      if (openEyes) {
+        setEyesStatus(false);
+      }
+    } else {
+      if (!openEyes) {
+        setEyesStatus(true);
+      }
     }
+    setSelectedEyesIndex(currIndex);
   };
 
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Camera Stream</h1>
-        <button onClick={turnCameraOn}>Turn Camera On</button>
-        <button onClick={turnCameraOff}>Turn Camera Off</button>
-        {openCamera && imageSrc ? <img src={imageSrc} alt="Camera Stream" /> : <p>Loading...</p>}
+        <h1>Monitor System</h1>
+        {systemInfo ? (
+          <div>
+            <h2>System Information</h2>
+            <p>OS Type: {systemInfo.os_type}</p>
+            <p>OS Release: {systemInfo.os_release}</p>
+            <h2>Available Cameras</h2>
+            <select onChange={(event) => {
+              selectEyes(event.target.value);
+            }}>
+              {systemInfo.eyes.map((eye) => (
+                <option key={eye.index} value={eye.index || -1}>
+                  {eye.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <p>Loading system information...</p>
+        )}
+        <button onClick={() => turnEyes(eyesStatus)} disabled={selectedEyesIndex === null || selectedEyesIndex < 0}>
+          {eyesStatus && !openEyes && (selectedEyesIndex !== null && selectedEyesIndex >= 0) ?
+            "Turn Eyes On" :
+            "Turn Eyes Off"
+          }
+        </button>
+        {openEyes && imageSrc ? <img src={imageSrc} alt="Camera Stream" /> : <p>Loading...</p>}
       </header>
     </div>
   );
