@@ -25,7 +25,10 @@ import {
   setupIonicReact,
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
-import React, { Suspense } from "react";
+import { MoonIcon, SunIcon } from "@nextui-org/shared-icons";
+import { Switch } from "@nextui-org/switch";
+import { NextUIProvider } from "@nextui-org/system";
+import React, { Suspense, useEffect, useState } from "react";
 import { Route } from "react-router";
 
 import Home from "@/pages/Home";
@@ -33,27 +36,53 @@ import Home from "@/pages/Home";
 setupIonicReact();
 
 const App = () => {
-  return (
-    <IonApp>
-      <IonMenu contentId="main-content">
-        <IonHeader>
-          <IonToolbar>
-            <IonTitle>Menu Content</IonTitle>
-          </IonToolbar>
-        </IonHeader>
-        <IonContent className="ion-padding">This is the menu content.</IonContent>
-      </IonMenu>
+  const [theme, setTheme] = useState("dark");
 
-      <IonReactRouter>
-        <IonRouterOutlet id="main">
-          <Suspense>
-            <Route path="/" exact={true}>
-              <Home />
-            </Route>
-          </Suspense>
-        </IonRouterOutlet>
-      </IonReactRouter>
-    </IonApp>
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
+  };
+
+  return (
+    <NextUIProvider>
+      <IonApp>
+        <IonMenu contentId="main-content">
+          <IonHeader>
+            <IonToolbar>
+              <div className="p-1">
+                <IonTitle>Menu Content</IonTitle>
+
+                <Switch
+                  className="p-3"
+                  defaultSelected
+                  size="lg"
+                  onClick={toggleTheme}
+                  thumbIcon={({ className }) =>
+                    theme === "dark" ? <SunIcon className={className} /> : <MoonIcon className={className} />
+                  }
+                >
+                  Dark mode
+                </Switch>
+              </div>
+            </IonToolbar>
+          </IonHeader>
+          <IonContent className="ion-padding">This is the menu content.</IonContent>
+        </IonMenu>
+
+        <IonReactRouter>
+          <IonRouterOutlet id="main">
+            <Suspense>
+              <Route path="/" exact={true}>
+                <Home />
+              </Route>
+            </Suspense>
+          </IonRouterOutlet>
+        </IonReactRouter>
+      </IonApp>
+    </NextUIProvider>
   );
 };
 

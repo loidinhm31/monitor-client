@@ -1,10 +1,10 @@
 export interface SystemInfo {
   os_type: string;
   os_release: string;
-  eyes: Eye[];
+  eyes: Eyes[];
 }
 
-export interface Eye {
-  index?: number;
+export interface Eyes {
+  index: number;
   name: string;
 }

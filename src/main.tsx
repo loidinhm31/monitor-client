@@ -1,4 +1,3 @@
-import { NextUIProvider } from "@nextui-org/system";
 import React from "react";
 import { createRoot } from "react-dom/client";
 
@@ -9,8 +8,6 @@ const root = createRoot(container!);
 
 root.render(
   <React.StrictMode>
-    <NextUIProvider>
-      <App />
-    </NextUIProvider>
+    <App />
   </React.StrictMode>,
 );
