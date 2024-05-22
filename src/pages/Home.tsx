@@ -28,6 +28,7 @@ import { Button } from "@nextui-org/button";
 import { Card, CardFooter } from "@nextui-org/card";
 import { Chip } from "@nextui-org/chip";
 import { Image as ImageUI } from "@nextui-org/image";
+import { Input } from "@nextui-org/input";
 import { Select, SelectItem } from "@nextui-org/select";
 import { Spinner } from "@nextui-org/spinner";
 import axios from "axios";
@@ -39,6 +40,7 @@ import { Eyes, SystemInfo } from "@/models/sensors";
 setupIonicReact();
 
 const App = () => {
+  const [hostConnection, setHostConnection] = useState<string | null>(null);
   const [openEyes, setOpenEyes] = useState<boolean>(false);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
@@ -54,7 +56,7 @@ const App = () => {
   useEffect(() => {
     const fetchSystemInfo = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8081/system", {
+        const response = await axios.get(`${hostConnection}/system`, {
           headers: {
             Authorization: auth
           }
@@ -70,13 +72,15 @@ const App = () => {
       }
     };
 
-    fetchSystemInfo();
-  }, []);
+    if (hostConnection !== null && hostConnection !== "") {
+      fetchSystemInfo();
+    }
+  }, [hostConnection]);
 
   useEffect(() => {
     let eventSource: EventSource;
     if (openEyes) {
-      eventSource = new EventSource("http://127.0.0.1:8081/sensors/eyes/event", {
+      eventSource = new EventSource(`${hostConnection}/sensors/eyes/event`, {
         withCredentials: true
       });
       eventSource.onmessage = (event) => {
@@ -111,17 +115,19 @@ const App = () => {
         index: selectedEyes?.index
       };
 
-      await axios.post("http://127.0.0.1:8081/sensors/eyes", body, {
-        headers: {
-          Authorization: auth
+      if (hostConnection !== null && hostConnection !== "") {
+        await axios.post(`${hostConnection}/sensors/eyes`, body, {
+          headers: {
+            Authorization: auth
+          }
+        });
+        if (eyesStatus) {
+          setOpenEyes(true);
+          setEyesStatus(false);
+        } else {
+          setOpenEyes(false);
+          setEyesStatus(true);
         }
-      });
-      if (eyesStatus) {
-        setOpenEyes(true);
-        setEyesStatus(false);
-      } else {
-        setOpenEyes(false);
-        setEyesStatus(true);
       }
     } catch (error) {
       console.error("Error occurred at change eyes:", error);
@@ -224,80 +230,86 @@ const App = () => {
       <IonContent className="ion-padding">
         <div className="mx-auto px-1">
           <div className="w-full flex flex-row flex-wrap gap-4">
-            <div className="w-full flex flex-col flex-wrap gap-4">
-              {systemInfo ? (
-                <>
-                  <div>
-                    <Chip className="max-w" color="warning" size="lg">
-                      System Information
-                    </Chip>
-                  </div>
+            <Input type="connection" label="Host Connection" onChange={(e) => setHostConnection(e.target.value)} />
 
-                  <div className="w-full flex flex-row flex-wrap gap-4">
-                    <Chip>OS Type</Chip>
-                    <p>{systemInfo.os_type}</p>
-                  </div>
+            {hostConnection !== null && hostConnection !== "" && (
+              <>
+                <div className="w-full flex flex-col flex-wrap gap-4">
+                  {systemInfo ? (
+                    <>
+                      <div>
+                        <Chip className="max-w" color="warning" size="lg">
+                          System Information
+                        </Chip>
+                      </div>
 
-                  <div className="w-full flex flex-row flex-wrap gap-4">
-                    <Chip>OS Release</Chip>
-                    <p>{systemInfo.os_release}</p>
-                  </div>
+                      <div className="w-full flex flex-row flex-wrap gap-4">
+                        <Chip>OS Type</Chip>
+                        <p>{systemInfo.os_type}</p>
+                      </div>
 
-                  <Chip className="max-w" color="success" size="md" variant="dot">
-                    Available Eyes
-                  </Chip>
+                      <div className="w-full flex flex-row flex-wrap gap-4">
+                        <Chip>OS Release</Chip>
+                        <p>{systemInfo.os_release}</p>
+                      </div>
 
-                  <Select label="Select eyes" className="max-w-xs" onChange={(k) => selectEyes(k)}>
-                    {systemInfo.eyes.map((eye, index) => (
-                      <SelectItem key={index} value={"item" + index}>
-                        {eye.name}
-                      </SelectItem>
-                    ))}
-                  </Select>
-                </>
-              ) : (
-                <Spinner label="Loading system information..." color="warning" />
-              )}
-            </div>
-
-            <Button
-              color={eyesStatus && !openEyes && selectedEyes !== null && selectedEyes.index >= 0 ? "primary" : "danger"}
-              variant={selectedEyes !== null && selectedEyes.index < 0 ? "faded" : "solid"}
-              onClick={() => turnEyes(eyesStatus)}
-              disabled={selectedEyes !== null && selectedEyes.index < 0}
-            >
-              {eyesStatus && !openEyes && selectedEyes !== null && selectedEyes.index >= 0
-                ? "Turn Eyes On"
-                : "Turn Eyes Off"}
-            </Button>
-
-            {openEyes && imageSrc && (
-              <div className="w-full flex flex-col flex-wrap gap-4">
-                <div className="">
-                  <Card isFooterBlurred radius="lg" className="border-none">
-                    <ImageUI alt="Camera Stream" className="object-cover" src={imageSrc} height={500} width={500} />
-                    <CardFooter
-                      className="justify-between before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
-                      <Chip
-                        variant="dot"
-                        color="danger"
-                        style={{color: "red"}}
-                      >
-                        Streaming
+                      <Chip className="max-w" color="success" size="md" variant="dot">
+                        Available Eyes
                       </Chip>
-                    </CardFooter>
-                  </Card>
+
+                      <Select label="Select eyes" className="max-w-xs" onChange={(k) => selectEyes(k)}>
+                        {systemInfo.eyes.map((eye, index) => (
+                          <SelectItem key={index} value={"item" + index}>
+                            {eye.name}
+                          </SelectItem>
+                        ))}
+                      </Select>
+                    </>
+                  ) : (
+                    <Spinner label="Loading system information..." color="warning" />
+                  )}
                 </div>
-                <div className="w-full flex flex-row flex-wrap gap-4">
-                  <Button onClick={captureImage} color="success" endContent={<CameraIcon />}>
-                    Capture Image
-                  </Button>
-                  <Button onClick={recording ? stopRecording : startRecording} color="secondary">
-                    {recording ? "Stop Recording" : "Start Recording"}
-                  </Button>
-                </div>
-                <canvas ref={canvasRef} style={{ display: "none" }} width="640" height="480"></canvas>
-              </div>
+
+                <Button
+                  color={eyesStatus && !openEyes && selectedEyes !== null && selectedEyes.index >= 0 ? "primary" : "danger"}
+                  variant={selectedEyes !== null && selectedEyes.index < 0 ? "faded" : "solid"}
+                  onClick={() => turnEyes(eyesStatus)}
+                  disabled={selectedEyes !== null && selectedEyes.index < 0}
+                >
+                  {eyesStatus && !openEyes && selectedEyes !== null && selectedEyes.index >= 0
+                    ? "Turn Eyes On"
+                    : "Turn Eyes Off"}
+                </Button>
+
+                {openEyes && imageSrc && (
+                  <div className="w-full flex flex-col flex-wrap gap-4">
+                    <div className="">
+                      <Card isFooterBlurred radius="lg" className="border-none">
+                        <img alt="Camera Stream" className="object-cover" src={imageSrc} height={500} width={500} />
+                        <CardFooter
+                          className="justify-between before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
+                          <Chip
+                            variant="dot"
+                            color="danger"
+                            style={{ color: "red" }}
+                          >
+                            Streaming
+                          </Chip>
+                        </CardFooter>
+                      </Card>
+                    </div>
+                    <div className="w-full flex flex-row flex-wrap gap-4">
+                      <Button onClick={captureImage} color="success" endContent={<CameraIcon />}>
+                        Capture Image
+                      </Button>
+                      <Button onClick={recording ? stopRecording : startRecording} color="secondary">
+                        {recording ? "Stop Recording" : "Start Recording"}
+                      </Button>
+                    </div>
+                    <canvas ref={canvasRef} style={{ display: "none" }} width="640" height="480"></canvas>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

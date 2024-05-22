@@ -13,6 +13,7 @@
     "test.unit": "vitest"
   },
   "dependencies": {
+    "@capacitor/android": "6.0.0",
     "@capacitor/app": "6.0.0",
     "@capacitor/core": "^6.0.0",
     "@capacitor/haptics": "6.0.0",
@@ -24,6 +25,7 @@
     "@nextui-org/card": "^2.0.28",
     "@nextui-org/chip": "^2.0.28",
     "@nextui-org/image": "^2.0.27",
+    "@nextui-org/input": "^2.1.21",
     "@nextui-org/select": "^2.1.27",
     "@nextui-org/skeleton": "^2.0.27",
     "@nextui-org/switch": "^2.0.28",
