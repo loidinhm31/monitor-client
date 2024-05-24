@@ -14,8 +14,11 @@ const StreamingControl = ({ imageSrc }: StreamingControlProps) => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const imageContainerRef = useRef<HTMLDivElement | null>(null);
 
   const [recording, setRecording] = useState<boolean>(false);
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [isFullScreen, setIsFullScreen] = useState<boolean>(false); // State for full-screen mode
 
   useEffect(() => {
     if (imageSrc !== null && imageSrc !== undefined) {
@@ -50,8 +53,7 @@ const StreamingControl = ({ imageSrc }: StreamingControlProps) => {
       const fileName = `captured-image_${timestamp}.jpg`;
 
       if (Capacitor.isNativePlatform()) {
-        // Save using Capacitor FileSystem
-        const base64Data = imageSrc.split(",")[1]; // Remove data:image/jpeg;base64, part
+        const base64Data = imageSrc.split(",")[1];
         await ensureDirectoryExists(path);
 
         try {
@@ -65,7 +67,6 @@ const StreamingControl = ({ imageSrc }: StreamingControlProps) => {
           alert(error)
         }
       } else {
-        // Save for web
         const link = document.createElement("a");
         link.href = imageSrc;
         link.download = fileName;
@@ -97,21 +98,19 @@ const StreamingControl = ({ imageSrc }: StreamingControlProps) => {
       const path = "monitor-client/videos/"
 
       if (Capacitor.isNativePlatform()) {
-        // Save using Capacitor FileSystem
         const reader = new FileReader();
         reader.onloadend = async () => {
           const base64Data = reader.result as string;
           await ensureDirectoryExists(path);
           await Filesystem.writeFile({
             path: path + fileName,
-            data: base64Data.split(",")[1], // Remove data:video/webm;base64, part
+            data: base64Data.split(",")[1],
             directory: Directory.Documents
           });
           alert("Video saved to device");
         };
         reader.readAsDataURL(blob);
       } else {
-        // Save for web
         const link = document.createElement("a");
         link.href = url;
         link.download = fileName;
@@ -147,16 +146,49 @@ const StreamingControl = ({ imageSrc }: StreamingControlProps) => {
     }
   };
 
+  const zoomIn = () => {
+    setZoomLevel((prevZoomLevel) => Math.min(prevZoomLevel + 0.1, 3));
+  };
+
+  const zoomOut = () => {
+    setZoomLevel((prevZoomLevel) => Math.max(prevZoomLevel - 0.1, 1));
+  };
+
+  const enterFullScreen = () => {
+    if (imageContainerRef.current) {
+      if (imageContainerRef.current.requestFullscreen) {
+        imageContainerRef.current.requestFullscreen();
+      }
+      setIsFullScreen(true);
+    }
+  };
+
+  const exitFullScreen = () => {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+    setIsFullScreen(false);
+  };
+
+  const toggleFullScreen = () => {
+    if (document.fullscreenElement) {
+      exitFullScreen();
+    } else {
+      enterFullScreen();
+    }
+  };
+
   return (
     <div className="w-full flex flex-col flex-wrap gap-4">
-      <div className="mx-auto">
-        <Card isFooterBlurred radius="lg" className="border-none">
+      <div className="mx-auto flex justify-center" style={{ overflow: "hidden" }} ref={imageContainerRef}>
+        <Card isFooterBlurred radius="lg" className="mx-auto border-none">
           <img
             alt="Eyes Stream"
-            className="object-cover"
+            className={`object-contain transition-transform duration-300 ${isFullScreen ? 'w-full h-full' : 'max-w-full max-h-full'}`} // Apply full-screen and normal styles
             src={imageSrc === null || imageSrc === undefined ? "" : imageSrc}
-            height={500}
-            width={500}
+            height={750}
+            width={750}
+            style={{ transform: `scale(${zoomLevel})` }}
           />
           <CardFooter
             className="justify-between before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
@@ -172,6 +204,15 @@ const StreamingControl = ({ imageSrc }: StreamingControlProps) => {
         </Button>
         <Button onClick={recording ? stopRecording : startRecording} color="secondary">
           {recording ? "Stop Recording" : "Start Recording"}
+        </Button>
+        <Button onClick={zoomIn} color="primary">
+          Zoom In
+        </Button>
+        <Button onClick={zoomOut} color="primary">
+          Zoom Out
+        </Button>
+        <Button onClick={toggleFullScreen} color="primary">
+          {isFullScreen ? "Exit Full Screen" : "Full Screen"}
         </Button>
       </div>
       <canvas ref={canvasRef} style={{ display: "none" }} width="640" height="480"></canvas>
