@@ -1,10 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+import { Capacitor } from "@capacitor/core";
+import { Directory,Filesystem } from "@capacitor/filesystem";
+import { IonIcon } from "@ionic/react";
 import { Button } from "@nextui-org/button";
 import { Card, CardFooter } from "@nextui-org/card";
 import { Chip } from "@nextui-org/chip";
+import { chevronCollapseOutline, chevronExpandOutline } from "ionicons/icons";
+import React, { useEffect, useRef, useState } from "react";
+
 import { CameraIcon } from "@/icons/CameraIcon";
-import { Filesystem, Directory } from "@capacitor/filesystem";
-import { Capacitor } from "@capacitor/core";
 
 interface StreamingControlProps {
   imageSrc: string | null;
@@ -37,7 +40,7 @@ const StreamingControl = ({ imageSrc }: StreamingControlProps) => {
         await Filesystem.mkdir({
           path: currentPath,
           directory: Directory.Documents,
-          recursive: false
+          recursive: false,
         });
       } catch (error) {
         console.warn(error);
@@ -47,7 +50,7 @@ const StreamingControl = ({ imageSrc }: StreamingControlProps) => {
 
   const captureImage = async () => {
     if (imageSrc) {
-      const path = "monitor-client/images/"
+      const path = "monitor-client/images/";
       const now = new Date();
       const timestamp = now.toISOString().replace(/T/, "_").replace(/:/g, "_").split(".")[0];
       const fileName = `captured-image_${timestamp}.jpg`;
@@ -60,11 +63,11 @@ const StreamingControl = ({ imageSrc }: StreamingControlProps) => {
           await Filesystem.writeFile({
             path: path + fileName,
             data: base64Data,
-            directory: Directory.Documents
+            directory: Directory.Documents,
           });
           alert("Image saved to device");
         } catch (error) {
-          alert(error)
+          alert(error);
         }
       } else {
         const link = document.createElement("a");
@@ -95,7 +98,7 @@ const StreamingControl = ({ imageSrc }: StreamingControlProps) => {
       const now = new Date();
       const timestamp = now.toISOString().replace(/T/, "_").replace(/:/g, "_").split(".")[0];
       const fileName = `recorded-video_${timestamp}.webm`;
-      const path = "monitor-client/videos/"
+      const path = "monitor-client/videos/";
 
       if (Capacitor.isNativePlatform()) {
         const reader = new FileReader();
@@ -105,7 +108,7 @@ const StreamingControl = ({ imageSrc }: StreamingControlProps) => {
           await Filesystem.writeFile({
             path: path + fileName,
             data: base64Data.split(",")[1],
-            directory: Directory.Documents
+            directory: Directory.Documents,
           });
           alert("Video saved to device");
         };
@@ -184,19 +187,22 @@ const StreamingControl = ({ imageSrc }: StreamingControlProps) => {
         <Card isFooterBlurred radius="lg" className="mx-auto border-none">
           <img
             alt="Eyes Stream"
-            className={`object-contain transition-transform duration-300 ${isFullScreen ? 'w-full h-full' : 'max-w-full max-h-full'}`} // Apply full-screen and normal styles
+            className={`object-contain transition-transform duration-300 ${isFullScreen ? "w-full h-full" : "max-w-full max-h-full"}`} // Apply full-screen and normal styles
             src={imageSrc === null || imageSrc === undefined ? "" : imageSrc}
             height={750}
             width={750}
             style={{ transform: `scale(${zoomLevel})` }}
           />
-          <CardFooter
-            className="justify-between before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
+          <CardFooter className="justify-between before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
             <Chip variant="dot" color="danger" style={{ color: "red" }}>
               Streaming
             </Chip>
           </CardFooter>
         </Card>
+
+        <Button onClick={toggleFullScreen} className="absolute bottom-0 right-1" isIconOnly variant="faded">
+          <IonIcon size="large" icon={isFullScreen ? chevronCollapseOutline : chevronExpandOutline}></IonIcon>
+        </Button>
       </div>
       <div className="w-full flex flex-row flex-wrap gap-4">
         <Button onClick={captureImage} color="success" endContent={<CameraIcon />}>
@@ -210,9 +216,6 @@ const StreamingControl = ({ imageSrc }: StreamingControlProps) => {
         </Button>
         <Button onClick={zoomOut} color="primary">
           Zoom Out
-        </Button>
-        <Button onClick={toggleFullScreen} color="primary">
-          {isFullScreen ? "Exit Full Screen" : "Full Screen"}
         </Button>
       </div>
       <canvas ref={canvasRef} style={{ display: "none" }} width="640" height="480"></canvas>

@@ -8,7 +8,7 @@ import {
   IonPage,
   IonRow,
   IonTitle,
-  IonToolbar
+  IonToolbar,
 } from "@ionic/react";
 import { Button } from "@nextui-org/button";
 import { Spinner } from "@nextui-org/spinner";
@@ -29,7 +29,6 @@ const Home = () => {
   const [selectedEyes, setSelectedEyes] = useState<Eyes | null>(null);
   const [eyesStatus, setEyesStatus] = useState<boolean>(false);
 
-
   const auth = "Basic " + btoa("admin:password");
 
   useEffect(() => {
@@ -38,14 +37,14 @@ const Home = () => {
         if (appliedHostConnection !== null) {
           const response = await axios.get(`${appliedHostConnection?.host}/system`, {
             headers: {
-              Authorization: auth
-            }
+              Authorization: auth,
+            },
           });
 
           const systemInfo: SystemInfo = await response.data;
           systemInfo.eyes.unshift({
             index: -1,
-            name: "Select eyes"
+            name: "Select eyes",
           });
           setSystemInfo(response.data);
         }
@@ -61,7 +60,7 @@ const Home = () => {
     let eventSource: EventSource;
     if (appliedHostConnection !== null && openEyes) {
       eventSource = new EventSource(`${appliedHostConnection?.host}/sensors/eyes/event`, {
-        withCredentials: true
+        withCredentials: true,
       });
       eventSource.onmessage = (event) => {
         const base64Image = event.data;
@@ -91,14 +90,14 @@ const Home = () => {
     try {
       const body = {
         action: eyesStatus ? "on" : "off",
-        index: selectedEyes?.index
+        index: selectedEyes?.index,
       };
 
       if (appliedHostConnection !== null) {
         await axios.post(`${appliedHostConnection?.host}/sensors/eyes`, body, {
           headers: {
-            Authorization: auth
-          }
+            Authorization: auth,
+          },
         });
         if (eyesStatus) {
           setOpenEyes(true);
@@ -112,8 +111,6 @@ const Home = () => {
       console.error("Error occurred at change eyes:", error);
     }
   };
-
-
 
   return (
     <IonPage id="main-content">
@@ -166,11 +163,7 @@ const Home = () => {
                             </Button>
                           </div>
 
-                          {openEyes && imageSrc &&
-                            <StreamingControl
-                              imageSrc={imageSrc}
-                            />
-                          }
+                          {openEyes && imageSrc && <StreamingControl imageSrc={imageSrc} />}
                         </>
                       ) : (
                         <Spinner label="Loading system information..." color="warning" />

@@ -13,7 +13,13 @@ interface SystemInformationTemplateProps {
   setSelectedEyes: (eyes: Eyes | null) => void;
 }
 
-const SystemInformationTemplate = ({systemInfo, openEyes, setEyesStatus, selectedEyes, setSelectedEyes}: SystemInformationTemplateProps) => {
+const SystemInformationTemplate = ({
+  systemInfo,
+  openEyes,
+  setEyesStatus,
+  selectedEyes,
+  setSelectedEyes,
+}: SystemInformationTemplateProps) => {
   const selectEyes = (selection: React.ChangeEvent<HTMLSelectElement>) => {
     const currEye = systemInfo?.eyes.find((_, i) => i === Number(selection.target.value));
     if (selectedEyes !== null && currEye?.index !== selectedEyes.index) {
@@ -61,6 +67,6 @@ const SystemInformationTemplate = ({systemInfo, openEyes, setEyesStatus, selecte
       </Select>
     </>
   );
-}
+};
 
 export default SystemInformationTemplate;
