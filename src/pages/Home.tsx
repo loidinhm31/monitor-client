@@ -13,7 +13,7 @@ import {
 import { Button } from "@nextui-org/button";
 import { Spinner } from "@nextui-org/spinner";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import HostConnectionControl from "@/components/templates/HostConnectionControl";
 import StreamingControl from "@/components/templates/StreamingControl";
@@ -24,7 +24,9 @@ import { Eyes, SystemInfo } from "@/models/sensors";
 const Home = () => {
   const [appliedHostConnection, setAppliedHostConnection] = useState<HostConnection | null>(null);
   const [openEyes, setOpenEyes] = useState<boolean>(false);
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [imageBytes, setImageBytes] = useState<Uint8Array | null>(null);
+  const [audioBytes, setAudioBytes] = useState<Uint8Array | null>(null);
+
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [selectedEyes, setSelectedEyes] = useState<Eyes | null>(null);
   const [eyesStatus, setEyesStatus] = useState<boolean>(false);
@@ -57,36 +59,46 @@ const Home = () => {
   }, [appliedHostConnection]);
 
   useEffect(() => {
-    let connection: WebSocket;
+    let socket: WebSocket;
     if (appliedHostConnection !== null && openEyes) {
-      connection = new WebSocket(`ws://${appliedHostConnection?.host}/sensors/eyes/ws`);
+      socket = new WebSocket(`ws://${appliedHostConnection?.host}/sensors/eyes/ws`);
 
-      connection.onopen = () => {
+      socket.onopen = () => {
         console.log("WebSocket connection established.");
-        connection.send(auth); // Send authentication message
+        socket.send(auth);
       };
 
-      connection.onmessage = (e) => {
+      socket.onmessage = (e) => {
         if (e.data instanceof Blob) {
           const reader = new FileReader();
           reader.onload = () => {
-            setImageSrc(reader.result as string);
-            console.log(reader.result);
+            const arrayBuffer = reader.result as ArrayBuffer;
+            const bytes = new Uint8Array(arrayBuffer);
+
+            if (isImage(bytes)) {
+              setImageBytes(bytes);
+            } else {
+              setAudioBytes(bytes);
+            }
           };
-          reader.readAsDataURL(e.data);
+          reader.readAsArrayBuffer(e.data);
         } else {
           console.log("Received:", e.data);
         }
       };
 
-      connection.onclose = () => console.log("WebSocket connection closed.");
+      socket.onclose = () => console.log("WebSocket connection closed.");
     }
     return () => {
-      if (connection) {
-        connection.close();
+      if (socket) {
+        socket.close();
       }
     };
   }, [appliedHostConnection, openEyes]);
+
+  const isImage = (data: Uint8Array): boolean => {
+    return data.length > 3 && data[0] === 0xFF && data[1] === 0xD8 && data[2] === 0xFF;
+  };
 
   const turnEyes = async (eyesStatus: boolean) => {
     try {
@@ -165,7 +177,11 @@ const Home = () => {
                             </Button>
                           </div>
 
-                          {openEyes && imageSrc && <StreamingControl imageSrc={imageSrc} />}
+                          {openEyes && imageBytes &&
+                            <StreamingControl
+                              imageBytes={imageBytes}
+                              audioBytes={audioBytes}
+                            />}
                         </>
                       ) : (
                         <Spinner label="Loading system information..." color="warning" />
