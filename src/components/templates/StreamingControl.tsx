@@ -10,11 +10,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { CameraIcon } from "@/icons/CameraIcon";
 
 interface StreamingControlProps {
+  socket: WebSocket | null;
   imageBytes: Uint8Array | null;
   audioBytes: Uint8Array | null;
 }
 
-const StreamingControl = ({ imageBytes, audioBytes }: StreamingControlProps) => {
+const StreamingControl = ({ socket, imageBytes, audioBytes }: StreamingControlProps) => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -31,6 +32,10 @@ const StreamingControl = ({ imageBytes, audioBytes }: StreamingControlProps) => 
   const [isFullScreen, setIsFullScreen] = useState<boolean>(false); // State for full-screen mode
 
   useEffect(() => {
+    initializeAudioContext();
+  }, []);
+
+  useEffect(() => {
     if (imageBytes !== null) {
       setImageSrc(URL.createObjectURL(new Blob([imageBytes], { type: "image/jpeg" })));
     }
@@ -38,7 +43,7 @@ const StreamingControl = ({ imageBytes, audioBytes }: StreamingControlProps) => 
 
   useEffect(() => {
     if (audioBytes !== null) {
-      processAudioData(audioBytes)
+      processAudioData(audioBytes);
     }
   }, [audioBytes]);
 
@@ -189,6 +194,22 @@ const StreamingControl = ({ imageBytes, audioBytes }: StreamingControlProps) => 
     setRecording(true);
   };
 
+  const startAudioStream = () => {
+    if (socket !== null) {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send("start_audio");
+      }
+    }
+  };
+
+  const stopAudioStream = () => {
+    if (socket !== null) {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send("stop_audio");
+      }
+    }
+  };
+
   const stopRecording = () => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
@@ -268,6 +289,13 @@ const StreamingControl = ({ imageBytes, audioBytes }: StreamingControlProps) => 
       <div className="w-full flex flex-row flex-wrap gap-4">
         {!isAudioContextReady && (
           <Button onClick={initializeAudioContext}>Start Audio</Button>
+        )}
+
+        {isAudioContextReady && (
+          <>
+            <Button onClick={startAudioStream}>Turn On Audio</Button>
+            <Button onClick={stopAudioStream}>Turn Off Audio</Button>
+          </>
         )}
 
         <Button onClick={captureImage} color="success" endContent={<CameraIcon />}>

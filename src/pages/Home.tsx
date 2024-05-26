@@ -31,6 +31,8 @@ const Home = () => {
   const [selectedEyes, setSelectedEyes] = useState<Eyes | null>(null);
   const [eyesStatus, setEyesStatus] = useState<boolean>(false);
 
+  const socketRef = useRef<WebSocket | null>(null);
+
   const auth = "Basic " + btoa("admin:password");
 
   useEffect(() => {
@@ -62,6 +64,7 @@ const Home = () => {
     let socket: WebSocket;
     if (appliedHostConnection !== null && openEyes) {
       socket = new WebSocket(`ws://${appliedHostConnection?.host}/sensors/eyes/ws`);
+      socketRef.current = socket;
 
       socket.onopen = () => {
         console.log("WebSocket connection established.");
@@ -179,6 +182,7 @@ const Home = () => {
 
                           {openEyes && imageBytes &&
                             <StreamingControl
+                              socket={socketRef.current}
                               imageBytes={imageBytes}
                               audioBytes={audioBytes}
                             />}
