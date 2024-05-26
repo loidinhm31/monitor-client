@@ -8,7 +8,7 @@ import {
   IonPage,
   IonRow,
   IonTitle,
-  IonToolbar
+  IonToolbar,
 } from "@ionic/react";
 import { Button } from "@nextui-org/button";
 import { Spinner } from "@nextui-org/spinner";
@@ -41,14 +41,14 @@ const Home = () => {
         if (appliedHostConnection !== null) {
           const response = await axios.get(`http://${appliedHostConnection?.host}/system`, {
             headers: {
-              Authorization: auth
-            }
+              Authorization: auth,
+            },
           });
 
           const systemInfo: SystemInfo = await response.data;
           systemInfo.eyes.unshift({
             index: -1,
-            name: "Select eyes"
+            name: "Select eyes",
           });
           setSystemInfo(response.data);
         }
@@ -100,21 +100,21 @@ const Home = () => {
   }, [appliedHostConnection, openEyes]);
 
   const isImage = (data: Uint8Array): boolean => {
-    return data.length > 3 && data[0] === 0xFF && data[1] === 0xD8 && data[2] === 0xFF;
+    return data.length > 3 && data[0] === 0xff && data[1] === 0xd8 && data[2] === 0xff;
   };
 
   const turnEyes = async (eyesStatus: boolean) => {
     try {
       const body = {
         action: eyesStatus ? "on" : "off",
-        index: selectedEyes?.index
+        index: selectedEyes?.index,
       };
 
       if (appliedHostConnection !== null) {
         await axios.post(`http://${appliedHostConnection?.host}/sensors/eyes`, body, {
           headers: {
-            Authorization: auth
-          }
+            Authorization: auth,
+          },
         });
         if (eyesStatus) {
           setOpenEyes(true);
@@ -180,12 +180,13 @@ const Home = () => {
                             </Button>
                           </div>
 
-                          {openEyes && imageBytes &&
+                          {openEyes && imageBytes && (
                             <StreamingControl
                               socket={socketRef.current}
                               imageBytes={imageBytes}
                               audioBytes={audioBytes}
-                            />}
+                            />
+                          )}
                         </>
                       ) : (
                         <Spinner label="Loading system information..." color="warning" />

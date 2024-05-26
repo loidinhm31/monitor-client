@@ -10,7 +10,10 @@
     "fix:format": "prettier --write ./src",
     "preview": "vite preview",
     "test.e2e": "cypress run",
-    "test.unit": "vitest"
+    "test.unit": "vitest",
+    "ionic-build": "ionic build",
+    "ionic-copy": "ionic cap copy",
+    "ionic-sync": "ionic cap sync"
   },
   "dependencies": {
     "@capacitor/android": "6.0.0",
