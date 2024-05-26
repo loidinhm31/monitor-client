@@ -41,6 +41,7 @@
     "react-dom": "^18.2.0",
     "react-router": "^5.3.4",
     "react-router-dom": "^5.3.4",
+    "react-use-websocket": "^4.8.1",
     "sass": "^1.77.2"
   },
   "devDependencies": {

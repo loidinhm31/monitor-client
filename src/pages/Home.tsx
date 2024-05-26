@@ -8,7 +8,7 @@ import {
   IonPage,
   IonRow,
   IonTitle,
-  IonToolbar,
+  IonToolbar
 } from "@ionic/react";
 import { Button } from "@nextui-org/button";
 import { Spinner } from "@nextui-org/spinner";
@@ -35,16 +35,16 @@ const Home = () => {
     const fetchSystemInfo = async () => {
       try {
         if (appliedHostConnection !== null) {
-          const response = await axios.get(`${appliedHostConnection?.host}/system`, {
+          const response = await axios.get(`http://${appliedHostConnection?.host}/system`, {
             headers: {
-              Authorization: auth,
-            },
+              Authorization: auth
+            }
           });
 
           const systemInfo: SystemInfo = await response.data;
           systemInfo.eyes.unshift({
             index: -1,
-            name: "Select eyes",
+            name: "Select eyes"
           });
           setSystemInfo(response.data);
         }
@@ -57,47 +57,49 @@ const Home = () => {
   }, [appliedHostConnection]);
 
   useEffect(() => {
-    let eventSource: EventSource;
+    let connection: WebSocket;
     if (appliedHostConnection !== null && openEyes) {
-      eventSource = new EventSource(`${appliedHostConnection?.host}/sensors/eyes/event`, {
-        withCredentials: true,
-      });
-      eventSource.onmessage = (event) => {
-        const base64Image = event.data;
-        setImageSrc(`data:image/jpeg;base64,${base64Image}`);
+      connection = new WebSocket(`ws://${appliedHostConnection?.host}/sensors/eyes/ws`);
+
+      connection.onopen = () => {
+        console.log("WebSocket connection established.");
+        connection.send(auth); // Send authentication message
       };
-      eventSource.onerror = (event: Event) => {
-        console.error("Event source has failed");
-        if ((event as unknown as EventSource).readyState === EventSource.CLOSED) {
-          (eventSource as EventSource).close();
+
+      connection.onmessage = (e) => {
+        if (e.data instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            setImageSrc(reader.result as string);
+            console.log(reader.result);
+          };
+          reader.readAsDataURL(e.data);
+        } else {
+          console.log("Received:", e.data);
         }
       };
+
+      connection.onclose = () => console.log("WebSocket connection closed.");
     }
     return () => {
-      if (eventSource) {
-        console.log(`Closing stream...`);
-        eventSource.close();
-        console.log(`Closed stream, trying to close eyes if needed...`);
-
-        turnEyes(false).then(() => {
-          console.log("End => Eyes closed");
-        });
+      if (connection) {
+        connection.close();
       }
     };
-  }, [openEyes]);
+  }, [appliedHostConnection, openEyes]);
 
   const turnEyes = async (eyesStatus: boolean) => {
     try {
       const body = {
         action: eyesStatus ? "on" : "off",
-        index: selectedEyes?.index,
+        index: selectedEyes?.index
       };
 
       if (appliedHostConnection !== null) {
-        await axios.post(`${appliedHostConnection?.host}/sensors/eyes`, body, {
+        await axios.post(`http://${appliedHostConnection?.host}/sensors/eyes`, body, {
           headers: {
-            Authorization: auth,
-          },
+            Authorization: auth
+          }
         });
         if (eyesStatus) {
           setOpenEyes(true);
