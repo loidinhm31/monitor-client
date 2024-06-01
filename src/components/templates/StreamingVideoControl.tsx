@@ -35,12 +35,9 @@ const StreamingVideoControl = ({ hostConnection }: StreamingControlProps) => {
         if (e.data instanceof Blob) {
           const reader = new FileReader();
           reader.onload = () => {
-            const arrayBuffer = reader.result as ArrayBuffer;
-            const bytes = new Uint8Array(arrayBuffer);
-
-            setImageSrc(URL.createObjectURL(new Blob([bytes], { type: "image/jpeg" })));
+            setImageSrc(reader.result as string);
           };
-          reader.readAsArrayBuffer(e.data);
+          reader.readAsDataURL(e.data);
         } else {
           console.log("Received:", e.data);
         }
@@ -99,7 +96,8 @@ const StreamingVideoControl = ({ hostConnection }: StreamingControlProps) => {
             width={750}
             style={{ transform: `scale(${zoomLevel})` }}
           />
-          <CardFooter className="justify-between before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
+          <CardFooter
+            className="justify-between before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
             <Chip variant="dot" color="danger" style={{ color: "red" }}>
               Streaming
             </Chip>

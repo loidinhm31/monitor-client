@@ -48,23 +48,6 @@ const StreamingVideoControl = ({ hostConnection }: StreamingControlProps) => {
     };
   }, [hostConnection, isAudioContextReady]);
 
-  const handleAudioData = (data: ArrayBuffer) => {
-    if (audioContextRef) {
-      audioContextRef.current.decodeAudioData(
-        data,
-        (buffer) => {
-          const audioBufferSourceNode = audioContextRef.current.createBufferSource();
-          audioBufferSourceNode.buffer = buffer;
-          audioBufferSourceNode.connect(audioContextRef.current.destination);
-          audioBufferSourceNode.start();
-        },
-        (error) => {
-          console.error("Error decoding audio data", error);
-        },
-      );
-    }
-  };
-
   const processAudioData = (data: Uint8Array) => {
     if (!audioContextRef.current) return;
 

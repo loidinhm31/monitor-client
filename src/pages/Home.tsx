@@ -54,6 +54,8 @@ const Home = () => {
       }
     };
 
+    setSystemInfo(null);
+
     fetchSystemInfo();
   }, [appliedHostConnection]);
 
