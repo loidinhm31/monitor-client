@@ -6,6 +6,7 @@ import { chevronCollapseOutline, chevronExpandOutline } from "ionicons/icons";
 import React, { useEffect, useRef, useState } from "react";
 
 import SaveDataControl from "@/components/templates/SaveDataControl";
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
 interface StreamingControlProps {
   hostConnection: string | null;
@@ -16,7 +17,6 @@ const StreamingVideoControl = ({ hostConnection }: StreamingControlProps) => {
 
   const [imageSrc, setImageSrc] = useState<string | null>(null);
 
-  const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [isFullScreen, setIsFullScreen] = useState<boolean>(false); // State for full-screen mode
 
   const auth = "Basic " + btoa("admin:password");
@@ -52,13 +52,6 @@ const StreamingVideoControl = ({ hostConnection }: StreamingControlProps) => {
     };
   }, [hostConnection]);
 
-  const zoomIn = () => {
-    setZoomLevel((prevZoomLevel) => Math.min(prevZoomLevel + 0.1, 3));
-  };
-
-  const zoomOut = () => {
-    setZoomLevel((prevZoomLevel) => Math.max(prevZoomLevel - 0.1, 1));
-  };
 
   const enterFullScreen = () => {
     if (imageContainerRef.current) {
@@ -88,35 +81,31 @@ const StreamingVideoControl = ({ hostConnection }: StreamingControlProps) => {
     <div className="w-full flex flex-col flex-wrap gap-4">
       <div className="mx-auto flex justify-center" style={{ overflow: "hidden" }} ref={imageContainerRef}>
         <Card isFooterBlurred radius="lg" className="mx-auto border-none">
-          <img
-            alt="Eyes Stream"
-            className={`object-contain transition-transform duration-300 ${isFullScreen ? "w-full h-full" : "max-w-full max-h-full"}`} // Apply full-screen and normal styles
-            src={imageSrc === null || imageSrc === undefined ? "" : imageSrc}
-            height={750}
-            width={750}
-            style={{ transform: `scale(${zoomLevel})` }}
-          />
+          <TransformWrapper>
+            <TransformComponent>
+              <img
+                alt="Eyes Stream"
+                className={`object-contain transition-transform duration-300 ${isFullScreen ? "w-full h-full" : "max-w-full max-h-full"}`} // Apply full-screen and normal styles
+                src={imageSrc === null || imageSrc === undefined ? "" : imageSrc}
+                height={750}
+                width={750}
+              />
+            </TransformComponent>
+          </TransformWrapper>
           <CardFooter
             className="justify-between before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
             <Chip variant="dot" color="danger" style={{ color: "red" }}>
               Streaming
             </Chip>
           </CardFooter>
+          <Button onClick={toggleFullScreen} className="absolute bottom-0 right-1" isIconOnly variant="faded">
+            <IonIcon size="large" icon={isFullScreen ? chevronCollapseOutline : chevronExpandOutline}></IonIcon>
+          </Button>
         </Card>
 
-        <Button onClick={toggleFullScreen} className="absolute bottom-0 right-1" isIconOnly variant="faded">
-          <IonIcon size="large" icon={isFullScreen ? chevronCollapseOutline : chevronExpandOutline}></IonIcon>
-        </Button>
       </div>
       <div className="w-full flex flex-row flex-wrap gap-4">
         <SaveDataControl imageSrc={imageSrc} />
-
-        <Button onClick={zoomIn} color="primary">
-          Zoom In
-        </Button>
-        <Button onClick={zoomOut} color="primary">
-          Zoom Out
-        </Button>
       </div>
     </div>
   );
