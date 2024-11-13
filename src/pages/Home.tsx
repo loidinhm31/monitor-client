@@ -8,7 +8,7 @@ import {
   IonPage,
   IonRow,
   IonTitle,
-  IonToolbar,
+  IonToolbar
 } from "@ionic/react";
 import { Button } from "@nextui-org/button";
 import { Spinner } from "@nextui-org/spinner";
@@ -16,19 +16,20 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 
 import HostConnectionControl from "@/components/templates/HostConnectionControl";
-import StreamingAudioControl from "@/components/templates/StreamingAudioControl";
+import AudioControl from "@/components/templates/AudioControl";
 import StreamingVideoControl from "@/components/templates/StreamingVideoControl";
 import SystemInformationTemplate from "@/components/templates/SystemInformationTemplate";
 import { HostConnection } from "@/models/connections";
 import { Eyes, SystemInfo } from "@/models/sensors";
+import TestStreamingAudioControl from "@/components/templates/TestStreamingAudioControl";
 
 const Home = () => {
   const [appliedHostConnection, setAppliedHostConnection] = useState<HostConnection | null>(null);
   const [openEyes, setOpenEyes] = useState<boolean>(false);
-
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [selectedEyes, setSelectedEyes] = useState<Eyes | null>(null);
   const [eyesStatus, setEyesStatus] = useState<boolean>(false);
+  const [wsConnection, setWsConnection] = useState<WebSocket | null>(null);
 
   const auth = "Basic " + btoa("admin:password");
 
@@ -55,23 +56,44 @@ const Home = () => {
     };
 
     setSystemInfo(null);
-
     fetchSystemInfo();
+  }, [appliedHostConnection]);
+
+  useEffect(() => {
+    let socket: WebSocket;
+    if (appliedHostConnection !== null) {
+      socket = new WebSocket(`ws://${appliedHostConnection.host}/sensors/eyes/ws`);
+
+      socket.onopen = () => {
+        console.log("WebSocket connection established.");
+        socket.send(auth);
+        setWsConnection(socket);
+      };
+
+      socket.onclose = () => {
+        console.log("WebSocket connection closed.");
+        setWsConnection(null);
+      };
+    }
+
+    return () => {
+      if (socket) {
+        socket.close();
+        setWsConnection(null);
+      }
+    };
   }, [appliedHostConnection]);
 
   const turnEyes = async (eyesStatus: boolean) => {
     try {
-      const body = {
-        action: eyesStatus ? "on" : "off",
-        index: selectedEyes?.index,
-      };
+      if (wsConnection && selectedEyes?.index !== undefined && selectedEyes.index >= 0) {
+        const control = {
+          type: 'control',
+          action: eyesStatus ? "on" : "off",
+          index: selectedEyes.index
+        };
+        wsConnection.send(JSON.stringify(control));
 
-      if (appliedHostConnection !== null) {
-        await axios.post(`http://${appliedHostConnection?.host}/sensors/eyes`, body, {
-          headers: {
-            Authorization: auth,
-          },
-        });
         if (eyesStatus) {
           setOpenEyes(true);
           setEyesStatus(false);
@@ -128,7 +150,7 @@ const Home = () => {
                               }
                               variant={selectedEyes === null || selectedEyes.index < 0 ? "faded" : "solid"}
                               onClick={() => turnEyes(eyesStatus)}
-                              disabled={selectedEyes === null || selectedEyes.index < 0}
+                              disabled={selectedEyes === null || selectedEyes.index < 0 || !wsConnection}
                             >
                               {eyesStatus && !openEyes && selectedEyes !== null && selectedEyes.index >= 0
                                 ? "Turn Eyes On"
@@ -136,7 +158,11 @@ const Home = () => {
                             </Button>
                           </div>
 
-                          {openEyes && <StreamingVideoControl hostConnection={appliedHostConnection.host} />}
+                          {openEyes && (
+                            <StreamingVideoControl
+                              wsConnection={wsConnection}
+                            />
+                          )}
 
                           <StreamingAudioControl hostConnection={appliedHostConnection.host} />
                         </>

@@ -4,34 +4,21 @@ import { Card, CardFooter } from "@nextui-org/card";
 import { Chip } from "@nextui-org/chip";
 import { chevronCollapseOutline, chevronExpandOutline } from "ionicons/icons";
 import React, { useEffect, useRef, useState } from "react";
-
-import SaveDataControl from "@/components/templates/SaveDataControl";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import SaveDataControl from "@/components/templates/SaveDataControl";
 
 interface StreamingControlProps {
-  hostConnection: string | null;
+  wsConnection: WebSocket | null;
 }
 
-const StreamingVideoControl = ({ hostConnection }: StreamingControlProps) => {
+const StreamingVideoControl = ({ wsConnection }: StreamingControlProps) => {
   const imageContainerRef = useRef<HTMLDivElement | null>(null);
-
   const [imageSrc, setImageSrc] = useState<string | null>(null);
-
-  const [isFullScreen, setIsFullScreen] = useState<boolean>(false); // State for full-screen mode
-
-  const auth = "Basic " + btoa("admin:password");
+  const [isFullScreen, setIsFullScreen] = useState<boolean>(false);
 
   useEffect(() => {
-    let socket: WebSocket;
-    if (hostConnection !== null) {
-      socket = new WebSocket(`ws://${hostConnection}/sensors/eyes/ws`);
-
-      socket.onopen = () => {
-        console.log("WebSocket connection established.");
-        socket.send(auth);
-      };
-
-      socket.onmessage = (e) => {
+    if (wsConnection) {
+      wsConnection.onmessage = (e) => {
         if (e.data instanceof Blob) {
           const reader = new FileReader();
           reader.onload = () => {
@@ -39,19 +26,17 @@ const StreamingVideoControl = ({ hostConnection }: StreamingControlProps) => {
           };
           reader.readAsDataURL(e.data);
         } else {
-          console.log("Received:", e.data);
+          try {
+            const data = JSON.parse(e.data);
+            console.log("Received message:", data);
+            // Handle any control messages or status updates here
+          } catch (error) {
+            console.log("Received non-JSON message:", e.data);
+          }
         }
       };
-
-      socket.onclose = () => console.log("WebSocket connection closed.");
     }
-    return () => {
-      if (socket) {
-        socket.close();
-      }
-    };
-  }, [hostConnection]);
-
+  }, [wsConnection]);
 
   const enterFullScreen = () => {
     if (imageContainerRef.current) {
@@ -85,7 +70,7 @@ const StreamingVideoControl = ({ hostConnection }: StreamingControlProps) => {
             <TransformComponent>
               <img
                 alt="Eyes Stream"
-                className={`object-contain transition-transform duration-300 ${isFullScreen ? "w-full h-full" : "max-w-full max-h-full"}`} // Apply full-screen and normal styles
+                className={`object-contain transition-transform duration-300 ${isFullScreen ? "w-full h-full" : "max-w-full max-h-full"}`}
                 src={imageSrc === null || imageSrc === undefined ? "" : imageSrc}
                 height={750}
                 width={750}
@@ -102,7 +87,6 @@ const StreamingVideoControl = ({ hostConnection }: StreamingControlProps) => {
             <IonIcon size="large" icon={isFullScreen ? chevronCollapseOutline : chevronExpandOutline}></IonIcon>
           </Button>
         </Card>
-
       </div>
       <div className="w-full flex flex-row flex-wrap gap-4">
         <SaveDataControl imageSrc={imageSrc} />
