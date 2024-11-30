@@ -61,7 +61,7 @@ const SaveDataControl = ({ imageSrc }: SaveDataControlProps) => {
       const timestamp = now.toISOString().replace(/T/, "_").replace(/:/g, "_").split(".")[0];
       const fileName = `captured-image_${timestamp}.jpg`;
 
-      if (Capacitor.isNativePlatform()) {
+      if (Capacitor.getPlatform() === "android") {
         const base64Data = imageSrc.split(",")[1];
         await ensureDirectoryExists(path);
 
