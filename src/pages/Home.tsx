@@ -8,7 +8,7 @@ import {
   IonPage,
   IonRow,
   IonTitle,
-  IonToolbar
+  IonToolbar,
 } from "@ionic/react";
 import { Button } from "@nextui-org/button";
 import { Spinner } from "@nextui-org/spinner";
@@ -16,12 +16,12 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 
 import HostConnectionControl from "@/components/templates/HostConnectionControl";
-import AudioControl from "@/components/templates/AudioControl";
 import StreamingVideoControl from "@/components/templates/StreamingVideoControl";
 import SystemInformationTemplate from "@/components/templates/SystemInformationTemplate";
 import { HostConnection } from "@/models/connections";
 import { Eyes, SystemInfo } from "@/models/sensors";
-import TestStreamingAudioControl from "@/components/templates/TestStreamingAudioControl";
+import ServerCamera from "@/components/templates/ServerCamera";
+import AudioControl from "@/components/templates/AudioControl";
 
 const Home = () => {
   const [appliedHostConnection, setAppliedHostConnection] = useState<HostConnection | null>(null);
@@ -88,9 +88,9 @@ const Home = () => {
     try {
       if (wsConnection && selectedEyes?.index !== undefined && selectedEyes.index >= 0) {
         const control = {
-          type: 'control',
+          type: "control",
           action: eyesStatus ? "on" : "off",
-          index: selectedEyes.index
+          index: selectedEyes.index,
         };
         wsConnection.send(JSON.stringify(control));
 
@@ -158,13 +158,10 @@ const Home = () => {
                             </Button>
                           </div>
 
-                          {openEyes && (
-                            <StreamingVideoControl
-                              wsConnection={wsConnection}
-                            />
-                          )}
+                          <ServerCamera hostConnection={appliedHostConnection?.host} />
 
-                          <StreamingAudioControl hostConnection={appliedHostConnection.host} />
+                          {openEyes && <StreamingVideoControl wsConnection={wsConnection} />}
+                          <AudioControl hostConnection={appliedHostConnection?.host} />
                         </>
                       ) : (
                         <Spinner label="Loading system information..." color="warning" />
