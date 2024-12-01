@@ -8,21 +8,21 @@ import {
   TableCell,
 } from "@nextui-org/react";
 import { COLUMN_LABELS } from '@/utils/stockUtils';
-import type { StockData } from '@/types/stock';
+import type { TransformedStockData } from '@/types/stock';
 
 interface DataTableProps {
-  data: StockData[];
+  data: TransformedStockData[];
 }
 
 const DataTable: React.FC<DataTableProps> = ({ data }) => {
   const columns = [
     { key: 'date', label: COLUMN_LABELS.date },
     { key: 'closePrice', label: COLUMN_LABELS.closePrice },
-    { key: 'change', label: COLUMN_LABELS.change },
+    { key: 'priceChange', label: COLUMN_LABELS.change },
     { key: 'volume', label: COLUMN_LABELS.volume },
     { key: 'openPrice', label: COLUMN_LABELS.openPrice },
-    { key: 'highPrice', label: COLUMN_LABELS.highPrice },
-    { key: 'lowPrice', label: COLUMN_LABELS.lowPrice },
+    { key: 'highestPrice', label: COLUMN_LABELS.highestPrice },
+    { key: 'lowestPrice', label: COLUMN_LABELS.lowestPrice },
   ];
 
   return (
@@ -43,7 +43,7 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
               <TableCell key={column.key}>
                 {column.key === 'volume'
                   ? row[column.key].toLocaleString()
-                  : row[column.key]}
+                  : column.key === 'priceChange' ? `${row[column.key]?.value} (${row[column.key]?.percentage}%)` : row[column.key]}
               </TableCell>
             ))}
           </TableRow>

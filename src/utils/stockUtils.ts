@@ -1,20 +1,40 @@
-import type { RawStockData, StockData, TimeframeOption } from "@/types/stock";
+import type { RawStockDataPoint, TransformedStockData, TimeframeOption } from "@/types/stock";
 
-export const transformStockData = (rawData: RawStockData): StockData => ({
-  date: rawData.Ngay,
-  adjustedPrice: rawData.GiaDieuChinh,
-  closePrice: rawData.GiaDongCua,
-  change: rawData.ThayDoi,
-  volume: rawData.KhoiLuongKhopLenh,
-  value: rawData.GiaTriKhopLenh,
-  matchedVolume: rawData.KLThoaThuan,
-  matchedValue: rawData.GtThoaThuan,
-  openPrice: rawData.GiaMoCua,
-  highPrice: rawData.GiaCaoNhat,
-  lowPrice: rawData.GiaThapNhat,
-});
+// Helper type for price change parsing
+export interface ParsedPriceChange {
+  value: number;
+  percentage: number;
+}
 
-export const filterDataByTimeframe = (data: StockData[], timeframe: TimeframeOption): StockData[] => {
+export const parsePriceChange = (change: string): ParsedPriceChange => {
+  const matches = change.match(/(-?\d+\.?\d*)\((-?\d+\.?\d*) %\)/);
+  if (!matches) {
+    return { value: 0, percentage: 0 };
+  }
+  return {
+    value: parseFloat(matches[1]),
+    percentage: parseFloat(matches[2])
+  };
+};
+
+export const transformStockData = (data: RawStockDataPoint): TransformedStockData => {
+  const priceChange = parsePriceChange(data.ThayDoi);
+
+  return {
+    date: data.Ngay,
+    adjustedPrice: data.GiaDieuChinh,
+    closePrice: data.GiaDongCua,
+    priceChange,
+    volume: data.KhoiLuongKhopLenh,
+    negotiatedVolume: data.KLThoaThuan,
+    negotiatedValue: data.GtThoaThuan,
+    openPrice: data.GiaMoCua,
+    highestPrice: data.GiaCaoNhat,
+    lowestPrice: data.GiaThapNhat
+  };
+};
+
+export const filterDataByTimeframe = (data: TransformedStockData[], timeframe: TimeframeOption): TransformedStockData[] => {
   // const now = new Date();
   // const timeframes = {
   //   "1W": 7,
@@ -36,6 +56,6 @@ export const COLUMN_LABELS = {
   change: "Change",
   volume: "Volume",
   openPrice: "Open Price",
-  highPrice: "High",
-  lowPrice: "Low",
+  highestPrice: "High",
+  lowestPrice: "Low",
 };

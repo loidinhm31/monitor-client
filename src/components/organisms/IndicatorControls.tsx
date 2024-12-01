@@ -1,11 +1,12 @@
-import React from 'react';
 import { Switch } from "@nextui-org/react";
+import React from 'react';
 
 export interface Indicators {
   sma: boolean;
   ema: boolean;
   macd: boolean;
   rsi: boolean;
+  volume: boolean;
 }
 
 interface IndicatorControlsProps {
@@ -50,6 +51,14 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({
         }
       >
         RSI
+      </Switch>
+      <Switch
+        isSelected={indicators.volume}
+        onValueChange={(value) =>
+          onIndicatorChange({ ...indicators, volume: value })
+        }
+      >
+        Volume
       </Switch>
     </div>
   );

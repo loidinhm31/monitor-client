@@ -1,4 +1,13 @@
-export interface RawStockData {
+export interface StockApiResponse {
+  Data: {
+    TotalCount: number;
+    Data: RawStockDataPoint[];
+  };
+  Message: string | null;
+  Success: boolean;
+}
+
+export interface RawStockDataPoint {
   Ngay: string;
   GiaDieuChinh: number;
   GiaDongCua: number;
@@ -12,21 +21,23 @@ export interface RawStockData {
   GiaThapNhat: number;
 }
 
-export interface StockData {
+export interface TransformedStockData {
   date: string;
   adjustedPrice: number;
   closePrice: number;
-  change: string;
+  priceChange: {
+    value: number;
+    percentage: number;
+  };
   volume: number;
-  value: number;
-  matchedVolume: number;
-  matchedValue: number;
+  negotiatedVolume: number;
+  negotiatedValue: number;
   openPrice: number;
-  highPrice: number;
-  lowPrice: number;
+  highestPrice: number;
+  lowestPrice: number;
 }
 
-export interface ChartData extends StockData {
+export interface ChartData extends TransformedStockData {
   sma20?: number;
   ema20?: number;
   macd?: number;

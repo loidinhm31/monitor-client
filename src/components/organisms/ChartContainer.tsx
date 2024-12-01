@@ -1,18 +1,20 @@
-// components/EnhancedChartContainer.tsx
 import React from 'react';
 import {
-  LineChart,
+  Bar,
+  CartesianGrid,
+  ComposedChart,
+  Legend,
   Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  ReferenceLine,
 } from 'recharts';
-import { ChartProps } from '@/types/stock';
+
 import { Indicators } from '@/components/organisms/IndicatorControls';
+import { ChartProps } from '@/types/stock';
 
 interface EnhancedChartProps extends ChartProps {
   selectedTab: string;
@@ -28,7 +30,7 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({
     if (selectedTab === 'price') {
       return (
         <ResponsiveContainer width="100%" height={400}>
-          <LineChart
+          <ComposedChart
             data={data}
             margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
           >
@@ -38,10 +40,14 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({
               tick={{ fontSize: 12 }}
               interval="preserveStartEnd"
             />
-            <YAxis />
+            <YAxis yAxisId="left" />
+            {indicators.volume && (
+              <YAxis yAxisId="right" orientation="right" />
+            )}
             <Tooltip />
             <Legend />
             <Line
+              yAxisId="left"
               type="monotone"
               dataKey="closePrice"
               stroke="#0072F5"
@@ -50,6 +56,7 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({
             />
             {indicators.sma && (
               <Line
+                yAxisId="left"
                 type="monotone"
                 dataKey="sma"
                 stroke="#F5A524"
@@ -59,6 +66,7 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({
             )}
             {indicators.ema && (
               <Line
+                yAxisId="left"
                 type="monotone"
                 dataKey="ema"
                 stroke="#17C964"
@@ -66,7 +74,16 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({
                 dot={false}
               />
             )}
-          </LineChart>
+            {indicators.volume && (
+              <Bar
+                yAxisId="right"
+                dataKey="volume"
+                fill="#7828C8"
+                name="Volume"
+                opacity={0.3}
+              />
+            )}
+          </ComposedChart>
         </ResponsiveContainer>
       );
     }
@@ -130,34 +147,6 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({
               dataKey="rsi"
               stroke="#7828C8"
               name="RSI"
-              dot={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      );
-    }
-
-    if (selectedTab === 'volume') {
-      return (
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart
-            data={data}
-            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="date"
-              tick={{ fontSize: 12 }}
-              interval="preserveStartEnd"
-            />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey="volume"
-              stroke="#7828C8"
-              name="Trading Volume"
               dot={false}
             />
           </LineChart>
