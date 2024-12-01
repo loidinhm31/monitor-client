@@ -24,6 +24,7 @@ export interface StockData {
   openPrice: number;
   highPrice: number;
   lowPrice: number;
+  timestamp: number;
 }
 
 export interface ChartData extends StockData {
@@ -40,4 +41,10 @@ export type TimeframeOption = '1W' | '1M' | '3M' | '6M';
 export interface ChartProps {
   data: ChartData[];
   timeframe: TimeframeOption;
+}
+
+export interface IndicatorOptions {
+  showVolume: boolean;
+  showOpenPrice: boolean;
+  showHighLow: boolean;
 }
