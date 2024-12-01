@@ -15,13 +15,13 @@ import { Spinner } from "@nextui-org/spinner";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
+import AudioControl from "@/components/templates/AudioControl";
 import HostConnectionControl from "@/components/templates/HostConnectionControl";
+import ServerCamera from "@/components/templates/ServerCamera";
 import StreamingVideoControl from "@/components/templates/StreamingVideoControl";
 import SystemInformationTemplate from "@/components/templates/SystemInformationTemplate";
 import { HostConnection } from "@/models/connections";
 import { Eyes, SystemInfo } from "@/models/sensors";
-import ServerCamera from "@/components/templates/ServerCamera";
-import AudioControl from "@/components/templates/AudioControl";
 
 const Home = () => {
   const [appliedHostConnection, setAppliedHostConnection] = useState<HostConnection | null>(null);
@@ -118,7 +118,7 @@ const Home = () => {
         </IonToolbar>
       </IonHeader>
 
-      <IonContent className="ion-padding">
+      <IonContent className="ion-padding" id="main-content">
         <div className="mx-auto px-1">
           <HostConnectionControl
             appliedHostConnection={appliedHostConnection}
