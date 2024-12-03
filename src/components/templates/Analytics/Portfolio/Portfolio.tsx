@@ -1,6 +1,6 @@
 import { CalendarDate } from "@internationalized/date";
 import { Button, Card, CardBody, CardHeader, Input, Select, SelectItem, Spinner, Tab, Tabs } from "@nextui-org/react";
-import { Plus } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import React, { useMemo, useState } from "react";
 
 import ResponsivePortfolioDataTable from "@/components/templates/Analytics/Portfolio/ResponsivePortfolioDataTable";
@@ -21,7 +21,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateRange }) => {
   const [selectedTab, setSelectedTab] = useState("holdings");
   const [timeframe, setTimeframe] = useState<TimeframeOption>("ALL");
 
-  const { portfolioSymbols, portfolioData, loading, error, addSymbol, removeSymbol } = usePortfolio({
+  const { portfolioSymbols, portfolioData, loading, error, addSymbol, removeSymbol, refreshPortfolio } = usePortfolio({
     startDate: dateRange.startDate,
     endDate: dateRange.endDate,
   });
@@ -58,6 +58,10 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateRange }) => {
       await addSymbol(newSymbol.trim().toUpperCase());
       setNewSymbol("");
     }
+  };
+
+  const handleRefresh = async () => {
+    await refreshPortfolio();
   };
 
   return (
@@ -99,6 +103,11 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateRange }) => {
                 All Time
               </SelectItem>
             </Select>
+
+            <Button isIconOnly variant="flat" onPress={handleRefresh} isLoading={loading} className="min-w-unit-10">
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+
             <form onSubmit={handleSubmit} className="flex gap-2 w-full sm:w-auto">
               <Input
                 type="text"

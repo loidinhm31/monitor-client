@@ -16,7 +16,12 @@ interface PortfolioData {
 }
 
 export const usePortfolio = ({ startDate, endDate }: UsePortfolioOptions) => {
-  // Load initial symbols from localStorage
+  const dateRangeRef = useRef({ startDate, endDate });
+  const { fetchAllData } = useStockData({
+    startDate: dateRangeRef.current.startDate,
+    endDate: dateRangeRef.current.endDate,
+  });
+
   const [portfolioSymbols, setPortfolioSymbols] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem(PORTFOLIO_STORAGE_KEY);
@@ -33,51 +38,52 @@ export const usePortfolio = ({ startDate, endDate }: UsePortfolioOptions) => {
   const loadingRef = useRef(false);
   const initialLoadDone = useRef(false);
 
-  // Initialize stock data hook
-  const { fetchAllData } = useStockData({
-    startDate,
-    endDate,
-  });
-
-  // Keep portfolio symbols synced with localStorage
-  useEffect(() => {
+  // Save portfolio symbols to localStorage
+  const savePortfolioSymbols = useCallback((symbols: string[]) => {
     try {
-      localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(portfolioSymbols));
+      localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(symbols));
     } catch (error) {
       console.error("Error saving portfolio to storage:", error);
     }
-  }, [portfolioSymbols]);
+  }, []);
 
-  // Load initial portfolio data
   useEffect(() => {
-    const loadInitialData = async () => {
-      if (loadingRef.current || initialLoadDone.current || portfolioSymbols.length === 0) {
-        return;
-      }
+    if (loadingRef.current || initialLoadDone.current || portfolioSymbols.length === 0) {
+      return;
+    }
 
+    const loadInitialData = async () => {
       loadingRef.current = true;
       setLoading(true);
       setError("");
 
       try {
-        const newData: PortfolioData = { ...portfolioData };
-        let hasNewData = false;
+        const newData: PortfolioData = {};
+        let hasErrors = false;
 
         for (const symbol of portfolioSymbols) {
-          if (!newData[symbol]) {
-            try {
+          try {
+            if (!portfolioData[symbol]) {
               const data = await fetchAllData(symbol);
-              newData[symbol] = data;
-              hasNewData = true;
-            } catch (error) {
-              console.error(`Error loading initial data for ${symbol}:`, error);
-              setError((prev) => (prev ? `${prev}, ${symbol}` : `Failed to load: ${symbol}`));
+              if (data) {
+                newData[symbol] = data;
+              }
             }
+          } catch (err) {
+            hasErrors = true;
+            console.error(`Error loading data for ${symbol}:`, err);
           }
         }
 
-        if (hasNewData) {
-          setPortfolioData(newData);
+        if (Object.keys(newData).length > 0) {
+          setPortfolioData(prev => ({
+            ...prev,
+            ...newData
+          }));
+        }
+
+        if (hasErrors) {
+          setError("Some symbols failed to load. Please try refreshing.");
         }
       } finally {
         loadingRef.current = false;
@@ -87,44 +93,87 @@ export const usePortfolio = ({ startDate, endDate }: UsePortfolioOptions) => {
     };
 
     loadInitialData();
-  }, [portfolioSymbols, fetchAllData]);
+  }, []);
 
-  const addSymbol = useCallback(
-    async (symbol: string) => {
-      if (portfolioSymbols.includes(symbol)) {
-        return false;
+  const refreshPortfolio = useCallback(async (symbols?: string[]) => {
+    if (loadingRef.current) return;
+
+    // Update dateRange for the refresh
+    dateRangeRef.current = { startDate, endDate };
+
+    loadingRef.current = true;
+    setLoading(true);
+    setError("");
+
+    try {
+      const symbolsToRefresh = symbols || portfolioSymbols;
+      const newData: PortfolioData = { ...portfolioData };
+      let hasErrors = false;
+
+      for (const symbol of symbolsToRefresh) {
+        try {
+          const data = await fetchAllData(symbol);
+          if (data) {
+            newData[symbol] = data;
+          }
+        } catch (err) {
+          hasErrors = true;
+          console.error(`Error refreshing data for ${symbol}:`, err);
+        }
       }
 
-      setLoading(true);
-      setError("");
+      setPortfolioData(newData);
 
-      try {
-        const data = await fetchAllData(symbol);
-        setPortfolioSymbols((prev) => [...prev, symbol]);
-        setPortfolioData((prev) => ({
+      if (hasErrors) {
+        setError("Some symbols failed to refresh.");
+      }
+    } finally {
+      loadingRef.current = false;
+      setLoading(false);
+    }
+  }, [portfolioSymbols, portfolioData, fetchAllData, startDate, endDate]);
+
+  const addSymbol = useCallback(async (symbol: string) => {
+    if (portfolioSymbols.includes(symbol)) {
+      return false;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const data = await fetchAllData(symbol);
+      if (data) {
+        const newSymbols = [...portfolioSymbols, symbol];
+        setPortfolioSymbols(newSymbols);
+        savePortfolioSymbols(newSymbols);
+
+        setPortfolioData(prev => ({
           ...prev,
-          [symbol]: data,
+          [symbol]: data
         }));
         return true;
-      } catch (error) {
-        console.error("Error adding symbol to portfolio:", error);
-        setError(`Failed to add ${symbol}`);
-        return false;
-      } finally {
-        setLoading(false);
       }
-    },
-    [portfolioSymbols, fetchAllData],
-  );
+      return false;
+    } catch (error) {
+      setError(`Failed to add ${symbol}`);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [portfolioSymbols, fetchAllData, savePortfolioSymbols]);
 
   const removeSymbol = useCallback((symbol: string) => {
-    setPortfolioSymbols((prev) => prev.filter((s) => s !== symbol));
-    setPortfolioData((prev) => {
+    const newSymbols = portfolioSymbols.filter(s => s !== symbol);
+    setPortfolioSymbols(newSymbols);
+    savePortfolioSymbols(newSymbols);
+
+    setPortfolioData(prev => {
       const newData = { ...prev };
       delete newData[symbol];
       return newData;
     });
-  }, []);
+  }, [portfolioSymbols, savePortfolioSymbols]);
 
   const clearPortfolio = useCallback(() => {
     setPortfolioSymbols([]);
@@ -140,5 +189,6 @@ export const usePortfolio = ({ startDate, endDate }: UsePortfolioOptions) => {
     addSymbol,
     removeSymbol,
     clearPortfolio,
+    refreshPortfolio
   };
 };
