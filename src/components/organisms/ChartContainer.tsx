@@ -68,10 +68,11 @@ const ChartContainer: React.FC<ChartContainerProps> = ({ data, selectedTab, indi
         <XAxis
           dataKey="date"
           tick={{ fontSize: config.fontSize }}
-          interval={isMobile ? "preserveStartEnd" : 0}
+          interval={isMobile ? "preserveStartEnd" : "equidistantPreserveStart"}
           angle={isMobile ? -90 : -45}
-          textAnchor={isMobile ? "end" : "middle"}
-          height={isMobile ? 50 : 30}
+          textAnchor="end"
+          height={60}
+          padding={{ left: 10, right: 10 }}
         />
         <YAxis tick={{ fontSize: config.fontSize }} />
         <Tooltip content={<CustomTooltip />} />
