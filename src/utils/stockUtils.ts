@@ -19,9 +19,12 @@ export const parsePriceChange = (change: string): ParsedPriceChange => {
 
 export const transformStockData = (data: RawStockDataPoint): TransformedStockData => {
   const priceChange = parsePriceChange(data.ThayDoi);
+  const [day, month, year] = data.Ngay.split('/');
+  const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
   return {
     date: data.Ngay,
+    dateObj,
     adjustedPrice: data.GiaDieuChinh,
     closePrice: data.GiaDongCua,
     priceChange,
@@ -35,19 +38,16 @@ export const transformStockData = (data: RawStockDataPoint): TransformedStockDat
 };
 
 export const filterDataByTimeframe = (data: TransformedStockData[], timeframe: TimeframeOption): TransformedStockData[] => {
-  // const now = new Date();
-  // const timeframes = {
-  //   "1W": 7,
-  //   "1M": 30,
-  //   "3M": 90,
-  //   "6M": 180,
-  // };
-  //
-  // const cutoffDate = new Date(now.getTime() - timeframes[timeframe] * 24 * 60 * 60 * 1000);
-  // return data.filter((item) => {
-  //   return new Date(item.date.split("/").reverse().join("-")) >= cutoffDate;
-  // });
-  return data;
+  const now = new Date();
+  const timeframes: Record<TimeframeOption, number> = {
+    "1W": 7,
+    "1M": 30,
+    "3M": 90,
+    "6M": 180,
+  };
+
+  const cutoffDate = new Date(now.getTime() - timeframes[timeframe] * 24 * 60 * 60 * 1000);
+  return data.filter((item) => item.dateObj >= cutoffDate);
 };
 
 export const COLUMN_LABELS = {

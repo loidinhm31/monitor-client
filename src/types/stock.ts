@@ -23,6 +23,7 @@ export interface RawStockDataPoint {
 
 export interface TransformedStockData {
   date: string;
+  dateObj: Date;
   adjustedPrice: number;
   closePrice: number;
   priceChange: {
@@ -38,17 +39,25 @@ export interface TransformedStockData {
 }
 
 export interface ChartData extends TransformedStockData {
-  sma20?: number;
-  ema20?: number;
+  sma?: number;
+  ema?: number;
   macd?: number;
   signal?: number;
+  histogram?: number;
   rsi?: number;
 }
 
 export type TimeframeOption = '1W' | '1M' | '3M' | '6M';
 
-
 export interface ChartProps {
   data: ChartData[];
-  timeframe: TimeframeOption;
+  timeframe?: TimeframeOption;
+  selectedTab: string;
+  indicators: {
+    sma: boolean;
+    ema: boolean;
+    macd: boolean;
+    rsi: boolean;
+    volume: boolean;
+  };
 }
