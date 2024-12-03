@@ -30,7 +30,7 @@ const Analytics: React.FC = () => {
     return `${date.year}-${date.month.toString().padStart(2, "0")}-${date.day.toString().padStart(2, "0")}`;
   };
 
-  const fetchStockData = async (symbol: string): Promise<TransformedStockData[]> => {
+  const fetchDataPage = async (symbol: string, pageIndex: number): Promise<StockApiResponse> => {
     try {
       const response = await HttpService.getAxiosClient().get<StockApiResponse>(
         "https://s.cafef.vn/Ajax/PageNew/DataHistory/PriceHistory.ashx",
@@ -39,19 +39,53 @@ const Analytics: React.FC = () => {
             Symbol: symbol,
             StartDate: formatDateForApi(startDate),
             EndDate: formatDateForApi(endDate),
-            PageIndex: 1,
+            PageIndex: pageIndex,
             PageSize: PAGE_SIZE,
           },
-        },
+        }
       );
 
-      if (!response.data.Success || !response.data.Data?.Data) {
-        throw new Error(`Failed to fetch data for ${symbol}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching page ${pageIndex} for ${symbol}:`, error);
+      throw error;
+    }
+  };
+
+  const fetchAllData = async (symbol: string): Promise<TransformedStockData[]> => {
+    try {
+      // Fetch first page to get total count
+      const firstPage = await fetchDataPage(symbol, 1);
+
+      if (!firstPage?.Data?.TotalCount || !Array.isArray(firstPage.Data.Data)) {
+        throw new Error(`Invalid data format received from API for ${symbol}`);
       }
 
-      return response.data.Data.Data.map(transformStockData);
+      const totalCount = firstPage.Data.TotalCount;
+      const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+      let allData: TransformedStockData[] = firstPage.Data.Data.map(transformStockData);
+
+      // Fetch remaining pages if any
+      if (totalPages > 1) {
+        const remainingPages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
+        const promises = remainingPages.map((pageIndex) => fetchDataPage(symbol, pageIndex));
+
+        const results = await Promise.all(promises);
+
+        results.forEach((result: StockApiResponse) => {
+          if (result?.Data?.Data && Array.isArray(result.Data.Data)) {
+            const transformedData = result.Data.Data.map(transformStockData);
+            allData = [...allData, ...transformedData];
+          } else {
+            console.warn(`Invalid data format in page response for ${symbol}`, result);
+          }
+        });
+      }
+
+      return allData;
     } catch (error) {
-      console.error("Error fetching stock data:", error);
+      console.error(`Error fetching all data for ${symbol}:`, error);
       throw error;
     }
   };
@@ -64,7 +98,7 @@ const Analytics: React.FC = () => {
     setError("");
 
     try {
-      const data = await fetchStockData(inputSymbol);
+      const data = await fetchAllData(inputSymbol);
       setMainStockData(data);
       setMainSymbol(inputSymbol);
       setCompareStocksData({}); // Clear comparison data when loading new main stock
@@ -85,7 +119,7 @@ const Analytics: React.FC = () => {
     }
 
     try {
-      const data = await fetchStockData(compareSymbol);
+      const data = await fetchAllData(compareSymbol);
       setCompareStocksData((prev) => ({
         ...prev,
         [compareSymbol]: data,
@@ -94,6 +128,7 @@ const Analytics: React.FC = () => {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to fetch comparison data";
       console.log(message);
+      throw error; // Re-throw to be handled by the calling component
     }
   };
 
