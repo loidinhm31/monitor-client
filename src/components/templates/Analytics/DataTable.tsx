@@ -25,6 +25,23 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
     { key: 'lowestPrice', label: COLUMN_LABELS.lowestPrice },
   ];
 
+  const renderCell = (column: { key: string }, row: TransformedStockData) => {
+    if (column.key === 'priceChange') {
+      const isProfit = row[column.key]?.value >= 0;
+      return (
+        <span className={isProfit ? 'text-success' : 'text-danger'}>
+          {row[column.key]?.value} ({row[column.key]?.percentage}%)
+        </span>
+      );
+    }
+
+    if (column.key === 'volume') {
+      return row[column.key].toLocaleString();
+    }
+
+    return row[column.key];
+  };
+
   return (
     <Table
       aria-label="Stock data table"
@@ -41,9 +58,7 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
           <TableRow key={index}>
             {columns.map((column) => (
               <TableCell key={column.key}>
-                {column.key === 'volume'
-                  ? row[column.key].toLocaleString()
-                  : column.key === 'priceChange' ? `${row[column.key]?.value} (${row[column.key]?.percentage}%)` : row[column.key]}
+                {renderCell(column, row)}
               </TableCell>
             ))}
           </TableRow>
