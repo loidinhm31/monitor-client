@@ -1,6 +1,6 @@
-import React, { useRef, useState } from "react";
 import { Button } from "@nextui-org/button";
 import { Card, CardBody, CardHeader } from "@nextui-org/card";
+import React, { useRef, useState } from "react";
 
 class WavRecorder {
   private chunks: Int16Array[];
@@ -51,26 +51,26 @@ class WavRecorder {
       }
     };
 
-    writeString(0, 'RIFF');                     // RIFF identifier
-    view.setUint32(4, totalSize - 8, true);     // File size - 8
-    writeString(8, 'WAVE');                     // WAVE identifier
-    writeString(12, 'fmt ');                    // fmt chunk
-    view.setUint32(16, 16, true);              // Length of format data
-    view.setUint16(20, 1, true);               // Audio format (1 = PCM)
+    writeString(0, "RIFF"); // RIFF identifier
+    view.setUint32(4, totalSize - 8, true); // File size - 8
+    writeString(8, "WAVE"); // WAVE identifier
+    writeString(12, "fmt "); // fmt chunk
+    view.setUint32(16, 16, true); // Length of format data
+    view.setUint16(20, 1, true); // Audio format (1 = PCM)
     view.setUint16(22, this.numChannels, true); // Number of channels
-    view.setUint32(24, this.sampleRate, true);  // Sample rate
-    view.setUint32(28, byteRate, true);         // Byte rate
-    view.setUint16(32, blockAlign, true);       // Block align
+    view.setUint32(24, this.sampleRate, true); // Sample rate
+    view.setUint32(28, byteRate, true); // Byte rate
+    view.setUint16(32, blockAlign, true); // Block align
     view.setUint16(34, bytesPerSample * 8, true); // Bits per sample
-    writeString(36, 'data');                    // data chunk
-    view.setUint32(40, dataSize, true);         // Data size
+    writeString(36, "data"); // data chunk
+    view.setUint32(40, dataSize, true); // Data size
 
     // Write audio data
     const audioData = new Int16Array(buffer, headerSize);
     audioData.set(fullBuffer);
 
     this.chunks = [];
-    return new Blob([buffer], { type: 'audio/wav' });
+    return new Blob([buffer], { type: "audio/wav" });
   }
 
   getDuration(): number {
@@ -93,7 +93,7 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
   const recorderRef = useRef<WavRecorder>(new WavRecorder());
 
   const addDebugMessage = (message: string) => {
-    setDebugMsg(prev => [...prev.slice(-4), message]);
+    setDebugMsg((prev) => [...prev.slice(-4), message]);
   };
 
   const startRecording = async () => {
@@ -139,7 +139,6 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
         addDebugMessage(`Recording error: ${error.type}`);
         stopRecording();
       };
-
     } catch (error) {
       addDebugMessage(`Recording error: ${error.message}`);
       stopRecording();
@@ -160,7 +159,7 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
     try {
       const wavBlob = recorderRef.current.stopRecording();
       const url = URL.createObjectURL(wavBlob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `recording_${new Date().toISOString()}.wav`;
       a.click();
@@ -177,16 +176,13 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
   return (
     <>
       <div className="w-full flex flex-row gap-4 items-center flex-wrap">
-        <Button
-          color={isRecording ? "danger" : "primary"}
-          onClick={isRecording ? stopRecording : startRecording}
-        >
+        <Button color={isRecording ? "danger" : "primary"} onClick={isRecording ? stopRecording : startRecording}>
           {isRecording ? "Stop Recording" : "Start Recording"}
         </Button>
 
         {isRecording && (
           <span className="text-sm">
-            Recording: {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
+            Recording: {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, "0")}
           </span>
         )}
       </div>
@@ -198,7 +194,9 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
         <CardBody>
           <div className="text-xs space-y-1">
             {debugInfo.map((msg, i) => (
-              <div key={i} className="font-mono">{msg}</div>
+              <div key={i} className="font-mono">
+                {msg}
+              </div>
             ))}
           </div>
         </CardBody>

@@ -1,4 +1,3 @@
-// types/stock.ts
 export interface StockApiResponse {
   Data: {
     TotalCount: number;
@@ -48,7 +47,7 @@ export interface ChartData extends TransformedStockData {
   rsi?: number;
 }
 
-export type TimeframeOption = '1W' | '1M' | '3M' | '6M';
+export type TimeframeOption = "1W" | "1M" | "3M" | "6M";
 
 export interface ChartProps {
   data: ChartData[];

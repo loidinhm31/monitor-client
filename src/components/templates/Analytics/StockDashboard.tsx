@@ -24,12 +24,12 @@ interface StockDashboardProps {
 }
 
 const StockDashboard: React.FC<StockDashboardProps> = ({
-                                                         stockData,
-                                                         compareStocksData,
-                                                         symbol,
-                                                         onAddCompareStock,
-                                                         onRemoveCompareStock
-                                                       }) => {
+  stockData,
+  compareStocksData,
+  symbol,
+  onAddCompareStock,
+  onRemoveCompareStock,
+}) => {
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState<TimeframeOption>("1M");
   const [selectedTab, setSelectedTab] = useState("price");
@@ -88,18 +88,18 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
   const comparisonData = useMemo(() => {
     const mainStockData = {
       symbol,
-      data: filteredData.map(d => ({
+      data: filteredData.map((d) => ({
         date: d.date,
-        closePrice: d.closePrice
-      }))
+        closePrice: d.closePrice,
+      })),
     };
 
     const compareStocks = Object.entries(compareStocksData).map(([compareSymbol, data]) => ({
       symbol: compareSymbol,
-      data: filterDataByTimeframe(data, timeframe).map(d => ({
+      data: filterDataByTimeframe(data, timeframe).map((d) => ({
         date: d.date,
-        closePrice: d.closePrice
-      }))
+        closePrice: d.closePrice,
+      })),
     }));
 
     return [mainStockData, ...compareStocks];
@@ -111,11 +111,6 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
 
   const handleTabChange = (key: React.Key) => {
     setSelectedTab(key.toString());
-    if (key === "macd") {
-      setIndicators((prev) => ({ ...prev, macd: true }));
-    } else if (key === "rsi") {
-      setIndicators((prev) => ({ ...prev, rsi: true }));
-    }
   };
 
   if (loading) {
@@ -141,10 +136,18 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
               aria-label="Select timeframe"
               onChange={(e) => setTimeframe(e.target.value as TimeframeOption)}
             >
-              <SelectItem key="1W" value="1W">1 Week</SelectItem>
-              <SelectItem key="1M" value="1M">1 Month</SelectItem>
-              <SelectItem key="3M" value="3M">3 Months</SelectItem>
-              <SelectItem key="6M" value="6M">6 Months</SelectItem>
+              <SelectItem key="1W" value="1W">
+                1 Week
+              </SelectItem>
+              <SelectItem key="1M" value="1M">
+                1 Month
+              </SelectItem>
+              <SelectItem key="3M" value="3M">
+                3 Months
+              </SelectItem>
+              <SelectItem key="6M" value="6M">
+                6 Months
+              </SelectItem>
             </Select>
           </div>
         </CardHeader>
@@ -159,11 +162,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
             variant="underlined"
           >
             <Tab key="price" title="Price">
-              <EnhancedChartContainer
-                data={filteredData}
-                selectedTab={selectedTab}
-                indicators={indicators}
-              />
+              <EnhancedChartContainer data={filteredData} indicators={indicators} />
             </Tab>
 
             <Tab key="compare" title="Compare">

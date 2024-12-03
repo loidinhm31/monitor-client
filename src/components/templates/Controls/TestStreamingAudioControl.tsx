@@ -1,6 +1,6 @@
 import { Button } from "@nextui-org/button";
 import { Card, CardBody, CardHeader } from "@nextui-org/card";
-import React, { useEffect,useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 
 class AudioStreamPlayer {
   private audioContext: AudioContext | null;
@@ -29,17 +29,16 @@ class AudioStreamPlayer {
     this.processingInterval = null;
   }
 
-
   async initialize() {
     try {
       await this.cleanup();
 
-      if (typeof AudioContext !== 'undefined') {
+      if (typeof AudioContext !== "undefined") {
         this.audioContext = new AudioContext({ sampleRate: this.sampleRate });
-      } else if (typeof (window as any).webkitAudioContext !== 'undefined') {
+      } else if (typeof (window as any).webkitAudioContext !== "undefined") {
         this.audioContext = new (window as any).webkitAudioContext({ sampleRate: this.sampleRate });
       } else {
-        throw new Error('AudioContext not supported');
+        throw new Error("AudioContext not supported");
       }
 
       // Suspend immediately after creation
@@ -47,16 +46,15 @@ class AudioStreamPlayer {
 
       await this.createInitialBuffer();
       this.startProcessing();
-
     } catch (error) {
-      console.error('Initialization error:', error);
+      console.error("Initialization error:", error);
       throw error;
     }
   }
 
   async processAudioData(arrayBuffer: ArrayBuffer): Promise<void> {
     if (!this.audioContext) {
-      throw new Error('AudioContext not initialized');
+      throw new Error("AudioContext not initialized");
     }
 
     try {
@@ -78,23 +76,17 @@ class AudioStreamPlayer {
         this.nextScheduleTime = this.audioContext.currentTime;
         this.scheduleBuffers();
       }
-
     } catch (error) {
-      console.error('Error processing audio:', error);
+      console.error("Error processing audio:", error);
       throw error;
     }
   }
-
 
   private async createInitialBuffer() {
     if (!this.audioContext) return;
 
     // Create a short silent buffer
-    const silentBuffer = this.audioContext.createBuffer(
-      this.channels,
-      this.bufferSize,
-      this.sampleRate
-    );
+    const silentBuffer = this.audioContext.createBuffer(this.channels, this.bufferSize, this.sampleRate);
 
     // Add some very quiet noise to prevent complete silence
     for (let channel = 0; channel < this.channels; channel++) {
@@ -150,7 +142,7 @@ class AudioStreamPlayer {
       const audioBuffer = this.audioContext.createBuffer(
         this.channels,
         pcmData.length / this.channels,
-        this.sampleRate
+        this.sampleRate,
       );
 
       // Fill audio buffer
@@ -171,9 +163,8 @@ class AudioStreamPlayer {
       source.onended = () => {
         source.disconnect();
       };
-
     } catch (error) {
-      console.error('Error scheduling buffer:', error);
+      console.error("Error scheduling buffer:", error);
     }
   }
 
@@ -192,7 +183,7 @@ class AudioStreamPlayer {
 
       await this.suspend();
     } catch (error) {
-      console.warn('Error in stop:', error);
+      console.warn("Error in stop:", error);
     }
   }
 
@@ -205,11 +196,11 @@ class AudioStreamPlayer {
       this.processingInterval = null;
     }
 
-    if (this.audioContext?.state !== 'closed') {
+    if (this.audioContext?.state !== "closed") {
       try {
         await this.audioContext?.close();
       } catch (error) {
-        console.warn('Error closing AudioContext:', error);
+        console.warn("Error closing AudioContext:", error);
       }
     }
 
@@ -218,19 +209,19 @@ class AudioStreamPlayer {
   }
 
   async resume() {
-    if (this.audioContext?.state === 'suspended') {
+    if (this.audioContext?.state === "suspended") {
       await this.audioContext.resume();
     }
   }
 
   async suspend() {
-    if (this.audioContext?.state === 'running') {
+    if (this.audioContext?.state === "running") {
       await this.audioContext.suspend();
     }
   }
 
   getAudioState(): string {
-    return this.audioContext?.state || 'closed';
+    return this.audioContext?.state || "closed";
   }
 
   getBufferQueueSize(): number {
@@ -253,9 +244,9 @@ const TestAudioStreamPlayer = ({ hostConnection, onError }: AudioStreamProps) =>
   const [countdown, setCountdown] = useState<number | null>(null);
 
   const addDebugMessage = (message: string) => {
-    setDebugMsg(prev => {
+    setDebugMsg((prev) => {
       const newMessages = [...prev.slice(-4), message];
-      console.log('Debug:', message);
+      console.log("Debug:", message);
       return newMessages;
     });
   };
@@ -278,14 +269,13 @@ const TestAudioStreamPlayer = ({ hostConnection, onError }: AudioStreamProps) =>
       }
       await playerRef.current.stop();
     } catch (error) {
-      console.warn('Cleanup error:', error);
+      console.warn("Cleanup error:", error);
     }
   };
 
   const updateBufferSize = () => {
     setBufferSize(playerRef.current.getBufferQueueSize());
   };
-
 
   const startPlayback = async () => {
     if (!socketRef.current) return;
@@ -296,7 +286,7 @@ const TestAudioStreamPlayer = ({ hostConnection, onError }: AudioStreamProps) =>
     setCountdown(8);
     for (let i = 8; i > 0; i--) {
       setCountdown(i);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
     setCountdown(null);
 
@@ -352,7 +342,6 @@ const TestAudioStreamPlayer = ({ hostConnection, onError }: AudioStreamProps) =>
         handleError(new Error(`WebSocket error: ${error.type}`));
         stopPlaying();
       };
-
     } catch (error) {
       handleError(error as Error);
       stopPlaying();
@@ -384,7 +373,7 @@ const TestAudioStreamPlayer = ({ hostConnection, onError }: AudioStreamProps) =>
   };
 
   const handleError = (error: Error) => {
-    console.error('Audio player error:', error);
+    console.error("Audio player error:", error);
     addDebugMessage(`Error: ${error.message}`);
     if (onError) {
       onError(error);
@@ -397,16 +386,18 @@ const TestAudioStreamPlayer = ({ hostConnection, onError }: AudioStreamProps) =>
         <Button
           color={isPlaying ? "danger" : "primary"}
           isLoading={isInitializing || countdown !== null}
-          onClick={() => isPlaying ? stopPlaying() : startPlaying()}
+          onClick={() => (isPlaying ? stopPlaying() : startPlaying())}
           disabled={!hostConnection}
         >
-          {isInitializing ? "Initializing..." :
-            countdown !== null ? `Starting in ${countdown}...` :
-              isPlaying ? "Stop Audio" : "Start Audio"}
+          {isInitializing
+            ? "Initializing..."
+            : countdown !== null
+              ? `Starting in ${countdown}...`
+              : isPlaying
+                ? "Stop Audio"
+                : "Start Audio"}
         </Button>
-        {isPlaying && (
-          <span className="text-sm">Buffer Size: {bufferSize}</span>
-        )}
+        {isPlaying && <span className="text-sm">Buffer Size: {bufferSize}</span>}
       </div>
 
       <Card>
@@ -416,7 +407,9 @@ const TestAudioStreamPlayer = ({ hostConnection, onError }: AudioStreamProps) =>
         <CardBody>
           <div className="space-y-1">
             {debugInfo.map((msg, i) => (
-              <div key={i} className="font-mono text-small">{msg}</div>
+              <div key={i} className="font-mono text-small">
+                {msg}
+              </div>
             ))}
           </div>
         </CardBody>

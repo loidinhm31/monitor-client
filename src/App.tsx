@@ -39,10 +39,10 @@ import {
   UserIcon,
 } from "lucide-react";
 import React, { Suspense, useEffect, useState } from "react";
+import { Route } from "react-router";
 
 import Analytics from "@/pages/Analytics";
 import Home from "@/pages/Home";
-import { Route } from "react-router";
 
 setupIonicReact();
 

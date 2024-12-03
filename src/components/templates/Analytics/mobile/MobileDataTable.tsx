@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import { Button, Card, CardBody } from "@nextui-org/react";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import React, { useState } from "react";
+
 import type { TransformedStockData } from "@/types/stock";
 import { COLUMN_LABELS } from "@/utils/stockUtils";
-import { Button, Card, CardBody } from "@nextui-org/react";
 
 interface MobileDataTableProps {
   data: TransformedStockData[];

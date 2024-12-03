@@ -5,6 +5,7 @@ import { Chip } from "@nextui-org/chip";
 import { chevronCollapseOutline, chevronExpandOutline } from "ionicons/icons";
 import React, { useEffect, useRef, useState } from "react";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+
 import SaveDataControl from "@/components/templates/Controls/SaveDataControl";
 
 interface StreamingControlProps {
@@ -77,8 +78,7 @@ const StreamingVideoControl = ({ wsConnection }: StreamingControlProps) => {
               />
             </TransformComponent>
           </TransformWrapper>
-          <CardFooter
-            className="justify-between before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
+          <CardFooter className="justify-between before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
             <Chip variant="dot" color="danger" style={{ color: "red" }}>
               Streaming
             </Chip>

@@ -1,4 +1,4 @@
-// Analytics.tsx
+import { getLocalTimeZone, today } from "@internationalized/date";
 import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar } from "@ionic/react";
 import { Button, CalendarDate, DatePicker, Input, Spinner } from "@nextui-org/react";
 import React, { useState } from "react";
@@ -8,7 +8,6 @@ import { HttpService } from "@/core/services/HttpService";
 import type { TransformedStockData } from "@/types/stock";
 import { StockApiResponse } from "@/types/stock";
 import { transformStockData } from "@/utils/stockUtils";
-import { getLocalTimeZone, today } from "@internationalized/date";
 
 const PAGE_SIZE = 32;
 
@@ -42,7 +41,7 @@ const Analytics: React.FC = () => {
             PageIndex: pageIndex,
             PageSize: PAGE_SIZE,
           },
-        }
+        },
       );
 
       return response.data;

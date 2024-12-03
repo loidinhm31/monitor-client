@@ -1,5 +1,5 @@
-import React from 'react';
-import { TooltipProps } from 'recharts';
+import React from "react";
+import { TooltipProps } from "recharts";
 
 interface CustomTooltipPayload {
   value: number | string;
@@ -12,11 +12,7 @@ type CustomTooltipProps = TooltipProps<any, string> & {
   payload?: Array<CustomTooltipPayload>;
 };
 
-const CustomTooltip: React.FC<CustomTooltipProps> = ({
-                                                       active,
-                                                       payload,
-                                                       label
-                                                     }) => {
+const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
   if (!active || !payload || !payload.length) {
     return null;
   }
@@ -27,17 +23,15 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
       <div className="space-y-1">
         {payload.map((entry, index) => (
           <div key={`item-${index}`} className="flex items-center gap-2">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: entry.color }}
-            />
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
             <span className="text-sm text-foreground-600">
-              {entry.name}: {typeof entry.value === 'number'
-              ? entry.value.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })
-              : entry.value}
+              {entry.name}:{" "}
+              {typeof entry.value === "number"
+                ? entry.value.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })
+                : entry.value}
             </span>
           </div>
         ))}

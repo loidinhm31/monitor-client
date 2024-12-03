@@ -1,15 +1,14 @@
-import React, { useEffect, useRef, useState } from "react";
+import { IonIcon } from "@ionic/react";
 import { Button } from "@nextui-org/button";
 import { Card, CardFooter } from "@nextui-org/card";
-import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { Chip } from "@nextui-org/chip";
-import { IonIcon } from "@ionic/react";
 import { chevronCollapseOutline, chevronExpandOutline } from "ionicons/icons";
+import React, { useEffect, useRef, useState } from "react";
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
 interface ServerCameraProps {
   hostConnection: string | null;
 }
-
 
 const ServerCamera = ({ hostConnection }: ServerCameraProps) => {
   const imageContainerRef = useRef<HTMLDivElement | null>(null);

@@ -1,5 +1,5 @@
-import React from 'react';
-import { TooltipProps } from 'recharts';
+import React from "react";
+import { TooltipProps } from "recharts";
 
 interface ComparisonTooltipPayload {
   value: number;
@@ -21,10 +21,10 @@ const ComparisonTooltip: React.FC<ComparisonTooltipProps> = ({ active, payload, 
     return null;
   }
 
-  const entries = payload.map(entry => {
+  const entries = payload.map((entry) => {
     const symbol = entry.name;
     const percentageChange = entry.value;
-    const priceKey = entry.dataKey.replace('_change', '_price');
+    const priceKey = entry.dataKey.replace("_change", "_price");
     const price = entry.payload[priceKey];
 
     return {
@@ -44,22 +44,17 @@ const ComparisonTooltip: React.FC<ComparisonTooltipProps> = ({ active, payload, 
           .map((entry) => (
             <div key={entry.symbol} className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className="text-sm text-foreground-600">
-                  {entry.symbol}
-                </span>
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+                <span className="text-sm text-foreground-600">{entry.symbol}</span>
               </div>
               <div className="flex flex-col items-end">
                 <span
                   className={`text-sm font-medium ${
                     entry.percentageChange > 0
-                      ? 'text-success'
+                      ? "text-success"
                       : entry.percentageChange < 0
-                        ? 'text-danger'
-                        : 'text-foreground'
+                        ? "text-danger"
+                        : "text-foreground"
                   }`}
                 >
                   {entry.percentageChange.toFixed(2)}%
@@ -67,7 +62,7 @@ const ComparisonTooltip: React.FC<ComparisonTooltipProps> = ({ active, payload, 
                 <span className="text-xs text-foreground-500">
                   {entry.price.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
+                    maximumFractionDigits: 2,
                   })}
                 </span>
               </div>

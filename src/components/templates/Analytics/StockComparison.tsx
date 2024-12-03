@@ -1,8 +1,8 @@
 import { Button, Input } from "@nextui-org/react";
 import { Plus } from "lucide-react";
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
-import ComparisonChart from './ComparisonChart';
+import ComparisonChart from "./ComparisonChart";
 
 interface StockComparisonProps {
   stocksData: {
@@ -17,21 +17,16 @@ interface StockComparisonProps {
   mainSymbol: string;
 }
 
-const StockComparison: React.FC<StockComparisonProps> = ({
-                                                           stocksData,
-                                                           onAddStock,
-                                                           onRemoveStock,
-                                                           mainSymbol
-                                                         }) => {
-  const [compareSymbol, setCompareSymbol] = useState('');
+const StockComparison: React.FC<StockComparisonProps> = ({ stocksData, onAddStock, onRemoveStock, mainSymbol }) => {
+  const [compareSymbol, setCompareSymbol] = useState("");
 
   const handleAddStock = async () => {
-    if (!compareSymbol || stocksData.some(s => s.symbol === compareSymbol)) {
+    if (!compareSymbol || stocksData.some((s) => s.symbol === compareSymbol)) {
       return;
     }
 
     await onAddStock(compareSymbol);
-    setCompareSymbol('');
+    setCompareSymbol("");
   };
 
   return (
@@ -53,16 +48,13 @@ const StockComparison: React.FC<StockComparisonProps> = ({
           size="lg"
           startContent={<Plus className="w-4 h-4" />}
           onClick={handleAddStock}
-          isDisabled={!compareSymbol || stocksData.some(s => s.symbol === compareSymbol)}
+          isDisabled={!compareSymbol || stocksData.some((s) => s.symbol === compareSymbol)}
         >
           Add to Compare
         </Button>
       </div>
 
-      <ComparisonChart
-        stocksData={stocksData}
-        onRemoveStock={onRemoveStock}
-      />
+      <ComparisonChart stocksData={stocksData} onRemoveStock={onRemoveStock} />
     </div>
   );
 };
