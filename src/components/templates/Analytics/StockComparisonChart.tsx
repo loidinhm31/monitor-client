@@ -14,22 +14,35 @@ const STOCK_COLORS = [
   "#00B8D9", // Cyan
 ];
 
+interface StockData {
+  date: string;
+  closePrice: number;
+}
+
 interface ComparisonChartProps {
   stocksData: {
     symbol: string;
-    data: Array<{
-      date: string;
-      closePrice: number;
-    }>;
+    data: StockData[];
   }[];
-  onRemoveStock: (symbol: string) => void;
+  onRemoveStock?: (symbol: string) => void;
+  title?: string;
+  description?: string;
+  className?: string;
+  hideRemoveButton?: boolean;
 }
 
-const ComparisonChart: React.FC<ComparisonChartProps> = ({ stocksData, onRemoveStock }) => {
+const StockComparisonChart: React.FC<ComparisonChartProps> = ({
+  stocksData,
+  onRemoveStock,
+  title = "Stock Price Comparison",
+  description = "Percentage change from first day",
+  className = "",
+  hideRemoveButton = false,
+}) => {
   const normalizedData = React.useMemo(() => {
     if (!stocksData.length) return [];
 
-    // First, ensure each stock's data is sorted by date
+    // Sort each stock's data by date
     const processedStockData = stocksData.map((stock) => ({
       ...stock,
       data: [...stock.data].sort((a, b) => {
@@ -39,9 +52,9 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({ stocksData, onRemoveS
       }),
     }));
 
-    // Find the latest start date and earliest end date among all stocks
-    let latestStart = new Date(0); // Initialize to earliest possible date
-    let earliestEnd = new Date(8640000000000000); // Initialize to latest possible date
+    // Find common date range
+    let latestStart = new Date(0);
+    let earliestEnd = new Date(8640000000000000);
 
     processedStockData.forEach((stock) => {
       if (stock.data.length > 0) {
@@ -53,7 +66,7 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({ stocksData, onRemoveS
       }
     });
 
-    // Get all dates within the common range
+    // Get all dates within common range
     const allDates = new Set<string>();
     processedStockData.forEach((stock) => {
       stock.data.forEach((point) => {
@@ -63,13 +76,14 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({ stocksData, onRemoveS
         }
       });
     });
+
     const sortedDates = Array.from(allDates).sort((a, b) => {
       const dateA = new Date(a.split("/").reverse().join("-"));
       const dateB = new Date(b.split("/").reverse().join("-"));
       return dateA.getTime() - dateB.getTime();
     });
 
-    // Get baseline prices from the first common date
+    // Calculate baseline prices
     const earliestCommonDate = sortedDates[0];
     const baselinePrices: Record<string, number> = {};
 
@@ -82,10 +96,7 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({ stocksData, onRemoveS
 
     // Create normalized data points
     return sortedDates.map((date) => {
-      const dataPoint: {
-        date: string;
-        [key: string]: any;
-      } = { date };
+      const dataPoint: { date: string; [key: string]: any } = { date };
 
       processedStockData.forEach((stock) => {
         const point = stock.data.find((d) => d.date === date);
@@ -101,40 +112,42 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({ stocksData, onRemoveS
     });
   }, [stocksData]);
 
-  if (!stocksData.length) {
-    return null;
-  }
+  if (!stocksData.length) return null;
 
   return (
-    <Card className="w-full mt-4">
+    <Card className={`w-full ${className}`}>
       <CardHeader className="flex flex-wrap gap-2">
         <div className="flex-1">
-          <h4 className="text-lg font-semibold">Stock Price Comparison</h4>
-          <p className="text-sm text-default-500">Percentage change from first day</p>
+          <h4 className="text-lg font-semibold">{title}</h4>
+          <p className="text-sm text-default-500">{description}</p>
         </div>
-        <ButtonGroup size="sm" variant="flat">
-          {stocksData.map((stock, index) => (
-            <Button
-              key={stock.symbol}
-              className="min-w-[100px]"
-              endContent={
-                <CloseIcon
-                  className="w-4 h-4 cursor-pointer hover:text-danger"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemoveStock(stock.symbol);
-                  }}
-                />
-              }
-              style={{
-                borderColor: STOCK_COLORS[index % STOCK_COLORS.length],
-                color: STOCK_COLORS[index % STOCK_COLORS.length],
-              }}
-            >
-              {stock.symbol}
-            </Button>
-          ))}
-        </ButtonGroup>
+        {!hideRemoveButton && (
+          <ButtonGroup size="sm" variant="flat">
+            {stocksData.map((stock, index) => (
+              <Button
+                key={stock.symbol}
+                className="min-w-[100px]"
+                endContent={
+                  onRemoveStock && (
+                    <CloseIcon
+                      className="w-4 h-4 cursor-pointer hover:text-danger"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemoveStock(stock.symbol);
+                      }}
+                    />
+                  )
+                }
+                style={{
+                  borderColor: STOCK_COLORS[index % STOCK_COLORS.length],
+                  color: STOCK_COLORS[index % STOCK_COLORS.length],
+                }}
+              >
+                {stock.symbol}
+              </Button>
+            ))}
+          </ButtonGroup>
+        )}
       </CardHeader>
       <CardBody>
         <ResponsiveContainer width="100%" height={400}>
@@ -171,4 +184,4 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({ stocksData, onRemoveS
   );
 };
 
-export default ComparisonChart;
+export default StockComparisonChart;

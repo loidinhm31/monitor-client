@@ -4,23 +4,13 @@ import React, { useState } from "react";
 
 import Portfolio from "@/components/templates/Analytics/Portfolio/Portfolio";
 import StockDashboard from "@/components/templates/Analytics/StockDashboard";
-import { HttpService } from "@/core/services/HttpService";
-import { StockApiResponse, TransformedStockData } from "@/types/stock";
+import { useStockData } from "@/hooks/useStockData";
 import { formatCustomDate } from "@/utils/dateFormatterUtils";
-import { transformStockData } from "@/utils/stockUtils";
-
-const PAGE_SIZE = 32;
 
 const TabbedAnalytics = () => {
   const [selectedTab, setSelectedTab] = useState("analysis");
-  const [portfolioData, setPortfolioData] = useState<(TransformedStockData & { symbol: string })[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
+  const [portfolioSymbols, setPortfolioSymbols] = useState<string[]>([]);
   const [inputSymbol, setInputSymbol] = useState("");
-  const [mainSymbol, setMainSymbol] = useState("");
-  const [mainStockData, setMainStockData] = useState<TransformedStockData[]>([]);
-  const [compareStocksData, setCompareStocksData] = useState<Record<string, TransformedStockData[]>>({});
 
   // Date range state
   const currentDate = today(getLocalTimeZone());
@@ -28,160 +18,40 @@ const TabbedAnalytics = () => {
   const [startDate, setStartDate] = useState<CalendarDate>(threeMonthsAgo);
   const [endDate, setEndDate] = useState<CalendarDate>(currentDate);
 
-  const formatDateForApi = (date: CalendarDate): string => {
-    return `${date.year}-${date.month.toString().padStart(2, "0")}-${date.day.toString().padStart(2, "0")}`;
-  };
+  // Use shared stock data hook
+  const {
+    mainStock,
+    comparisonStocks,
+    loading,
+    error,
+    setMainStockSymbol,
+    addComparisonStock,
+    removeComparisonStock,
+    fetchAllData,
+  } = useStockData({ startDate, endDate });
 
-  const fetchDataPage = async (symbol: string, pageIndex: number): Promise<StockApiResponse> => {
+  // Portfolio management
+  const handleAddToPortfolio = async (symbol: string) => {
+    if (portfolioSymbols.includes(symbol)) {
+      return;
+    }
+
     try {
-      const response = await HttpService.getAxiosClient().get<StockApiResponse>(
-        "https://s.cafef.vn/Ajax/PageNew/DataHistory/PriceHistory.ashx",
-        {
-          params: {
-            Symbol: symbol,
-            StartDate: formatDateForApi(startDate),
-            EndDate: formatDateForApi(endDate),
-            PageIndex: pageIndex,
-            PageSize: PAGE_SIZE,
-          },
-        },
-      );
-
-      return response.data;
+      await fetchAllData(symbol);
+      setPortfolioSymbols((prev) => [...prev, symbol]);
     } catch (error) {
-      console.error(`Error fetching page ${pageIndex} for ${symbol}:`, error);
-      throw error;
+      console.error("Error adding to portfolio:", error);
     }
   };
 
-  const fetchAllData = async (symbol: string): Promise<TransformedStockData[]> => {
-    try {
-      const firstPage = await fetchDataPage(symbol, 1);
-
-      if (!firstPage?.Data?.TotalCount || !Array.isArray(firstPage.Data.Data)) {
-        throw new Error(`Invalid data format received from API for ${symbol}`);
-      }
-
-      const totalCount = firstPage.Data.TotalCount;
-      const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-
-      let allData: TransformedStockData[] = firstPage.Data.Data.map(transformStockData);
-
-      if (totalPages > 1) {
-        const remainingPages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
-        const promises = remainingPages.map((pageIndex) => fetchDataPage(symbol, pageIndex));
-
-        const results = await Promise.all(promises);
-
-        results.forEach((result: StockApiResponse) => {
-          if (result?.Data?.Data && Array.isArray(result.Data.Data)) {
-            const transformedData = result.Data.Data.map(transformStockData);
-            allData = [...allData, ...transformedData];
-          }
-        });
-      }
-
-      return allData;
-    } catch (error) {
-      console.error(`Error fetching all data for ${symbol}:`, error);
-      throw error;
-    }
+  const handleRemoveFromPortfolio = (symbol: string) => {
+    setPortfolioSymbols((prev) => prev.filter((s) => s !== symbol));
   };
 
   const handleMainStockSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputSymbol) return;
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const data = await fetchAllData(inputSymbol);
-      setMainStockData(data);
-      setMainSymbol(inputSymbol);
-      setCompareStocksData({}); // Clear comparison data when loading new main stock
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to fetch stock data";
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCurrentPrice = async (symbol: string): Promise<TransformedStockData | null> => {
-    try {
-      const response = await HttpService.getAxiosClient().get<StockApiResponse>(
-        "https://s.cafef.vn/Ajax/PageNew/DataHistory/PriceHistory.ashx",
-        {
-          params: {
-            Symbol: symbol,
-            StartDate: formatDateForApi(currentDate),
-            EndDate: formatDateForApi(currentDate),
-            PageIndex: 1,
-            PageSize: 1,
-          },
-        },
-      );
-
-      if (response.data?.Data?.Data?.[0]) {
-        return transformStockData(response.data.Data.Data[0]);
-      }
-      return null;
-    } catch (error) {
-      console.error(`Error fetching current price for ${symbol}:`, error);
-      throw error;
-    }
-  };
-
-  const handleAddToPortfolio = async (stockSymbol: string) => {
-    setLoading(true);
-    setError("");
-    try {
-      // Check if symbol already exists in portfolio
-      const isSymbolExists = portfolioData.some((item) => item.symbol === stockSymbol);
-      if (isSymbolExists) {
-        setError("Stock is already in your portfolio");
-        return;
-      }
-
-      const priceData = await fetchCurrentPrice(stockSymbol);
-      if (priceData) {
-        setPortfolioData((prev) => [...prev, { ...priceData, symbol: stockSymbol }]);
-      } else {
-        setError("Could not fetch stock data");
-      }
-    } catch (error) {
-      console.error("Error adding to portfolio:", error);
-      setError("Failed to add stock to portfolio");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRemoveFromPortfolio = (symbol: string) => {
-    setPortfolioData((prev) => prev.filter((item) => item.symbol !== symbol));
-  };
-
-  const handleAddCompareStock = async (compareSymbol: string) => {
-    if (compareSymbol === mainSymbol || compareSymbol in compareStocksData) {
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const data = await fetchAllData(compareSymbol);
-      setCompareStocksData((prev) => ({
-        ...prev,
-        [compareSymbol]: data,
-      }));
-    } catch (error) {
-      console.error("Error adding comparison stock:", error);
-      setError("Failed to add comparison stock");
-    } finally {
-      setLoading(false);
-    }
+    await setMainStockSymbol(inputSymbol);
   };
 
   return (
@@ -229,29 +99,26 @@ const TabbedAnalytics = () => {
 
       {error && <div className="p-4 mb-4 text-danger rounded-lg bg-danger-50">{error}</div>}
 
-      <Tabs selectedKey={selectedTab} onSelectionChange={(key) => setSelectedTab(key.toString())} className="py-4">
+      <Tabs selectedKey={selectedTab} onSelectionChange={(key) => setSelectedTab(key.toString())}>
         <Tab key="analysis" title="Market Analysis">
-          {mainStockData.length > 0 && (
+          {mainStock && (
             <StockDashboard
-              stockData={mainStockData}
-              compareStocksData={compareStocksData}
-              symbol={mainSymbol}
-              onAddCompareStock={handleAddCompareStock}
-              onRemoveCompareStock={(symbol) => {
-                const newData = { ...compareStocksData };
-                delete newData[symbol];
-                setCompareStocksData(newData);
-              }}
+              stockData={mainStock.data}
+              compareStocksData={comparisonStocks}
+              symbol={mainStock.symbol}
+              onAddCompareStock={addComparisonStock}
+              onRemoveCompareStock={removeComparisonStock}
             />
           )}
         </Tab>
 
         <Tab key="portfolio" title="Portfolio">
           <Portfolio
-            data={portfolioData}
-            onAddStock={handleAddToPortfolio}
-            onRemoveStock={handleRemoveFromPortfolio}
-            loading={loading}
+            symbols={portfolioSymbols}
+            onAddSymbol={handleAddToPortfolio}
+            onRemoveSymbol={handleRemoveFromPortfolio}
+            dateRange={{ startDate, endDate }}
+            stockDataHook={useStockData}
           />
         </Tab>
       </Tabs>

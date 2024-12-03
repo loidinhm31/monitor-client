@@ -2,7 +2,7 @@ import { Button, Input } from "@nextui-org/react";
 import { Plus } from "lucide-react";
 import React, { useState } from "react";
 
-import ComparisonChart from "./ComparisonChart";
+import ComparisonChart from "@/components/templates/Analytics/StockComparisonChart";
 
 interface StockComparisonProps {
   stocksData: {
