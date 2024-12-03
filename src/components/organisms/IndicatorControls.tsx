@@ -7,6 +7,7 @@ export interface Indicators {
   macd: boolean;
   rsi: boolean;
   volume: boolean;
+  highLow: boolean;
 }
 
 interface IndicatorControlsProps {
@@ -20,6 +21,14 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({
                                                              }) => {
   return (
     <div className="flex flex-wrap gap-4 mb-4">
+      <Switch
+        isSelected={indicators.highLow}
+        onValueChange={(value) =>
+          onIndicatorChange({ ...indicators, highLow: value })
+        }
+      >
+        Highest/ Lowest Price
+      </Switch>
       <Switch
         isSelected={indicators.sma}
         onValueChange={(value) =>

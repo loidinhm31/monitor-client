@@ -41,6 +41,28 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({
               interval="preserveStartEnd"
             />
             <YAxis yAxisId="left" />
+            {indicators.highLow && (
+              <>
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="highestPrice"
+                  stroke="#17C964"
+                  name="High"
+                  dot={false}
+                  strokeDasharray="3 3"
+                />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="lowestPrice"
+                  stroke="#F31260"
+                  name="Low"
+                  dot={false}
+                  strokeDasharray="3 3"
+                />
+              </>
+            )}
             {indicators.volume && (
               <YAxis yAxisId="right" orientation="right" />
             )}

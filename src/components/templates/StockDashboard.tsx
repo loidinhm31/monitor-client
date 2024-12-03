@@ -22,6 +22,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ stockData }) => {
     macd: false,
     rsi: false,
     volume: false,
+    highLow: false,
   });
 
   // Memoize the enriched data calculation
