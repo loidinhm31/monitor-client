@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import type { TransformedStockData } from '@/types/stock';
-import { COLUMN_LABELS } from '@/utils/stockUtils';
-import { Card, CardBody, Button } from '@nextui-org/react';
+import React, { useState } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import type { TransformedStockData } from "@/types/stock";
+import { COLUMN_LABELS } from "@/utils/stockUtils";
+import { Button, Card, CardBody } from "@nextui-org/react";
 
 interface MobileDataTableProps {
   data: TransformedStockData[];
@@ -13,33 +13,31 @@ const MobileDataTable: React.FC<MobileDataTableProps> = ({ data }) => {
 
   // Core columns always visible
   const coreColumns = [
-    { key: 'date', label: COLUMN_LABELS.date },
-    { key: 'closePrice', label: COLUMN_LABELS.closePrice },
-    { key: 'priceChange', label: COLUMN_LABELS.change }
+    { key: "date", label: COLUMN_LABELS.date },
+    { key: "closePrice", label: COLUMN_LABELS.closePrice },
+    { key: "priceChange", label: COLUMN_LABELS.change },
   ];
 
   // Additional columns shown when expanded
   const expandedColumns = [
-    { key: 'volume', label: COLUMN_LABELS.volume },
-    { key: 'openPrice', label: COLUMN_LABELS.openPrice },
-    { key: 'highestPrice', label: COLUMN_LABELS.highestPrice },
-    { key: 'lowestPrice', label: COLUMN_LABELS.lowestPrice }
+    { key: "volume", label: COLUMN_LABELS.volume },
+    { key: "openPrice", label: COLUMN_LABELS.openPrice },
+    { key: "highestPrice", label: COLUMN_LABELS.highestPrice },
+    { key: "lowestPrice", label: COLUMN_LABELS.lowestPrice },
   ];
 
   const toggleRow = (date: string) => {
-    setExpandedRows(prev => ({
+    setExpandedRows((prev) => ({
       ...prev,
-      [date]: !prev[date]
+      [date]: !prev[date],
     }));
   };
 
   const renderValue = (key: string, row: TransformedStockData) => {
-    if (key === 'priceChange') {
+    if (key === "priceChange") {
       const value = row[key]?.value;
       const percentage = row[key]?.percentage;
-      const colorClass = value > 0 ? 'text-success' :
-        value < 0 ? 'text-danger' :
-          'text-warning';
+      const colorClass = value > 0 ? "text-success" : value < 0 ? "text-danger" : "text-warning";
       return (
         <span className={colorClass}>
           {value?.toFixed(2)} ({percentage?.toFixed(2)}%)
@@ -47,12 +45,11 @@ const MobileDataTable: React.FC<MobileDataTableProps> = ({ data }) => {
       );
     }
 
-    if (key === 'volume') {
+    if (key === "volume") {
       return row[key].toLocaleString();
     }
 
-    if (key === 'closePrice' || key === 'openPrice' ||
-      key === 'highestPrice' || key === 'lowestPrice') {
+    if (key === "closePrice" || key === "openPrice" || key === "highestPrice" || key === "lowestPrice") {
       return row[key]?.toFixed(2);
     }
 
@@ -65,7 +62,7 @@ const MobileDataTable: React.FC<MobileDataTableProps> = ({ data }) => {
       <Card>
         <CardBody className="grid grid-cols-4 gap-2 py-2">
           <div className="col-span-1"></div>
-          {coreColumns.map(column => (
+          {coreColumns.map((column) => (
             <div key={column.key} className="font-medium text-sm">
               {column.label}
             </div>
@@ -78,19 +75,12 @@ const MobileDataTable: React.FC<MobileDataTableProps> = ({ data }) => {
         <Card key={`${row.date}-${index}`} className="w-full">
           <CardBody className="p-0">
             {/* Main Row */}
-            <Button
-              variant="light"
-              className="w-full px-3 py-4"
-              onClick={() => toggleRow(row.date)}
-            >
+            <Button variant="light" className="w-full px-3 py-4" onClick={() => toggleRow(row.date)}>
               <div className="grid grid-cols-4 gap-2 w-full items-center">
                 <div className="flex justify-start">
-                  {expandedRows[row.date] ?
-                    <ChevronDown className="w-4 h-4" /> :
-                    <ChevronRight className="w-4 h-4" />
-                  }
+                  {expandedRows[row.date] ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                 </div>
-                {coreColumns.map(column => (
+                {coreColumns.map((column) => (
                   <div key={column.key} className="text-sm text-left overflow-hidden text-ellipsis">
                     {renderValue(column.key, row)}
                   </div>
@@ -102,14 +92,10 @@ const MobileDataTable: React.FC<MobileDataTableProps> = ({ data }) => {
             {expandedRows[row.date] && (
               <div className="px-4 pb-4 pt-2">
                 <div className="grid grid-cols-2 gap-4">
-                  {expandedColumns.map(column => (
+                  {expandedColumns.map((column) => (
                     <div key={column.key} className="text-sm">
-                      <span className="font-medium text-default-600">
-                        {column.label}:
-                      </span>
-                      <span className="ml-2">
-                        {renderValue(column.key, row)}
-                      </span>
+                      <span className="font-medium text-default-600">{column.label}:</span>
+                      <span className="ml-2">{renderValue(column.key, row)}</span>
                     </div>
                   ))}
                 </div>

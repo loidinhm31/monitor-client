@@ -1,18 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Bar,
   CartesianGrid,
   ComposedChart,
   Legend,
   Line,
-  ReferenceArea,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
-
+import { Card, CardBody } from "@nextui-org/react";
 import CustomTooltip from "@/components/organisms/CustomTooltip";
 import { Indicators } from "@/components/organisms/IndicatorControls";
 import { ZoomableContainer } from "@/components/organisms/ZoomableContainer";
@@ -24,196 +23,186 @@ interface ChartContainerProps {
   indicators: Indicators;
 }
 
-const EnhancedChartContainer: React.FC<ChartContainerProps> = ({ data, selectedTab, indicators }) => {
-  const [refAreaLeft, setRefAreaLeft] = useState<string | null>(null);
-  const [refAreaRight, setRefAreaRight] = useState<string | null>(null);
-  const [isSelecting, setIsSelecting] = useState(false);
+const ChartContainer: React.FC<ChartContainerProps> = ({ data, selectedTab, indicators }) => {
+  const [isMobile, setIsMobile] = useState(false);
+  const [orientation, setOrientation] = useState("portrait");
 
-  const handleMouseDown = (e: any) => {
-    if (e.activeLabel) {
-      setRefAreaLeft(e.activeLabel);
-      setIsSelecting(true);
-    }
+  useEffect(() => {
+    const checkDevice = () => {
+      setIsMobile(window.innerWidth < 768);
+      setOrientation(window.innerHeight > window.innerWidth ? "portrait" : "landscape");
+    };
+
+    checkDevice();
+    window.addEventListener("resize", checkDevice);
+    return () => window.removeEventListener("resize", checkDevice);
+  }, []);
+
+  const getMobileConfig = () => {
+    const isPortrait = orientation === "portrait";
+    return {
+      height: isPortrait ? 300 : 200,
+      fontSize: 10,
+      strokeWidth: 1.5,
+      dotSize: 3,
+      margin: { top: 10, right: 10, left: 0, bottom: 10 },
+      legendHeight: 36,
+    };
   };
 
-  const handleMouseMove = (e: any) => {
-    if (isSelecting && e.activeLabel) {
-      setRefAreaRight(e.activeLabel);
-    }
-  };
+  const getDesktopConfig = () => ({
+    height: 400,
+    fontSize: 12,
+    strokeWidth: 2,
+    dotSize: 4,
+    margin: { top: 20, right: 30, left: 20, bottom: 20 },
+    legendHeight: 50,
+  });
 
-  const handleMouseUp = () => {
-    setRefAreaLeft(null);
-    setRefAreaRight(null);
-    setIsSelecting(false);
-  };
+  const config = isMobile ? getMobileConfig() : getDesktopConfig();
 
-  const renderChart = (displayData: ChartData[]) => {
-    if (selectedTab === "price") {
-      return (
-        <ResponsiveContainer width="100%" height={400}>
-          <ComposedChart
-            data={displayData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" tick={{ fontSize: 12 }} interval="preserveStartEnd" />
-            <YAxis yAxisId="left" />
+  const renderPriceChart = (displayData: ChartData[]) => (
+    <ResponsiveContainer width="100%" height={config.height}>
+      <ComposedChart data={displayData} margin={config.margin}>
+        <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.6} />
+        <XAxis
+          dataKey="date"
+          tick={{ fontSize: config.fontSize }}
+          interval={isMobile ? "preserveStartEnd" : 0}
+          angle={isMobile ? -45 : 0}
+          textAnchor={isMobile ? "end" : "middle"}
+          height={isMobile ? 50 : 30}
+        />
+        <YAxis tick={{ fontSize: config.fontSize }} />
+        <Tooltip content={<CustomTooltip />} />
+        <Legend
+          height={config.legendHeight}
+          iconSize={config.dotSize * 2}
+          wrapperStyle={{ fontSize: config.fontSize }}
+        />
 
-            {indicators.pivotPoints && (
-              <>
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="pp"
-                  stroke="#9333EA"
-                  name="Pivot Point"
-                  dot={false}
-                  strokeDasharray="3 3"
-                />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="r1"
-                  stroke="#F43F5E"
-                  name="R1"
-                  dot={false}
-                  strokeDasharray="2 2"
-                />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="s1"
-                  stroke="#10B981"
-                  name="S1"
-                  dot={false}
-                  strokeDasharray="2 2"
-                />
-              </>
-            )}
+        <Line
+          type="monotone"
+          dataKey="closePrice"
+          stroke="#0072F5"
+          name="Close Price"
+          dot={false}
+          strokeWidth={config.strokeWidth}
+        />
 
-            {indicators.highLow && (
-              <>
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="highestPrice"
-                  stroke="#17C964"
-                  name="High"
-                  dot={false}
-                  strokeDasharray="3 3"
-                />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="lowestPrice"
-                  stroke="#F31260"
-                  name="Low"
-                  dot={false}
-                  strokeDasharray="3 3"
-                />
-              </>
-            )}
+        {indicators.sma && (
+          <Line
+            type="monotone"
+            dataKey="sma"
+            stroke="#F5A524"
+            name="SMA (20)"
+            dot={false}
+            strokeWidth={config.strokeWidth}
+          />
+        )}
 
-            {indicators.volume && <YAxis yAxisId="right" orientation="right" />}
-            <Tooltip content={<CustomTooltip />} />
-            <Legend />
-            <Line yAxisId="left" type="monotone" dataKey="closePrice" stroke="#0072F5" name="Close Price" dot={false} />
-            {indicators.sma && (
-              <Line yAxisId="left" type="monotone" dataKey="sma" stroke="#F5A524" name="SMA (20)" dot={false} />
-            )}
-            {indicators.ema && (
-              <Line yAxisId="left" type="monotone" dataKey="ema" stroke="#17C964" name="EMA (20)" dot={false} />
-            )}
-            {indicators.volume && <Bar yAxisId="right" dataKey="volume" fill="#7828C8" name="Volume" opacity={0.3} />}
-            {refAreaLeft && refAreaRight && (
-              <ReferenceArea
-                x1={refAreaLeft}
-                x2={refAreaRight}
-                strokeOpacity={0.3}
-                fill="hsl(var(--foreground))"
-                fillOpacity={0.05}
-              />
-            )}
-          </ComposedChart>
-        </ResponsiveContainer>
-      );
-    }
+        {indicators.ema && (
+          <Line
+            type="monotone"
+            dataKey="ema"
+            stroke="#17C964"
+            name="EMA (20)"
+            dot={false}
+            strokeWidth={config.strokeWidth}
+          />
+        )}
 
-    if (selectedTab === "macd" && indicators.macd) {
-      return (
-        <ResponsiveContainer width="100%" height={400}>
-          <ComposedChart
-            data={displayData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" tick={{ fontSize: 12 }} interval="preserveStartEnd" />
-            <YAxis />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend />
-            <ReferenceLine y={0} stroke="#666" />
-            <Line type="monotone" dataKey="macd" stroke="#0072F5" name="MACD" dot={false} />
-            <Line type="monotone" dataKey="signal" stroke="#F31260" name="Signal" dot={false} />
-            {refAreaLeft && refAreaRight && (
-              <ReferenceArea
-                x1={refAreaLeft}
-                x2={refAreaRight}
-                strokeOpacity={0.3}
-                fill="hsl(var(--foreground))"
-                fillOpacity={0.05}
-              />
-            )}
-          </ComposedChart>
-        </ResponsiveContainer>
-      );
-    }
+        {indicators.volume && <Bar dataKey="volume" fill="#7828C8" name="Volume" opacity={0.3} yAxisId="right" />}
+      </ComposedChart>
+    </ResponsiveContainer>
+  );
 
-    if (selectedTab === "rsi" && indicators.rsi) {
-      return (
-        <ResponsiveContainer width="100%" height={400}>
-          <ComposedChart
-            data={displayData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" tick={{ fontSize: 12 }} interval="preserveStartEnd" />
-            <YAxis domain={[0, 100]} />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend />
-            <ReferenceLine y={70} stroke="#F31260" strokeDasharray="3 3" />
-            <ReferenceLine y={30} stroke="#17C964" strokeDasharray="3 3" />
-            <Line type="monotone" dataKey="rsi" stroke="#7828C8" name="RSI" dot={false} />
-            {refAreaLeft && refAreaRight && (
-              <ReferenceArea
-                x1={refAreaLeft}
-                x2={refAreaRight}
-                strokeOpacity={0.3}
-                fill="hsl(var(--foreground))"
-                fillOpacity={0.05}
-              />
-            )}
-          </ComposedChart>
-        </ResponsiveContainer>
-      );
-    }
+  const renderMACDChart = (displayData: ChartData[]) => (
+    <ResponsiveContainer width="100%" height={config.height}>
+      <ComposedChart data={displayData} margin={config.margin}>
+        <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.6} />
+        <XAxis
+          dataKey="date"
+          tick={{ fontSize: config.fontSize }}
+          interval={isMobile ? "preserveStartEnd" : 0}
+          angle={isMobile ? -45 : 0}
+          textAnchor={isMobile ? "end" : "middle"}
+          height={isMobile ? 50 : 30}
+        />
+        <YAxis tick={{ fontSize: config.fontSize }} />
+        <Tooltip content={<CustomTooltip />} />
+        <Legend
+          height={config.legendHeight}
+          iconSize={config.dotSize * 2}
+          wrapperStyle={{ fontSize: config.fontSize }}
+        />
+        <ReferenceLine y={0} stroke="#666" strokeOpacity={0.5} />
+        <Line
+          type="monotone"
+          dataKey="macd"
+          stroke="#0072F5"
+          name="MACD"
+          dot={false}
+          strokeWidth={config.strokeWidth}
+        />
+        <Line
+          type="monotone"
+          dataKey="signal"
+          stroke="#F31260"
+          name="Signal"
+          dot={false}
+          strokeWidth={config.strokeWidth}
+        />
+      </ComposedChart>
+    </ResponsiveContainer>
+  );
 
-    return null;
-  };
+  const renderRSIChart = (displayData: ChartData[]) => (
+    <ResponsiveContainer width="100%" height={config.height}>
+      <ComposedChart data={displayData} margin={config.margin}>
+        <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.6} />
+        <XAxis
+          dataKey="date"
+          tick={{ fontSize: config.fontSize }}
+          interval={isMobile ? "preserveStartEnd" : 0}
+          angle={isMobile ? -45 : 0}
+          textAnchor={isMobile ? "end" : "middle"}
+          height={isMobile ? 50 : 30}
+        />
+        <YAxis domain={[0, 100]} tick={{ fontSize: config.fontSize }} />
+        <Tooltip content={<CustomTooltip />} />
+        <Legend
+          height={config.legendHeight}
+          iconSize={config.dotSize * 2}
+          wrapperStyle={{ fontSize: config.fontSize }}
+        />
+        <ReferenceLine y={70} stroke="#F31260" strokeDasharray="3 3" />
+        <ReferenceLine y={30} stroke="#17C964" strokeDasharray="3 3" />
+        <Line type="monotone" dataKey="rsi" stroke="#7828C8" name="RSI" dot={false} strokeWidth={config.strokeWidth} />
+      </ComposedChart>
+    </ResponsiveContainer>
+  );
 
-  return <ZoomableContainer data={data}>{(displayData) => renderChart(displayData)}</ZoomableContainer>;
+  return (
+    <Card className="w-full mt-4">
+      <CardBody>
+        <ZoomableContainer data={data}>
+          {(displayData) => {
+            switch (selectedTab) {
+              case "price":
+                return renderPriceChart(displayData);
+              case "macd":
+                return indicators.macd ? renderMACDChart(displayData) : null;
+              case "rsi":
+                return indicators.rsi ? renderRSIChart(displayData) : null;
+              default:
+                return null;
+            }
+          }}
+        </ZoomableContainer>
+      </CardBody>
+    </Card>
+  );
 };
 
-export default EnhancedChartContainer;
+export default ChartContainer;
