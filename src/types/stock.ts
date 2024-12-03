@@ -1,3 +1,12 @@
+export interface StockApiResponse {
+  Data: {
+    TotalCount: number;
+    Data: RawStockDataPoint[];
+  };
+  Message: string | null;
+  Success: boolean;
+}
+
 export type TimeframeOption = "1W" | "1M" | "3M" | "6M" | "1Y" | "2Y" | "ALL";
 
 export interface RawStockDataPoint {
@@ -5,6 +14,7 @@ export interface RawStockDataPoint {
   GiaDongCua: number;
   ThayDoi: string;
   KhoiLuongKhopLenh: number;
+  GiaTriKhopLenh: number;
   GiaDieuChinh: number;
   KLThoaThuan: number;
   GtThoaThuan: number;
@@ -37,22 +47,8 @@ export interface ChartData extends TransformedStockData {
   signal?: number;
   histogram?: number;
   rsi?: number;
-  pp?: number;
-  r1?: number;
-  r2?: number;
-  r3?: number;
-  s1?: number;
-  s2?: number;
-  s3?: number;
 }
 
 export interface ChartProps {
   data: ChartData[];
-}
-
-export interface StockApiResponse {
-  Data?: {
-    TotalCount?: number;
-    Data?: RawStockDataPoint[];
-  };
 }

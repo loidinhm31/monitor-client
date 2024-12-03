@@ -7,8 +7,8 @@ import StockDashboard from "@/components/templates/Analytics/StockDashboard";
 import { HttpService } from "@/core/services/HttpService";
 import type { TransformedStockData } from "@/types/stock";
 import { StockApiResponse } from "@/types/stock";
-import { transformStockData } from "@/utils/stockUtils";
 import { formatCustomDate } from "@/utils/dateFormatterUtils";
+import { transformStockData } from "@/utils/stockUtils";
 
 const PAGE_SIZE = 32;
 
@@ -20,7 +20,6 @@ const Analytics: React.FC = () => {
   const [mainStockData, setMainStockData] = useState<TransformedStockData[]>([]);
   const [compareStocksData, setCompareStocksData] = useState<Record<string, TransformedStockData[]>>({});
 
-  // Initialize dateFormatterUtils.ts states
   const currentDate = today(getLocalTimeZone());
   const threeMonthsAgo = currentDate.subtract({ months: 3 });
   const [startDate, setStartDate] = useState<CalendarDate>(threeMonthsAgo);

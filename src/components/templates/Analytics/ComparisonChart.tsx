@@ -29,7 +29,7 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({ stocksData, onRemoveS
   const normalizedData = React.useMemo(() => {
     if (!stocksData.length) return [];
 
-    // First, ensure each stock's data is sorted by dateFormatterUtils.ts
+    // First, ensure each stock's data is sorted by date
     const processedStockData = stocksData.map((stock) => ({
       ...stock,
       data: [...stock.data].sort((a, b) => {
@@ -39,9 +39,9 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({ stocksData, onRemoveS
       }),
     }));
 
-    // Find the latest start dateFormatterUtils.ts and earliest end dateFormatterUtils.ts among all stocks
-    let latestStart = new Date(0); // Initialize to earliest possible dateFormatterUtils.ts
-    let earliestEnd = new Date(8640000000000000); // Initialize to latest possible dateFormatterUtils.ts
+    // Find the latest start date and earliest end date among all stocks
+    let latestStart = new Date(0); // Initialize to earliest possible date
+    let earliestEnd = new Date(8640000000000000); // Initialize to latest possible date
 
     processedStockData.forEach((stock) => {
       if (stock.data.length > 0) {
@@ -69,7 +69,7 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({ stocksData, onRemoveS
       return dateA.getTime() - dateB.getTime();
     });
 
-    // Get baseline prices from the first common dateFormatterUtils.ts
+    // Get baseline prices from the first common date
     const earliestCommonDate = sortedDates[0];
     const baselinePrices: Record<string, number> = {};
 
