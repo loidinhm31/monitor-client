@@ -2,7 +2,7 @@ import { getLocalTimeZone, today } from "@internationalized/date";
 import { Button, CalendarDate, DatePicker, Input, Spinner, Tab, Tabs } from "@nextui-org/react";
 import React, { useState } from "react";
 
-import Portfolio from "@/components/templates/Analytics/Portfolio";
+import Portfolio from "@/components/templates/Analytics/Portfolio/Portfolio";
 import StockDashboard from "@/components/templates/Analytics/StockDashboard";
 import { HttpService } from "@/core/services/HttpService";
 import { StockApiResponse, TransformedStockData } from "@/types/stock";
@@ -13,7 +13,7 @@ const PAGE_SIZE = 32;
 
 const TabbedAnalytics = () => {
   const [selectedTab, setSelectedTab] = useState("analysis");
-  const [portfolioData, setPortfolioData] = useState<TransformedStockData[]>([]);
+  const [portfolioData, setPortfolioData] = useState<(TransformedStockData & { symbol: string })[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -22,6 +22,7 @@ const TabbedAnalytics = () => {
   const [mainStockData, setMainStockData] = useState<TransformedStockData[]>([]);
   const [compareStocksData, setCompareStocksData] = useState<Record<string, TransformedStockData[]>>({});
 
+  // Date range state
   const currentDate = today(getLocalTimeZone());
   const threeMonthsAgo = currentDate.subtract({ months: 3 });
   const [startDate, setStartDate] = useState<CalendarDate>(threeMonthsAgo);
@@ -107,7 +108,7 @@ const TabbedAnalytics = () => {
     }
   };
 
-  const fetchCurrentPrice = async (symbol: string) => {
+  const fetchCurrentPrice = async (symbol: string): Promise<TransformedStockData | null> => {
     try {
       const response = await HttpService.getAxiosClient().get<StockApiResponse>(
         "https://s.cafef.vn/Ajax/PageNew/DataHistory/PriceHistory.ashx",
@@ -128,28 +129,46 @@ const TabbedAnalytics = () => {
       return null;
     } catch (error) {
       console.error(`Error fetching current price for ${symbol}:`, error);
-      return null;
+      throw error;
     }
   };
 
-  const handleAddToPortfolio = async (symbol: string) => {
+  const handleAddToPortfolio = async (stockSymbol: string) => {
     setLoading(true);
+    setError("");
     try {
-      const priceData = await fetchCurrentPrice(symbol);
+      // Check if symbol already exists in portfolio
+      const isSymbolExists = portfolioData.some((item) => item.symbol === stockSymbol);
+      if (isSymbolExists) {
+        setError("Stock is already in your portfolio");
+        return;
+      }
+
+      const priceData = await fetchCurrentPrice(stockSymbol);
       if (priceData) {
-        setPortfolioData((prev) => [...prev, priceData]);
+        setPortfolioData((prev) => [...prev, { ...priceData, symbol: stockSymbol }]);
+      } else {
+        setError("Could not fetch stock data");
       }
     } catch (error) {
       console.error("Error adding to portfolio:", error);
+      setError("Failed to add stock to portfolio");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRemoveFromPortfolio = (symbol: string) => {
+    setPortfolioData((prev) => prev.filter((item) => item.symbol !== symbol));
   };
 
   const handleAddCompareStock = async (compareSymbol: string) => {
     if (compareSymbol === mainSymbol || compareSymbol in compareStocksData) {
       return;
     }
+
+    setLoading(true);
+    setError("");
 
     try {
       const data = await fetchAllData(compareSymbol);
@@ -159,7 +178,9 @@ const TabbedAnalytics = () => {
       }));
     } catch (error) {
       console.error("Error adding comparison stock:", error);
-      throw error;
+      setError("Failed to add comparison stock");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -226,7 +247,12 @@ const TabbedAnalytics = () => {
         </Tab>
 
         <Tab key="portfolio" title="Portfolio">
-          <Portfolio data={portfolioData} onAddStock={handleAddToPortfolio} loading={loading} />
+          <Portfolio
+            data={portfolioData}
+            onAddStock={handleAddToPortfolio}
+            onRemoveStock={handleRemoveFromPortfolio}
+            loading={loading}
+          />
         </Tab>
       </Tabs>
     </div>

@@ -2,24 +2,25 @@ import { Button, Card, CardBody, CardHeader, Input, Spinner } from "@nextui-org/
 import { Plus } from "lucide-react";
 import React, { useState } from "react";
 
-import ResponsiveDataTable from "@/components/templates/Analytics/ResponsiveDataTable";
+import ResponsivePortfolioDataTable from "@/components/templates/Analytics/Portfolio/ResponsivePortfolioDataTable";
 import { TransformedStockData } from "@/types/stock";
 
 interface PortfolioProps {
-  data: TransformedStockData[];
+  data: (TransformedStockData & { symbol: string })[];
   onAddStock: (symbol: string) => Promise<void>;
+  onRemoveStock: (symbol: string) => void;
   loading: boolean;
 }
 
-const Portfolio: React.FC<PortfolioProps> = ({ data, onAddStock, loading }) => {
+const Portfolio: React.FC<PortfolioProps> = ({ data, onAddStock, onRemoveStock, loading }) => {
   const [newSymbol, setNewSymbol] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSymbol) return;
-
-    await onAddStock(newSymbol);
-    setNewSymbol("");
+    if (newSymbol.trim()) {
+      await onAddStock(newSymbol.trim());
+      setNewSymbol("");
+    }
   };
 
   return (
@@ -41,7 +42,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ data, onAddStock, loading }) => {
           <Button
             color="primary"
             type="submit"
-            isDisabled={loading || !newSymbol}
+            isDisabled={loading || !newSymbol.trim()}
             startContent={loading ? <Spinner size="sm" /> : <Plus className="w-4 h-4" />}
           >
             Add
@@ -50,7 +51,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ data, onAddStock, loading }) => {
       </CardHeader>
       <CardBody>
         {data.length > 0 ? (
-          <ResponsiveDataTable data={data} />
+          <ResponsivePortfolioDataTable data={data} onRemoveStock={onRemoveStock} actionColumn={true} />
         ) : (
           <div className="text-center py-8 text-default-500">
             No stocks in portfolio. Add some stocks to get started.

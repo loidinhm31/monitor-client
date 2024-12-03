@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 
-import DesktopDataTable from "@/components/templates/Analytics/DataTable";
+import MobileDataTable from "@/components/templates/Analytics/mobile/MobileDataTable";
+import DesktopDataTable from "@/components/templates/DataTable";
 import type { TransformedStockData } from "@/types/stock";
-
-import MobileDataTable from "./mobile/MobileDataTable";
 
 interface ResponsiveDataTableProps {
   data: TransformedStockData[];
