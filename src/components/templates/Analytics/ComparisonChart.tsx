@@ -13,7 +13,6 @@ import { Card, CardBody, CardHeader, Button, ButtonGroup } from "@nextui-org/rea
 import { X as CloseIcon } from "lucide-react";
 import ComparisonTooltip from "@/components/organisms/ComparisonTooltip";
 
-// Color palette for different stocks
 const STOCK_COLORS = [
   "#0072F5", // Blue
   "#17C964", // Green
@@ -38,22 +37,57 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({
                                                            stocksData,
                                                            onRemoveStock
                                                          }) => {
-  // Normalize data for comparison (convert to percentage change from first day)
   const normalizedData = React.useMemo(() => {
     if (!stocksData.length) return [];
 
-    // Get all unique dates
-    const allDates = new Set<string>();
-    stocksData.forEach(stock => {
-      stock.data.forEach(point => allDates.add(point.date));
-    });
-    const sortedDates = Array.from(allDates).sort();
+    // First, ensure each stock's data is sorted by date
+    const processedStockData = stocksData.map(stock => ({
+      ...stock,
+      data: [...stock.data].sort((a, b) => {
+        const dateA = new Date(a.date.split('/').reverse().join('-'));
+        const dateB = new Date(b.date.split('/').reverse().join('-'));
+        return dateA.getTime() - dateB.getTime();
+      })
+    }));
 
-    // Get initial prices for each stock
-    const initialPrices: Record<string, number> = {};
-    stocksData.forEach(stock => {
+    // Find the latest start date and earliest end date among all stocks
+    let latestStart = new Date(0); // Initialize to earliest possible date
+    let earliestEnd = new Date(8640000000000000); // Initialize to latest possible date
+
+    processedStockData.forEach(stock => {
       if (stock.data.length > 0) {
-        initialPrices[stock.symbol] = stock.data[0].closePrice;
+        const stockStart = new Date(stock.data[0].date.split('/').reverse().join('-'));
+        const stockEnd = new Date(stock.data[stock.data.length - 1].date.split('/').reverse().join('-'));
+
+        if (stockStart > latestStart) latestStart = stockStart;
+        if (stockEnd < earliestEnd) earliestEnd = stockEnd;
+      }
+    });
+
+    // Get all dates within the common range
+    const allDates = new Set<string>();
+    processedStockData.forEach(stock => {
+      stock.data.forEach(point => {
+        const currentDate = new Date(point.date.split('/').reverse().join('-'));
+        if (currentDate >= latestStart && currentDate <= earliestEnd) {
+          allDates.add(point.date);
+        }
+      });
+    });
+    const sortedDates = Array.from(allDates).sort((a, b) => {
+      const dateA = new Date(a.split('/').reverse().join('-'));
+      const dateB = new Date(b.split('/').reverse().join('-'));
+      return dateA.getTime() - dateB.getTime();
+    });
+
+    // Get baseline prices from the first common date
+    const earliestCommonDate = sortedDates[0];
+    const baselinePrices: Record<string, number> = {};
+
+    processedStockData.forEach(stock => {
+      const firstPoint = stock.data.find(d => d.date === earliestCommonDate);
+      if (firstPoint) {
+        baselinePrices[stock.symbol] = firstPoint.closePrice;
       }
     });
 
@@ -64,13 +98,12 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({
         [key: string]: any;
       } = { date };
 
-      stocksData.forEach(stock => {
+      processedStockData.forEach(stock => {
         const point = stock.data.find(d => d.date === date);
-        if (point && initialPrices[stock.symbol]) {
-          const initialPrice = initialPrices[stock.symbol];
-          // Store both percentage change and original price
-          const percentageChange = ((point.closePrice - initialPrice) / initialPrice) * 100;
-          dataPoint[`${stock.symbol}_change`] = percentageChange;
+        if (point && baselinePrices[stock.symbol]) {
+          const baselinePrice = baselinePrices[stock.symbol];
+          const percentageChange = ((point.closePrice - baselinePrice) / baselinePrice) * 100;
+          dataPoint[`${stock.symbol}_change`] = date === earliestCommonDate ? 0 : percentageChange;
           dataPoint[`${stock.symbol}_price`] = point.closePrice;
         }
       });
@@ -118,7 +151,10 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({
       </CardHeader>
       <CardBody>
         <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={normalizedData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+          <LineChart
+            data={normalizedData}
+            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="date"
