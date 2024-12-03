@@ -9,10 +9,12 @@ interface ZoomableContainerProps<T> {
   onSelectionEnd?: () => void;
 }
 
-export function ZoomableContainer<T>({
-  data,
-  children,
-}: ZoomableContainerProps<T>) {
+export function ZoomableContainer<T>({ data, children }: ZoomableContainerProps<T>) {
+  // Check if data is available and valid
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    return null;
+  }
+
   const [startIndex, setStartIndex] = useState<number>(0);
   const [endIndex, setEndIndex] = useState<number>(data.length - 1);
   const chartRef = useRef<HTMLDivElement>(null);
