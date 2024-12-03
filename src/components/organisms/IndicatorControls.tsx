@@ -8,6 +8,7 @@ export interface Indicators {
   rsi: boolean;
   volume: boolean;
   highLow: boolean;
+  pivotPoints: boolean;  // New indicator
 }
 
 interface IndicatorControlsProps {
@@ -27,7 +28,15 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({
           onIndicatorChange({ ...indicators, highLow: value })
         }
       >
-        Highest/ Lowest Price
+        Highest/Lowest Price
+      </Switch>
+      <Switch
+        isSelected={indicators.pivotPoints}
+        onValueChange={(value) =>
+          onIndicatorChange({ ...indicators, pivotPoints: value })
+        }
+      >
+        Pivot Points
       </Switch>
       <Switch
         isSelected={indicators.sma}

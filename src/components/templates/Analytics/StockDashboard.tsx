@@ -6,7 +6,13 @@ import IndicatorControls, { Indicators } from "@/components/organisms/IndicatorC
 import DataTable from "@/components/templates/Analytics/DataTable";
 import type { ChartData, TimeframeOption, TransformedStockData } from "@/types/stock";
 import { filterDataByTimeframe } from "@/utils/stockUtils";
-import { calculateEMA, calculateMACD, calculateRSI, calculateSMA } from "@/utils/technicalIndicators";
+import {
+  calculateDailyPivotPoints,
+  calculateEMA,
+  calculateMACD,
+  calculateRSI,
+  calculateSMA
+} from "@/utils/technicalIndicators";
 
 interface StockDashboardProps {
   stockData: TransformedStockData[];
@@ -23,6 +29,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ stockData }) => {
     rsi: false,
     volume: false,
     highLow: false,
+    pivotPoints: false,
   });
 
   // Memoize the enriched data calculation
@@ -38,6 +45,9 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ stockData }) => {
       const macdData = calculateMACD(prices);
       const rsiData = calculateRSI(prices);
 
+      // Calculate pivot points
+      const pivotPointsData = calculateDailyPivotPoints(sortedData);
+
       return sortedData.map((item, index) => ({
         ...item,
         sma: smaData[index],
@@ -46,6 +56,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ stockData }) => {
         signal: macdData.signal[index],
         histogram: macdData.histogram[index],
         rsi: rsiData[index],
+        ...(pivotPointsData[index] || {}),
       })) as ChartData[];
     } catch (error) {
       console.error("Error enriching data:", error);
@@ -149,6 +160,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ stockData }) => {
         <p>* EMA: Exponential Moving Average (20 periods)</p>
         <p>* MACD: Moving Average Convergence Divergence (12, 26, 9)</p>
         <p>* RSI: Relative Strength Index (14 periods)</p>
+        <p>* PP: Pivot Points (Classic) with Support (S1) and Resistance (R1) levels</p>
       </div>
     </div>
   );

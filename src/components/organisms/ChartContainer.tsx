@@ -42,6 +42,40 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({
               interval="preserveStartEnd"
             />
             <YAxis yAxisId="left" />
+
+            {/* Pivot Points */}
+            {indicators.pivotPoints && (
+              <>
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="pp"
+                  stroke="#9333EA"
+                  name="Pivot Point"
+                  dot={false}
+                  strokeDasharray="3 3"
+                />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="r1"
+                  stroke="#F43F5E"
+                  name="R1"
+                  dot={false}
+                  strokeDasharray="2 2"
+                />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="s1"
+                  stroke="#10B981"
+                  name="S1"
+                  dot={false}
+                  strokeDasharray="2 2"
+                />
+              </>
+            )}
+
             {indicators.highLow && (
               <>
                 <Line
@@ -64,10 +98,11 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({
                 />
               </>
             )}
+
             {indicators.volume && (
               <YAxis yAxisId="right" orientation="right" />
             )}
-            <Tooltip content={CustomTooltip} />
+            <Tooltip content={<CustomTooltip />} />
             <Legend />
             <Line
               yAxisId="left"
@@ -181,7 +216,7 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({
   };
 
   return (
-    <div className="w-full h-[400px] mt-4">
+    <div className="w-full mt-4">
       {renderChart()}
     </div>
   );

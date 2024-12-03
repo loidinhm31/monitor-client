@@ -49,3 +49,44 @@ export const calculateRSI = (data: number[], period: number = 14): number[] => {
   // Pad the beginning with nulls
   return Array(period).fill(null).concat(rsi);
 };
+
+export interface PivotPoints {
+  pp: number;   // Pivot Point
+  r1: number;   // Resistance 1
+  r2: number;   // Resistance 2
+  r3: number;   // Resistance 3
+  s1: number;   // Support 1
+  s2: number;   // Support 2
+  s3: number;   // Support 3
+}
+
+export const calculatePivotPoints = (high: number, low: number, close: number): PivotPoints => {
+  // Calculate pivot point
+  const pp = (high + low + close) / 3;
+
+  // Calculate resistance levels
+  const r1 = (2 * pp) - low;
+  const r2 = pp + (high - low);
+  const r3 = high + 2 * (pp - low);
+
+  // Calculate support levels
+  const s1 = (2 * pp) - high;
+  const s2 = pp - (high - low);
+  const s3 = low - 2 * (high - pp);
+
+  return {
+    pp,
+    r1,
+    r2,
+    r3,
+    s1,
+    s2,
+    s3
+  };
+};
+
+export const calculateDailyPivotPoints = (data: Array<{ highestPrice: number; lowestPrice: number; closePrice: number; }>): PivotPoints[] => {
+  return data.map(day =>
+    calculatePivotPoints(day.highestPrice, day.lowestPrice, day.closePrice)
+  );
+};
