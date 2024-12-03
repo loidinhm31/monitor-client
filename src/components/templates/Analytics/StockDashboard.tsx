@@ -24,12 +24,12 @@ interface StockDashboardProps {
 }
 
 const StockDashboard: React.FC<StockDashboardProps> = ({
-  stockData,
-  compareStocksData,
-  symbol,
-  onAddCompareStock,
-  onRemoveCompareStock,
-}) => {
+                                                         stockData,
+                                                         compareStocksData,
+                                                         symbol,
+                                                         onAddCompareStock,
+                                                         onRemoveCompareStock,
+                                                       }) => {
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState<TimeframeOption>("1M");
   const [selectedTab, setSelectedTab] = useState("price");
@@ -46,17 +46,12 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
   // Memoize the enriched data calculation
   const enrichedData = useMemo(() => {
     try {
-      // Sort data chronologically for the chart
       const sortedData = [...stockData].sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
-
-      // Calculate technical indicators on sorted data
       const prices = sortedData.map((d) => d.closePrice);
       const smaData = calculateSMA(prices, 20);
       const emaData = calculateEMA(prices, 20);
       const macdData = calculateMACD(prices);
       const rsiData = calculateRSI(prices);
-
-      // Calculate pivot points
       const pivotPointsData = calculateDailyPivotPoints(sortedData);
 
       return sortedData.map((item, index) => ({
@@ -84,7 +79,6 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
     [filteredData],
   );
 
-  // Prepare comparison data
   const comparisonData = useMemo(() => {
     const mainStockData = {
       symbol,
@@ -147,6 +141,15 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
               </SelectItem>
               <SelectItem key="6M" value="6M">
                 6 Months
+              </SelectItem>
+              <SelectItem key="1Y" value="1Y">
+                1 Year
+              </SelectItem>
+              <SelectItem key="2Y" value="2Y">
+                2 Years
+              </SelectItem>
+              <SelectItem key="ALL" value="ALL">
+                All Time
               </SelectItem>
             </Select>
           </div>

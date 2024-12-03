@@ -47,9 +47,15 @@ export const filterDataByTimeframe = (
     "1M": 30,
     "3M": 90,
     "6M": 180,
+    "1Y": 365,
+    "2Y": 730,
+    "ALL": Infinity,
   };
 
-  const cutoffDate = new Date(now.getTime() - timeframes[timeframe] * 24 * 60 * 60 * 1000);
+  const cutoffDate = timeframe === "ALL"
+    ? new Date(0) // Beginning of time for "ALL"
+    : new Date(now.getTime() - timeframes[timeframe] * 24 * 60 * 60 * 1000);
+
   return data.filter((item) => item.dateObj >= cutoffDate);
 };
 

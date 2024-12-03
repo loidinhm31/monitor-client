@@ -8,6 +8,7 @@ import { HttpService } from "@/core/services/HttpService";
 import type { TransformedStockData } from "@/types/stock";
 import { StockApiResponse } from "@/types/stock";
 import { transformStockData } from "@/utils/stockUtils";
+import { formatCustomDate } from "@/utils/dateFormatterUtils";
 
 const PAGE_SIZE = 32;
 
@@ -19,7 +20,7 @@ const Analytics: React.FC = () => {
   const [mainStockData, setMainStockData] = useState<TransformedStockData[]>([]);
   const [compareStocksData, setCompareStocksData] = useState<Record<string, TransformedStockData[]>>({});
 
-  // Initialize date states
+  // Initialize dateFormatterUtils.ts states
   const currentDate = today(getLocalTimeZone());
   const threeMonthsAgo = currentDate.subtract({ months: 3 });
   const [startDate, setStartDate] = useState<CalendarDate>(threeMonthsAgo);
@@ -169,11 +170,11 @@ const Analytics: React.FC = () => {
               </div>
 
               <div className="flex-none w-48">
-                <DatePicker label="Start Date" value={startDate} onChange={setStartDate} isRequired />
+                <DatePicker showMonthAndYearPickers label={`Start Date (${formatCustomDate(startDate)})`} value={startDate} onChange={setStartDate} isRequired />
               </div>
 
               <div className="flex-none w-48">
-                <DatePicker label="End Date" value={endDate} onChange={setEndDate} isRequired />
+                <DatePicker showMonthAndYearPickers label={`End Date (${formatCustomDate(endDate)})`} value={endDate} onChange={setEndDate} isRequired />
               </div>
 
               <Button
