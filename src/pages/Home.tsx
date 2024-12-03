@@ -15,11 +15,11 @@ import { Spinner } from "@nextui-org/spinner";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
-import AudioControl from "@/components/templates/AudioControl";
-import HostConnectionControl from "@/components/templates/HostConnectionControl";
-import ServerCamera from "@/components/templates/ServerCamera";
-import StreamingVideoControl from "@/components/templates/StreamingVideoControl";
-import SystemInformationTemplate from "@/components/templates/SystemInformationTemplate";
+import AudioControl from "@/components/templates/Controls/AudioControl";
+import HostConnectionControl from "@/components/templates/Controls/HostConnectionControl";
+import ServerCamera from "@/components/templates/Controls/ServerCamera";
+import StreamingVideoControl from "@/components/templates/Controls/StreamingVideoControl";
+import SystemInformationTemplate from "@/components/templates/Controls/SystemInformationTemplate";
 import { HostConnection } from "@/models/connections";
 import { Eyes, SystemInfo } from "@/models/sensors";
 

@@ -1,23 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { Button, DatePicker, Input, Spinner } from "@nextui-org/react";
-import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar } from "@ionic/react";
 import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
-import StockDashboard from "@/components/templates/StockDashboard";
-import type { RawStockDataPoint, TransformedStockData } from "@/types/stock";
+import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar } from "@ionic/react";
+import { Button, DatePicker, Input, Spinner } from "@nextui-org/react";
+import React, { useEffect, useState } from "react";
+
+import StockDashboard from "@/components/templates/Analytics/StockDashboard";
+import { HttpService } from "@/core/services/HttpService";
+import type { TransformedStockData } from "@/types/stock";
 import { StockApiResponse } from "@/types/stock";
 import { transformStockData } from "@/utils/stockUtils";
-import { HttpService } from "@/core/services/HttpService";
 
 const PAGE_SIZE = 32;
-
-interface StockDataResponse {
-  Data: {
-    Data: Array<RawStockDataPoint>;
-    TotalCount: number;
-  };
-  Status: string;
-  Message: string;
-}
 
 const Analytics = () => {
   const [symbol, setSymbol] = useState("");
@@ -33,16 +25,16 @@ const Analytics = () => {
   const [endDate, setEndDate] = useState<CalendarDate>(currentDate);
 
   const formatDateForApi = (date: CalendarDate) => {
-    return `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
+    return `${date.year}-${date.month.toString().padStart(2, "0")}-${date.day.toString().padStart(2, "0")}`;
   };
 
-  const fetchDataPage = async (pageIndex: number): Promise<StockDataResponse> => {
+  const fetchDataPage = async (pageIndex: number): Promise<StockApiResponse> => {
     try {
       const response = await HttpService.getAxiosClient().get<StockApiResponse>(
-        `https://s.cafef.vn/Ajax/PageNew/DataHistory/PriceHistory.ashx?Symbol=${symbol}&StartDate=${formatDateForApi(startDate)}&EndDate=${formatDateForApi(endDate)}&PageIndex=${pageIndex}&PageSize=${PAGE_SIZE}`
+        `https://s.cafef.vn/Ajax/PageNew/DataHistory/PriceHistory.ashx?Symbol=${symbol}&StartDate=${formatDateForApi(startDate)}&EndDate=${formatDateForApi(endDate)}&PageIndex=${pageIndex}&PageSize=${PAGE_SIZE}`,
       );
 
-      return await response.data;
+      return response.data;
     } catch (error) {
       console.error(`Error fetching page ${pageIndex}:`, error);
       throw error;
@@ -58,7 +50,7 @@ const Analytics = () => {
       const firstPage = await fetchDataPage(1);
 
       if (!firstPage?.Data?.TotalCount || !Array.isArray(firstPage.Data.Data)) {
-        throw new Error('Invalid data format received from API');
+        throw new Error("Invalid data format received from API");
       }
 
       const totalCount = firstPage.Data.TotalCount;
@@ -69,16 +61,16 @@ const Analytics = () => {
       // Fetch remaining pages if any
       if (totalPages > 1) {
         const remainingPages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
-        const promises = remainingPages.map(pageIndex => fetchDataPage(pageIndex));
+        const promises = remainingPages.map((pageIndex) => fetchDataPage(pageIndex));
 
         const results = await Promise.all(promises);
 
-        results.forEach((result: StockDataResponse) => {
+        results.forEach((result: StockApiResponse) => {
           if (result?.Data?.Data && Array.isArray(result.Data.Data)) {
             const transformedData = result.Data.Data.map(transformStockData);
             allData = [...allData, ...transformedData];
           } else {
-            console.warn('Invalid data format in page response', result);
+            console.warn("Invalid data format in page response", result);
           }
         });
       }
@@ -124,10 +116,7 @@ const Analytics = () => {
 
       <IonContent className="ion-padding" scrollY={true}>
         <div className="max-w-[1200px] mx-auto px-4">
-          <form
-            onSubmit={handleSubmit}
-            className="mb-6 p-4 rounded-lg bg-content1 shadow-sm"
-          >
+          <form onSubmit={handleSubmit} className="mb-6 p-4 rounded-lg bg-content1 shadow-sm">
             <div className="flex flex-wrap items-end gap-4">
               <div className="flex-none w-32">
                 <Input
@@ -146,7 +135,7 @@ const Analytics = () => {
                   label="Start Date"
                   value={startDate}
                   defaultValue={startDate}
-                  onDateChange={handleStartDateChange}
+                  onChange={handleStartDateChange}
                   variant="bordered"
                   isRequired
                 />
@@ -157,33 +146,19 @@ const Analytics = () => {
                   label="End Date"
                   value={endDate}
                   defaultValue={endDate}
-                  onDateChange={handleEndDateChange}
+                  onChange={handleEndDateChange}
                   variant="bordered"
                   isRequired
                 />
               </div>
 
-              <Button
-                color="primary"
-                type="submit"
-                isDisabled={loading}
-                size="lg"
-                className="flex-none"
-              >
-                {loading ? (
-                  <Spinner size="sm" color="white" />
-                ) : (
-                  "Fetch Data"
-                )}
+              <Button color="primary" type="submit" isDisabled={loading} size="lg" className="flex-none">
+                {loading ? <Spinner size="sm" color="white" /> : "Fetch Data"}
               </Button>
             </div>
           </form>
 
-          {error && (
-            <div className="p-4 mb-4 text-danger rounded-lg bg-danger-50">
-              {error}
-            </div>
-          )}
+          {error && <div className="p-4 mb-4 text-danger rounded-lg bg-danger-50">{error}</div>}
 
           {loading ? (
             <div className="flex items-center justify-center h-64">

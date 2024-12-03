@@ -5,7 +5,7 @@ import { Chip } from "@nextui-org/chip";
 import { chevronCollapseOutline, chevronExpandOutline } from "ionicons/icons";
 import React, { useEffect, useRef, useState } from "react";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
-import SaveDataControl from "@/components/templates/SaveDataControl";
+import SaveDataControl from "@/components/templates/Controls/SaveDataControl";
 
 interface StreamingControlProps {
   wsConnection: WebSocket | null;
