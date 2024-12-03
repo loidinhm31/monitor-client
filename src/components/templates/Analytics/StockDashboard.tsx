@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from "react";
 
 import EnhancedChartContainer from "@/components/organisms/ChartContainer";
 import IndicatorControls, { Indicators } from "@/components/organisms/IndicatorControls";
-import DataTable from "@/components/templates/Analytics/DataTable";
 import type { ChartData, TimeframeOption, TransformedStockData } from "@/types/stock";
 import { filterDataByTimeframe } from "@/utils/stockUtils";
 import {
@@ -13,6 +12,7 @@ import {
   calculateRSI,
   calculateSMA
 } from "@/utils/technicalIndicators";
+import ResponsiveDataTable from "@/components/templates/Analytics/ResponsiveDataTable";
 
 interface StockDashboardProps {
   stockData: TransformedStockData[];
@@ -97,33 +97,23 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ stockData }) => {
   return (
     <div className="w-full mx-auto p-4">
       <Card className="w-full">
-        <CardHeader className="w-full flex flex-wrap justify-between items-center gap-4 px-6 py-4">
-          <div className="w-full flex flex-space items-center gap-4">
-            <div className="w-full">
-              <h4 className="text-xl font-bold">Stock Market Analysis</h4>
-            </div>
-            <div className="flex gap-4 items-center w-full">
-              <Select
-                defaultSelectedKeys={[timeframe]}
-                className="w-full"
-                size="sm"
-                aria-label="Select timeframe"
-                onChange={(e) => setTimeframe(e.target.value as TimeframeOption)}
-              >
-                <SelectItem key="1W" value="1W">
-                  1 Week
-                </SelectItem>
-                <SelectItem key="1M" value="1M">
-                  1 Month
-                </SelectItem>
-                <SelectItem key="3M" value="3M">
-                  3 Months
-                </SelectItem>
-                <SelectItem key="6M" value="6M">
-                  6 Months
-                </SelectItem>
-              </Select>
-            </div>
+        <CardHeader className="flex flex-col sm:flex-row gap-4 px-6 py-4">
+          <div className="w-full">
+            <h4 className="text-xl font-bold">Stock Market Analysis</h4>
+          </div>
+          <div className="w-full sm:w-48">
+            <Select
+              defaultSelectedKeys={[timeframe]}
+              className="w-full"
+              size="sm"
+              aria-label="Select timeframe"
+              onChange={(e) => setTimeframe(e.target.value as TimeframeOption)}
+            >
+              <SelectItem key="1W" value="1W">1 Week</SelectItem>
+              <SelectItem key="1M" value="1M">1 Month</SelectItem>
+              <SelectItem key="3M" value="3M">3 Months</SelectItem>
+              <SelectItem key="6M" value="6M">6 Months</SelectItem>
+            </Select>
           </div>
         </CardHeader>
         <CardBody>
@@ -137,11 +127,15 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ stockData }) => {
             variant="underlined"
           >
             <Tab key="price" title="Price">
-              <EnhancedChartContainer data={filteredData} selectedTab={selectedTab} indicators={indicators} />
+              <EnhancedChartContainer
+                data={filteredData}
+                selectedTab={selectedTab}
+                indicators={indicators}
+              />
             </Tab>
 
             <Tab key="table" title="Data Table" isDisabled={filteredData.length === 0}>
-              <DataTable data={tableData} />
+              <ResponsiveDataTable data={tableData} />
             </Tab>
           </Tabs>
         </CardBody>
