@@ -24,14 +24,14 @@ interface StockDashboardProps {
 }
 
 const StockDashboard: React.FC<StockDashboardProps> = ({
-                                                         stockData,
-                                                         compareStocksData,
-                                                         symbol,
-                                                         onAddCompareStock,
-                                                         onRemoveCompareStock,
-                                                       }) => {
+  stockData,
+  compareStocksData,
+  symbol,
+  onAddCompareStock,
+  onRemoveCompareStock,
+}) => {
   const [loading, setLoading] = useState(true);
-  const [timeframe, setTimeframe] = useState<TimeframeOption>("1M");
+  const [timeframe, setTimeframe] = useState<TimeframeOption>("ALL");
   const [selectedTab, setSelectedTab] = useState("price");
   const [indicators, setIndicators] = useState<Indicators>({
     sma: false,
@@ -116,7 +116,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
   }
 
   return (
-    <div className="w-full mx-auto p-4">
+    <div className="w-full mx-auto">
       <Card className="w-full">
         <CardHeader className="flex flex-col sm:flex-row gap-4 px-6 py-4">
           <div className="w-full">

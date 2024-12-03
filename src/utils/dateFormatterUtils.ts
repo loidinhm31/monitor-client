@@ -1,9 +1,6 @@
 import { CalendarDate } from "@internationalized/date";
 
-const months = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-];
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export const getOrdinalSuffix = (day: number): string => {
   const j = day % 10;
