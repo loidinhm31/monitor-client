@@ -1,65 +1,30 @@
+import { CalendarDate } from "@internationalized/date";
 import { Button, Card, CardBody, CardHeader, Input, Select, SelectItem, Spinner, Tab, Tabs } from "@nextui-org/react";
 import { Plus } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import ResponsivePortfolioDataTable from "@/components/templates/Analytics/Portfolio/ResponsivePortfolioDataTable";
 import StockComparisonChart from "@/components/templates/Analytics/StockComparisonChart";
+import { usePortfolio } from "@/hooks/usePortfolio";
 import { TimeframeOption } from "@/types/stock";
 import { filterDataByTimeframe } from "@/utils/stockUtils";
 
 interface PortfolioProps {
-  symbols: string[];
-  onAddSymbol: (symbol: string) => Promise<void>;
-  onRemoveSymbol: (symbol: string) => void;
   dateRange: {
     startDate: CalendarDate;
     endDate: CalendarDate;
   };
-  stockDataHook: any;
 }
 
-const Portfolio: React.FC<PortfolioProps> = ({ symbols, onAddSymbol, onRemoveSymbol, dateRange, stockDataHook }) => {
+const Portfolio: React.FC<PortfolioProps> = ({ dateRange }) => {
   const [newSymbol, setNewSymbol] = useState("");
   const [selectedTab, setSelectedTab] = useState("holdings");
   const [timeframe, setTimeframe] = useState<TimeframeOption>("ALL");
 
-  const { loading, error, fetchAllData } = stockDataHook(dateRange);
-
-  const [portfolioData, setPortfolioData] = useState<{ [symbol: string]: any }>({});
-
-  useEffect(() => {
-    const loadPortfolioData = async () => {
-      const newData = { ...portfolioData };
-      for (const symbol of symbols) {
-        if (!portfolioData[symbol]) {
-          // Only fetch if we don't have the data
-          try {
-            const data = await fetchAllData(symbol);
-            newData[symbol] = data;
-          } catch (error) {
-            console.error(`Error loading data for ${symbol}:`, error);
-          }
-        }
-      }
-      setPortfolioData((prev) => ({ ...prev, ...newData }));
-    };
-
-    loadPortfolioData();
-  }, [symbols, dateRange.startDate, dateRange.endDate]);
-
-  // Handle removing data when a symbol is removed
-  useEffect(() => {
-    const currentSymbols = new Set(symbols);
-    const toRemove = Object.keys(portfolioData).filter((symbol) => !currentSymbols.has(symbol));
-
-    if (toRemove.length > 0) {
-      setPortfolioData((prev) => {
-        const newData = { ...prev };
-        toRemove.forEach((symbol) => delete newData[symbol]);
-        return newData;
-      });
-    }
-  }, [symbols]);
+  const { portfolioSymbols, portfolioData, loading, error, addSymbol, removeSymbol } = usePortfolio({
+    startDate: dateRange.startDate,
+    endDate: dateRange.endDate,
+  });
 
   const comparisonData = useMemo(() => {
     return Object.entries(portfolioData).map(([symbol, data]) => ({
@@ -72,25 +37,27 @@ const Portfolio: React.FC<PortfolioProps> = ({ symbols, onAddSymbol, onRemoveSym
   }, [portfolioData, timeframe]);
 
   const tableData = useMemo(() => {
-    return Object.entries(portfolioData).map(([symbol, data]) => {
-      const latestData = data[0]; // Assuming data is sorted newest first
-      return {
-        ...latestData,
-        symbol,
-      };
-    });
-  }, [portfolioData]);
+    return Object.entries(portfolioData)
+      .map(([symbol, data]) => {
+        const filteredData = filterDataByTimeframe(data, timeframe);
+        // Get the most recent data point
+        const latestData = filteredData[0];
+        return latestData
+          ? {
+              ...latestData,
+              symbol,
+            }
+          : null;
+      })
+      .filter(Boolean);
+  }, [portfolioData, timeframe]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newSymbol.trim()) {
-      await onAddSymbol(newSymbol.trim());
+      await addSymbol(newSymbol.trim().toUpperCase());
       setNewSymbol("");
     }
-  };
-
-  const handleRemoveStock = (symbol: string) => {
-    onRemoveSymbol(symbol);
   };
 
   return (
@@ -105,7 +72,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ symbols, onAddSymbol, onRemoveSym
             <Select
               defaultSelectedKeys={[timeframe]}
               onChange={(e) => setTimeframe(e.target.value as TimeframeOption)}
-              className="w-full"
+              className="w-full sm:w-48"
               size="sm"
               variant="bordered"
               aria-label="Select timeframe"
@@ -132,14 +99,14 @@ const Portfolio: React.FC<PortfolioProps> = ({ symbols, onAddSymbol, onRemoveSym
                 All Time
               </SelectItem>
             </Select>
-            <form onSubmit={handleSubmit} className="flex gap-2 w-full">
+            <form onSubmit={handleSubmit} className="flex gap-2 w-full sm:w-auto">
               <Input
                 type="text"
                 value={newSymbol}
                 onChange={(e) => setNewSymbol(e.target.value.toUpperCase())}
                 placeholder="Add stock symbol"
                 size="sm"
-                className="w-full py-1"
+                className="w-32"
               />
               <Button
                 color="primary"
@@ -157,16 +124,16 @@ const Portfolio: React.FC<PortfolioProps> = ({ symbols, onAddSymbol, onRemoveSym
       <CardBody>
         {error && <div className="text-danger text-sm mb-4 p-2 bg-danger-50 rounded">{error}</div>}
 
-        {tableData.length > 0 ? (
+        {portfolioSymbols.length > 0 ? (
           <Tabs selectedKey={selectedTab} onSelectionChange={(key) => setSelectedTab(key.toString())}>
             <Tab key="holdings" title="Holdings">
-              <ResponsivePortfolioDataTable data={tableData} onRemoveStock={handleRemoveStock} actionColumn={true} />
+              <ResponsivePortfolioDataTable data={tableData} onRemoveStock={removeSymbol} actionColumn={true} />
             </Tab>
             <Tab key="compare" title="Compare">
               <div className="mt-4">
                 <StockComparisonChart
                   stocksData={comparisonData}
-                  onRemoveStock={handleRemoveStock}
+                  onRemoveStock={removeSymbol}
                   title="Portfolio Performance Comparison"
                   description="Compare performance of stocks in your portfolio"
                 />
@@ -175,13 +142,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ symbols, onAddSymbol, onRemoveSym
           </Tabs>
         ) : (
           <div className="text-center py-8 text-default-500">
-            No stocks in portfolio. Add some stocks to get started.
-          </div>
-        )}
-
-        {loading && (
-          <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
-            <Spinner size="lg" />
+            {loading ? <Spinner size="lg" /> : "No stocks in portfolio. Add some stocks to get started."}
           </div>
         )}
       </CardBody>
