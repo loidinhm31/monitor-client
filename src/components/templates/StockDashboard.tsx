@@ -115,7 +115,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ stockData }) => {
             </div>
           </div>
         </CardHeader>
-        <CardBody className="px-6 py-4">
+        <CardBody>
           <IndicatorControls indicators={indicators} onIndicatorChange={setIndicators} />
 
           <Tabs
@@ -144,7 +144,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ stockData }) => {
         </CardBody>
       </Card>
 
-      <div className="mt-4 text-sm text-gray-500">
+      <div className="py-2 text-sm text-gray-500">
         <p>* SMA: Simple Moving Average (20 periods)</p>
         <p>* EMA: Exponential Moving Average (20 periods)</p>
         <p>* MACD: Moving Average Convergence Divergence (12, 26, 9)</p>

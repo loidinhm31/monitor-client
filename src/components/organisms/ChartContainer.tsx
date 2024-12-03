@@ -15,6 +15,7 @@ import {
 
 import { Indicators } from '@/components/organisms/IndicatorControls';
 import { ChartProps } from '@/types/stock';
+import CustomTooltip from './CustomTooltip';
 
 interface EnhancedChartProps extends ChartProps {
   selectedTab: string;
@@ -66,7 +67,7 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({
             {indicators.volume && (
               <YAxis yAxisId="right" orientation="right" />
             )}
-            <Tooltip />
+            <Tooltip content={CustomTooltip} />
             <Legend />
             <Line
               yAxisId="left"
@@ -124,7 +125,7 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({
               interval="preserveStartEnd"
             />
             <YAxis />
-            <Tooltip />
+            <Tooltip content={<CustomTooltip />} />
             <Legend />
             <ReferenceLine y={0} stroke="#666" />
             <Line
@@ -160,7 +161,7 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({
               interval="preserveStartEnd"
             />
             <YAxis domain={[0, 100]} />
-            <Tooltip />
+            <Tooltip content={<CustomTooltip />} />
             <Legend />
             <ReferenceLine y={70} stroke="#F31260" strokeDasharray="3 3" />
             <ReferenceLine y={30} stroke="#17C964" strokeDasharray="3 3" />
