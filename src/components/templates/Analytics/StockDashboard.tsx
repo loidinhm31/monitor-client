@@ -140,14 +140,6 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ stockData }) => {
               <EnhancedChartContainer data={filteredData} selectedTab={selectedTab} indicators={indicators} />
             </Tab>
 
-            <Tab key="macd" title="MACD" isDisabled={filteredData.length === 0}>
-              <EnhancedChartContainer data={filteredData} selectedTab={selectedTab} indicators={indicators} />
-            </Tab>
-
-            <Tab key="rsi" title="RSI" isDisabled={filteredData.length === 0}>
-              <EnhancedChartContainer data={filteredData} selectedTab={selectedTab} indicators={indicators} />
-            </Tab>
-
             <Tab key="table" title="Data Table" isDisabled={filteredData.length === 0}>
               <DataTable data={tableData} />
             </Tab>

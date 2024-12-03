@@ -27,10 +27,20 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
 
   const renderCell = (column: { key: string }, row: TransformedStockData) => {
     if (column.key === 'priceChange') {
-      const isProfit = row[column.key]?.value >= 0;
+      const value = row[column.key]?.value;
+      const percentage = row[column.key]?.percentage;
+
+      // Determine text color class based on value
+      let colorClass = 'text-warning'; // Default for no change (0)
+      if (value > 0) {
+        colorClass = 'text-success';
+      } else if (value < 0) {
+        colorClass = 'text-danger';
+      }
+
       return (
-        <span className={isProfit ? 'text-success' : 'text-danger'}>
-          {row[column.key]?.value} ({row[column.key]?.percentage}%)
+        <span className={colorClass}>
+          {value} ({percentage}%)
         </span>
       );
     }
