@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useState } from "react";
 
 import EnhancedChartContainer from "@/components/organisms/ChartContainer";
 import IndicatorControls, { Indicators } from "@/components/organisms/IndicatorControls";
+import ResponsiveDataTable from "@/components/templates/Analytics/ResponsiveDataTable";
+import StockComparison from "@/components/templates/Analytics/StockComparison";
 import type { ChartData, TimeframeOption, TransformedStockData } from "@/types/stock";
 import { filterDataByTimeframe } from "@/utils/stockUtils";
 import {
@@ -10,15 +12,24 @@ import {
   calculateEMA,
   calculateMACD,
   calculateRSI,
-  calculateSMA
+  calculateSMA,
 } from "@/utils/technicalIndicators";
-import ResponsiveDataTable from "@/components/templates/Analytics/ResponsiveDataTable";
 
 interface StockDashboardProps {
   stockData: TransformedStockData[];
+  compareStocksData: Record<string, TransformedStockData[]>;
+  symbol: string;
+  onAddCompareStock: (symbol: string) => Promise<void>;
+  onRemoveCompareStock: (symbol: string) => void;
 }
 
-const StockDashboard: React.FC<StockDashboardProps> = ({ stockData }) => {
+const StockDashboard: React.FC<StockDashboardProps> = ({
+                                                         stockData,
+                                                         compareStocksData,
+                                                         symbol,
+                                                         onAddCompareStock,
+                                                         onRemoveCompareStock
+                                                       }) => {
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState<TimeframeOption>("1M");
   const [selectedTab, setSelectedTab] = useState("price");
@@ -73,17 +84,30 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ stockData }) => {
     [filteredData],
   );
 
+  // Prepare comparison data
+  const comparisonData = useMemo(() => {
+    const mainStockData = {
+      symbol,
+      data: filteredData.map(d => ({
+        date: d.date,
+        closePrice: d.closePrice
+      }))
+    };
+
+    const compareStocks = Object.entries(compareStocksData).map(([compareSymbol, data]) => ({
+      symbol: compareSymbol,
+      data: filterDataByTimeframe(data, timeframe).map(d => ({
+        date: d.date,
+        closePrice: d.closePrice
+      }))
+    }));
+
+    return [mainStockData, ...compareStocks];
+  }, [symbol, filteredData, compareStocksData, timeframe]);
+
   useEffect(() => {
     setLoading(false);
   }, [enrichedData]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
 
   const handleTabChange = (key: React.Key) => {
     setSelectedTab(key.toString());
@@ -93,6 +117,14 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ stockData }) => {
       setIndicators((prev) => ({ ...prev, rsi: true }));
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full mx-auto p-4">
@@ -131,6 +163,15 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ stockData }) => {
                 data={filteredData}
                 selectedTab={selectedTab}
                 indicators={indicators}
+              />
+            </Tab>
+
+            <Tab key="compare" title="Compare">
+              <StockComparison
+                stocksData={comparisonData}
+                onAddStock={onAddCompareStock}
+                onRemoveStock={onRemoveCompareStock}
+                mainSymbol={symbol}
               />
             </Tab>
 

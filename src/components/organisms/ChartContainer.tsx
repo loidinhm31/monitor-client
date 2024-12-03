@@ -69,7 +69,7 @@ const ChartContainer: React.FC<ChartContainerProps> = ({ data, selectedTab, indi
           dataKey="date"
           tick={{ fontSize: config.fontSize }}
           interval={isMobile ? "preserveStartEnd" : 0}
-          angle={isMobile ? -45 : 0}
+          angle={isMobile ? -90 : -45}
           textAnchor={isMobile ? "end" : "middle"}
           height={isMobile ? 50 : 30}
         />

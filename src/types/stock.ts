@@ -1,3 +1,4 @@
+// types/stock.ts
 export interface StockApiResponse {
   Data: {
     TotalCount: number;
@@ -51,7 +52,6 @@ export type TimeframeOption = '1W' | '1M' | '3M' | '6M';
 
 export interface ChartProps {
   data: ChartData[];
-  timeframe?: TimeframeOption;
   selectedTab: string;
   indicators: {
     sma: boolean;
@@ -59,5 +59,15 @@ export interface ChartProps {
     macd: boolean;
     rsi: boolean;
     volume: boolean;
+    highLow: boolean;
+    pivotPoints: boolean;
   };
+}
+
+export interface ComparisonChartData {
+  symbol: string;
+  data: Array<{
+    date: string;
+    closePrice: number;
+  }>;
 }
