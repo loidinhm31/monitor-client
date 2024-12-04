@@ -18,9 +18,12 @@ export interface StockDataItem {
   data: TransformedStockData[];
 }
 
+const getRandomSleep = () => Math.floor(Math.random() * (1500 - 500 + 1)) + 500;
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 // Cache object to store recent API responses
 const apiCache = new Map<string, { data: TransformedStockData[]; timestamp: number }>();
-const CACHE_DURATION = 5000; // 5 seconds cache
+const CACHE_DURATION = 360000; // 5 seconds cache
 
 export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) => {
   const [loading, setLoading] = useState(false);
@@ -65,6 +68,9 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
   const fetchDataPage = useCallback(
     async (stockSymbol: string, pageIndex: number): Promise<StockApiResponse> => {
       try {
+        // Add random delay between 500ms and 1500ms before each API call
+        await sleep(getRandomSleep());
+
         const response = await HttpService.getAxiosClient().get<StockApiResponse>(
           "https://s.cafef.vn/Ajax/PageNew/DataHistory/PriceHistory.ashx",
           {
