@@ -19,7 +19,7 @@ interface StockDashboardProps {
   stockData: TransformedStockData[];
   compareStocksData: Record<string, TransformedStockData[]>;
   symbol: string;
-  onAddCompareStock: (symbol: string) => Promise<void>;
+  onAddCompareStock: (symbol: string) => void;
   onRemoveCompareStock: (symbol: string) => void;
 }
 

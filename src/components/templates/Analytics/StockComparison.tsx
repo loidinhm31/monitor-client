@@ -12,7 +12,7 @@ interface StockComparisonProps {
       closePrice: number;
     }[];
   }[];
-  onAddStock: (symbol: string) => Promise<void>;
+  onAddStock: (symbol: string) => void;
   onRemoveStock: (symbol: string) => void;
   mainSymbol: string;
 }
