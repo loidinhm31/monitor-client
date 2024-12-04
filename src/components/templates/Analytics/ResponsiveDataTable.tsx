@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 
+import DataTable from "@/components/templates/Analytics/DataTable";
 import MobileDataTable from "@/components/templates/Analytics/mobile/MobileDataTable";
 import type { TransformedStockData } from "@/types/stock";
-import DataTable from "@/components/templates/Analytics/DataTable";
 
 interface ResponsiveDataTableProps {
   data: TransformedStockData[];

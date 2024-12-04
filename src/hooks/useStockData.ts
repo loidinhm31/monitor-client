@@ -19,7 +19,7 @@ export interface StockDataItem {
 }
 
 const getRandomSleep = () => Math.floor(Math.random() * (1000 - 500 + 1)) + 500;
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Cache object to store recent API responses
 const apiCache = new Map<string, { data: TransformedStockData[]; timestamp: number }>();

@@ -1,56 +1,61 @@
 import { CalendarDate } from "@internationalized/date";
-import { Button, Card, CardBody, CardHeader, Input, Select, SelectItem, Spinner, Tab, Tabs } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Input, Spinner, Tab, Tabs } from "@nextui-org/react";
 import { Plus, RefreshCw } from "lucide-react";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
+import SharedDateControls from "@/components/organisms/SharedDateControls";
 import ResponsivePortfolioDataTable from "@/components/templates/Analytics/Portfolio/ResponsivePortfolioDataTable";
 import StockComparisonChart from "@/components/templates/Analytics/StockComparisonChart";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { TimeframeOption } from "@/types/stock";
-import { filterDataByTimeframe } from "@/utils/stockUtils";
 
 interface PortfolioProps {
-  dateRange: {
+  dateControls: {
     startDate: CalendarDate;
     endDate: CalendarDate;
+    timeframe: TimeframeOption;
+    currentDate: CalendarDate;
+    onStartDateChange: (date: CalendarDate) => void;
+    onEndDateChange: (date: CalendarDate) => void;
+    onTimeframeChange: (timeframe: TimeframeOption) => void;
   };
 }
 
-const Portfolio: React.FC<PortfolioProps> = ({ dateRange }) => {
+const Portfolio: React.FC<PortfolioProps> = ({ dateControls }) => {
   const [newSymbol, setNewSymbol] = useState("");
   const [selectedTab, setSelectedTab] = useState("holdings");
-  const [timeframe, setTimeframe] = useState<TimeframeOption>("ALL");
+  const { startDate, endDate, timeframe, currentDate, onStartDateChange, onEndDateChange, onTimeframeChange } =
+    dateControls;
 
-  const { portfolioSymbols, portfolioData, loading, error, addSymbol, removeSymbol, refreshPortfolio } = usePortfolio({
-    startDate: dateRange.startDate,
-    endDate: dateRange.endDate,
+  const {
+    portfolioSymbols,
+    holdingsData,
+    compareData,
+    loading,
+    error,
+    addSymbol,
+    removeSymbol,
+    refreshHoldings,
+    loadComparisonData,
+  } = usePortfolio({
+    startDate,
+    endDate,
+    currentDate,
   });
 
-  const comparisonData = useMemo(() => {
-    return Object.entries(portfolioData).map(([symbol, data]) => ({
-      symbol,
-      data: filterDataByTimeframe(data, timeframe).map((d) => ({
-        date: d.date,
-        closePrice: d.closePrice,
-      })),
-    }));
-  }, [portfolioData, timeframe]);
+  // Load holdings data initially and when currentDate changes
+  useEffect(() => {
+    if (selectedTab === "holdings") {
+      refreshHoldings();
+    }
+  }, [currentDate, selectedTab]);
 
-  const tableData = useMemo(() => {
-    return Object.entries(portfolioData)
-      .map(([symbol, data]) => {
-        const filteredData = filterDataByTimeframe(data, timeframe);
-        // Get the most recent data point
-        const latestData = filteredData[0];
-        return latestData
-          ? {
-              ...latestData,
-              symbol,
-            }
-          : null;
-      })
-      .filter(Boolean);
-  }, [portfolioData, timeframe]);
+  // Load comparison data when switching to Compare tab or when date range changes
+  useEffect(() => {
+    if (selectedTab === "compare") {
+      loadComparisonData();
+    }
+  }, [selectedTab, startDate, endDate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,9 +65,24 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateRange }) => {
     }
   };
 
-  const handleRefresh = async () => {
-    await refreshPortfolio();
-  };
+  // Transform holdings data for table view
+  const tableData = useMemo(() => {
+    return Object.entries(holdingsData).map(([symbol, data]) => ({
+      ...data,
+      symbol,
+    }));
+  }, [holdingsData]);
+
+  // Transform comparison data for chart
+  const comparisonData = useMemo(() => {
+    return Object.entries(compareData).map(([symbol, data]) => ({
+      symbol,
+      data: data.map((d) => ({
+        date: d.date,
+        closePrice: d.closePrice,
+      })),
+    }));
+  }, [compareData]);
 
   return (
     <Card className="w-full">
@@ -73,38 +93,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateRange }) => {
             <p className="text-sm text-default-500">Track your stock portfolio performance</p>
           </div>
           <div className="flex flex-row gap-4 items-center">
-            <Select
-              defaultSelectedKeys={[timeframe]}
-              onChange={(e) => setTimeframe(e.target.value as TimeframeOption)}
-              className="w-full sm:w-48"
-              size="sm"
-              variant="bordered"
-              aria-label="Select timeframe"
-            >
-              <SelectItem key="1W" value="1W">
-                1 Week
-              </SelectItem>
-              <SelectItem key="1M" value="1M">
-                1 Month
-              </SelectItem>
-              <SelectItem key="3M" value="3M">
-                3 Months
-              </SelectItem>
-              <SelectItem key="6M" value="6M">
-                6 Months
-              </SelectItem>
-              <SelectItem key="1Y" value="1Y">
-                1 Year
-              </SelectItem>
-              <SelectItem key="2Y" value="2Y">
-                2 Years
-              </SelectItem>
-              <SelectItem key="ALL" value="ALL">
-                All Time
-              </SelectItem>
-            </Select>
-
-            <Button isIconOnly variant="flat" onPress={handleRefresh} isLoading={loading} className="min-w-unit-10">
+            <Button isIconOnly variant="flat" onPress={refreshHoldings} isLoading={loading} className="min-w-unit-10">
               <RefreshCw className="w-4 h-4" />
             </Button>
 
@@ -128,6 +117,20 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateRange }) => {
             </form>
           </div>
         </div>
+
+        {selectedTab === "compare" && (
+          <div className="w-full mt-4">
+            <SharedDateControls
+              startDate={startDate}
+              endDate={endDate}
+              timeframe={timeframe}
+              onStartDateChange={onStartDateChange}
+              onEndDateChange={onEndDateChange}
+              onTimeframeChange={onTimeframeChange}
+              showDatePickers={true}
+            />
+          </div>
+        )}
       </CardHeader>
 
       <CardBody>

@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader, Select, SelectItem, Spinner, Tab, Tabs } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Spinner, Tab, Tabs } from "@nextui-org/react";
 import React, { useEffect, useMemo, useState } from "react";
 
 import EnhancedChartContainer from "@/components/organisms/ChartContainer";
@@ -21,6 +21,7 @@ interface StockDashboardProps {
   symbol: string;
   onAddCompareStock: (symbol: string) => void;
   onRemoveCompareStock: (symbol: string) => void;
+  timeframe: TimeframeOption;
 }
 
 const StockDashboard: React.FC<StockDashboardProps> = ({
@@ -29,9 +30,9 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
   symbol,
   onAddCompareStock,
   onRemoveCompareStock,
+  timeframe,
 }) => {
   const [loading, setLoading] = useState(true);
-  const [timeframe, setTimeframe] = useState<TimeframeOption>("ALL");
   const [selectedTab, setSelectedTab] = useState("price");
   const [indicators, setIndicators] = useState<Indicators>({
     sma: false,
@@ -103,10 +104,6 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
     setLoading(false);
   }, [enrichedData]);
 
-  const handleTabChange = (key: React.Key) => {
-    setSelectedTab(key.toString());
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -121,37 +118,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
         <CardHeader className="flex flex-col sm:flex-row gap-4 px-6 py-4">
           <div className="w-full">
             <h4 className="text-xl font-bold">Stock Market Analysis</h4>
-          </div>
-          <div className="w-full sm:w-48">
-            <Select
-              defaultSelectedKeys={[timeframe]}
-              className="w-full"
-              size="sm"
-              aria-label="Select timeframe"
-              onChange={(e) => setTimeframe(e.target.value as TimeframeOption)}
-            >
-              <SelectItem key="1W" value="1W">
-                1 Week
-              </SelectItem>
-              <SelectItem key="1M" value="1M">
-                1 Month
-              </SelectItem>
-              <SelectItem key="3M" value="3M">
-                3 Months
-              </SelectItem>
-              <SelectItem key="6M" value="6M">
-                6 Months
-              </SelectItem>
-              <SelectItem key="1Y" value="1Y">
-                1 Year
-              </SelectItem>
-              <SelectItem key="2Y" value="2Y">
-                2 Years
-              </SelectItem>
-              <SelectItem key="ALL" value="ALL">
-                All Time
-              </SelectItem>
-            </Select>
+            <p className="text-sm text-default-500">Technical analysis and comparison tools</p>
           </div>
         </CardHeader>
         <CardBody>
@@ -159,7 +126,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
 
           <Tabs
             selectedKey={selectedTab}
-            onSelectionChange={handleTabChange}
+            onSelectionChange={(key) => setSelectedTab(key.toString())}
             aria-label="Stock data views"
             className="mb-4"
             variant="underlined"

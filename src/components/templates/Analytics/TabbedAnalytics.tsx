@@ -1,23 +1,21 @@
-import { getLocalTimeZone, today } from "@internationalized/date";
-import { Button, CalendarDate, DatePicker, Input, Spinner, Tab, Tabs } from "@nextui-org/react";
+import { Button, Input, Spinner, Tab, Tabs } from "@nextui-org/react";
 import React, { useState } from "react";
 
+import SharedDateControls from "@/components/organisms/SharedDateControls";
 import Portfolio from "@/components/templates/Analytics/Portfolio/Portfolio";
 import StockDashboard from "@/components/templates/Analytics/StockDashboard";
+import { useSharedDates } from "@/hooks/useSharedDates";
 import { useStockData } from "@/hooks/useStockData";
-import { formatCustomDate } from "@/utils/dateFormatterUtils";
+import { TimeframeOption } from "@/types/stock";
 
 const TabbedAnalytics = () => {
   const [selectedTab, setSelectedTab] = useState("analysis");
   const [inputSymbol, setInputSymbol] = useState("");
 
-  // Date range state
-  const currentDate = today(getLocalTimeZone());
-  const threeMonthsAgo = currentDate.subtract({ months: 3 });
-  const [startDate, setStartDate] = useState<CalendarDate>(threeMonthsAgo);
-  const [endDate, setEndDate] = useState<CalendarDate>(currentDate);
+  // Use shared dates hook
+  const { startDate, endDate, timeframe, setStartDate, setEndDate, setTimeframe, currentDate } = useSharedDates();
 
-  // Separate stock data hook for market analysis
+  // Stock data hook with shared dates
   const { mainStock, comparisonStocks, loading, error, setMainStockSymbol, addComparisonStock, removeComparisonStock } =
     useStockData({
       startDate,
@@ -30,11 +28,15 @@ const TabbedAnalytics = () => {
     await setMainStockSymbol(inputSymbol);
   };
 
+  const handleTimeframeChange = (newTimeframe: TimeframeOption) => {
+    setTimeframe(newTimeframe);
+  };
+
   return (
     <div className="w-full">
       {selectedTab === "analysis" && (
         <form onSubmit={handleMainStockSubmit} className="mb-6 p-4 rounded-lg bg-content1 shadow-sm">
-          <div className="flex flex-wrap items-end gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex-none w-32">
               <Input
                 type="text"
@@ -48,25 +50,15 @@ const TabbedAnalytics = () => {
               />
             </div>
 
-            <div className="flex-none w-48">
-              <DatePicker
-                showMonthAndYearPickers
-                label={`Start Date (${formatCustomDate(startDate)})`}
-                value={startDate}
-                onChange={setStartDate}
-                isRequired
-              />
-            </div>
-
-            <div className="flex-none w-48">
-              <DatePicker
-                showMonthAndYearPickers
-                label={`End Date (${formatCustomDate(endDate)})`}
-                value={endDate}
-                onChange={setEndDate}
-                isRequired
-              />
-            </div>
+            <SharedDateControls
+              startDate={startDate}
+              endDate={endDate}
+              timeframe={timeframe}
+              onStartDateChange={setStartDate}
+              onEndDateChange={setEndDate}
+              onTimeframeChange={handleTimeframeChange}
+              showDatePickers={true}
+            />
 
             <Button color="primary" type="submit" size="lg" isDisabled={loading || !inputSymbol} className="flex-none">
               {loading ? <Spinner size="sm" color="white" /> : "Fetch Data"}
@@ -86,12 +78,23 @@ const TabbedAnalytics = () => {
               symbol={mainStock.symbol}
               onAddCompareStock={addComparisonStock}
               onRemoveCompareStock={removeComparisonStock}
+              timeframe={timeframe}
             />
           )}
         </Tab>
 
         <Tab key="portfolio" title="Portfolio">
-          <Portfolio dateRange={{ startDate, endDate }} />
+          <Portfolio
+            dateControls={{
+              startDate,
+              endDate,
+              timeframe,
+              currentDate,
+              onStartDateChange: setStartDate,
+              onEndDateChange: setEndDate,
+              onTimeframeChange: handleTimeframeChange,
+            }}
+          />
         </Tab>
       </Tabs>
     </div>
