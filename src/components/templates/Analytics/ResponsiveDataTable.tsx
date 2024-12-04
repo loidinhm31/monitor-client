@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 
 import MobileDataTable from "@/components/templates/Analytics/mobile/MobileDataTable";
-import DesktopDataTable from "@/components/templates/DataTable";
 import type { TransformedStockData } from "@/types/stock";
+import DataTable from "@/components/templates/Analytics/DataTable";
 
 interface ResponsiveDataTableProps {
   data: TransformedStockData[];
@@ -26,7 +26,7 @@ const ResponsiveDataTable: React.FC<ResponsiveDataTableProps> = ({ data }) => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  return <div className="w-full">{isMobile ? <MobileDataTable data={data} /> : <DesktopDataTable data={data} />}</div>;
+  return <div className="w-full">{isMobile ? <MobileDataTable data={data} /> : <DataTable data={data} />}</div>;
 };
 
 export default ResponsiveDataTable;
