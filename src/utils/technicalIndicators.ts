@@ -2,6 +2,7 @@ export const calculateSMA = (data: number[], period: number): number[] => {
   return data.map((_, index) => {
     if (index < period - 1) return null;
     const slice = data.slice(index - period + 1, index + 1);
+
     return slice.reduce((sum, val) => sum + val, 0) / period;
   });
 };
@@ -12,8 +13,10 @@ export const calculateEMA = (data: number[], period: number): number[] => {
 
   for (let i = 1; i < data.length; i++) {
     const value = data[i] * k + ema[i - 1] * (1 - k);
+
     ema.push(value);
   }
+
   return ema;
 };
 

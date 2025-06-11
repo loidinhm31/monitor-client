@@ -1,6 +1,5 @@
-import { IonCol, IonRow } from "@ionic/react";
-import { Chip } from "@nextui-org/chip";
-import { Select, SelectItem } from "@nextui-org/select";
+import { Chip } from "@heroui/chip";
+import { Select, SelectItem } from "@heroui/select";
 import React from "react";
 
 import { Eyes, SystemInfo } from "@/models/sensors";
@@ -22,6 +21,7 @@ const SystemInformationTemplate = ({
 }: SystemInformationTemplateProps) => {
   const selectEyes = (selection: React.ChangeEvent<HTMLSelectElement>) => {
     const currEye = systemInfo?.eyes.find((_, i) => i === Number(selection.target.value));
+
     if (selectedEyes !== null && currEye?.index !== selectedEyes.index) {
       if (openEyes) {
         setEyesStatus(false);
@@ -42,27 +42,25 @@ const SystemInformationTemplate = ({
         </Chip>
       </div>
 
-      <IonRow className="w-full flex flex-row flex-wrap gap-2">
-        <IonCol size="auto" className="w-full flex flex-row flex-wrap gap-1">
+      <div className="w-full flex flex-row flex-wrap gap-2">
+        <div className="w-full flex flex-row flex-wrap gap-1">
           <Chip>OS Type</Chip>
           <p>{systemInfo.os_type}</p>
-        </IonCol>
+        </div>
 
-        <IonCol className="w-full flex flex-row flex-wrap gap-1">
+        <div className="w-full flex flex-row flex-wrap gap-1">
           <Chip>OS Release</Chip>
           <p>{systemInfo.os_release}</p>
-        </IonCol>
-      </IonRow>
+        </div>
+      </div>
 
       <Chip className="max-w" color="success" size="md" variant="dot">
         Available Eyes
       </Chip>
 
-      <Select label="Select eyes" className="max-w-xs" onChange={(k) => selectEyes(k)}>
+      <Select className="max-w-xs" label="Select eyes" onChange={(k) => selectEyes(k)}>
         {systemInfo.eyes.map((eye, index) => (
-          <SelectItem key={index} value={"item" + index}>
-            {eye.name}
-          </SelectItem>
+          <SelectItem key={index}>{eye.name}</SelectItem>
         ))}
       </Select>
     </>

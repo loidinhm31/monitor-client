@@ -1,4 +1,4 @@
-import { Button, Input } from "@nextui-org/react";
+import { Button, Input } from "@heroui/react";
 import { Plus } from "lucide-react";
 import React, { useMemo } from "react";
 
@@ -37,6 +37,7 @@ const PortfolioComparison: React.FC<PortfolioComparisonProps> = ({
           date: item.date,
           closePrice: item.closePrice,
         });
+
         return acc;
       },
       {} as Record<string, { symbol: string; data: Array<{ date: string; closePrice: number }> }>,
@@ -59,31 +60,31 @@ const PortfolioComparison: React.FC<PortfolioComparisonProps> = ({
       <div className="flex flex-wrap items-end gap-4">
         <div className="flex-none w-32">
           <Input
-            type="text"
             label="Compare with"
-            value={compareSymbol}
-            onChange={(e) => setCompareSymbol(e.target.value.toUpperCase())}
-            size="sm"
-            variant="bordered"
             placeholder="Symbol"
+            size="sm"
+            type="text"
+            value={compareSymbol}
+            variant="bordered"
+            onChange={(e) => setCompareSymbol(e.target.value.toUpperCase())}
           />
         </div>
         <Button
           color="primary"
+          isDisabled={loading || !compareSymbol || portfolioData.some((item) => item.symbol === compareSymbol)}
           size="lg"
           startContent={<Plus className="w-4 h-4" />}
           onClick={handleAddStock}
-          isDisabled={loading || !compareSymbol || portfolioData.some((item) => item.symbol === compareSymbol)}
         >
           Add to Compare
         </Button>
       </div>
 
       <StockComparisonChart
-        stocksData={formattedData}
-        onRemoveStock={onRemoveStock}
-        title="Portfolio Performance Comparison"
         description="Compare performance of stocks in your portfolio"
+        stocksData={formattedData}
+        title="Portfolio Performance Comparison"
+        onRemoveStock={onRemoveStock}
       />
     </div>
   );

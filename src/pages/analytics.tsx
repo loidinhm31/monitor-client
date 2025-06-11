@@ -1,9 +1,6 @@
-import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, IonToolbar } from "@ionic/react";
-import React from "react";
-
 import TabbedAnalytics from "@/components/templates/Analytics/TabbedAnalytics";
 
-const Analytics: React.FC = () => {
+export default function AnalyticsPage() {
   return (
     <IonPage id="main-content">
       <IonHeader>
@@ -22,6 +19,4 @@ const Analytics: React.FC = () => {
       </IonContent>
     </IonPage>
   );
-};
-
-export default Analytics;
+}

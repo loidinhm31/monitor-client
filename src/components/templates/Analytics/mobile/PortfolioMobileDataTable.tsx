@@ -1,8 +1,9 @@
-import { Button, Card, CardBody } from "@nextui-org/react";
+import type { TransformedStockData } from "@/types/stock";
+
+import { Button, Card, CardBody } from "@heroui/react";
 import { ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 
-import type { TransformedStockData } from "@/types/stock";
 import { COLUMN_LABELS } from "@/utils/stockUtils";
 
 interface PortfolioMobileDataTableProps {
@@ -45,6 +46,7 @@ const PortfolioMobileDataTable: React.FC<PortfolioMobileDataTableProps> = ({
       const value = row[key]?.value;
       const percentage = row[key]?.percentage;
       const colorClass = value > 0 ? "text-success" : value < 0 ? "text-danger" : "text-warning";
+
       return (
         <span className={colorClass}>
           {value?.toFixed(2)} ({percentage?.toFixed(2)}%)
@@ -68,7 +70,7 @@ const PortfolioMobileDataTable: React.FC<PortfolioMobileDataTableProps> = ({
       {/* Header Card */}
       <Card>
         <CardBody className="grid grid-cols-4 gap-2 py-2">
-          <div className="col-span-1"></div>
+          <div className="col-span-1" />
           {coreColumns.map((column) => (
             <div key={column.key} className="font-medium text-sm">
               {column.label}
@@ -84,8 +86,8 @@ const PortfolioMobileDataTable: React.FC<PortfolioMobileDataTableProps> = ({
             {/* Main Row */}
             <div className="flex w-full">
               <Button
-                variant="light"
                 className="flex-1 px-3 py-4"
+                variant="light"
                 onClick={() => toggleRow(`${row.symbol}-${row.date}`)}
               >
                 <div className="grid grid-cols-4 gap-2 w-full items-center">
@@ -106,10 +108,10 @@ const PortfolioMobileDataTable: React.FC<PortfolioMobileDataTableProps> = ({
               {actionColumn && (
                 <Button
                   isIconOnly
-                  color="danger"
-                  variant="light"
-                  size="sm"
                   className="m-2"
+                  color="danger"
+                  size="sm"
+                  variant="light"
                   onClick={() => onRemoveStock(row.symbol)}
                 >
                   <Trash2 className="w-4 h-4" />

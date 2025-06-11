@@ -1,11 +1,12 @@
-import { Card, CardBody, CardHeader, Spinner, Tab, Tabs } from "@nextui-org/react";
+import type { ChartData, TimeframeOption, TransformedStockData } from "@/types/stock";
+
+import { Card, CardBody, CardHeader, Spinner, Tab, Tabs } from "@heroui/react";
 import React, { useEffect, useMemo, useState } from "react";
 
 import EnhancedChartContainer from "@/components/organisms/ChartContainer";
 import IndicatorControls, { Indicators } from "@/components/organisms/IndicatorControls";
 import ResponsiveDataTable from "@/components/templates/Analytics/ResponsiveDataTable";
 import StockComparison from "@/components/templates/Analytics/StockComparison";
-import type { ChartData, TimeframeOption, TransformedStockData } from "@/types/stock";
 import { filterDataByTimeframe } from "@/utils/stockUtils";
 import {
   calculateDailyPivotPoints,
@@ -67,6 +68,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
       })) as ChartData[];
     } catch (error) {
       console.error("Error enriching data:", error);
+
       return [] as ChartData[];
     }
   }, [stockData]);
@@ -125,11 +127,11 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
           <IndicatorControls indicators={indicators} onIndicatorChange={setIndicators} />
 
           <Tabs
-            selectedKey={selectedTab}
-            onSelectionChange={(key) => setSelectedTab(key.toString())}
             aria-label="Stock data views"
             className="mb-4"
+            selectedKey={selectedTab}
             variant="underlined"
+            onSelectionChange={(key) => setSelectedTab(key.toString())}
           >
             <Tab key="price" title="Price">
               <EnhancedChartContainer data={filteredData} indicators={indicators} />
@@ -137,14 +139,14 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
 
             <Tab key="compare" title="Compare">
               <StockComparison
+                mainSymbol={symbol}
                 stocksData={comparisonData}
                 onAddStock={onAddCompareStock}
                 onRemoveStock={onRemoveCompareStock}
-                mainSymbol={symbol}
               />
             </Tab>
 
-            <Tab key="table" title="Data Table" isDisabled={filteredData.length === 0}>
+            <Tab key="table" isDisabled={filteredData.length === 0} title="Data Table">
               <ResponsiveDataTable data={tableData} />
             </Tab>
           </Tabs>

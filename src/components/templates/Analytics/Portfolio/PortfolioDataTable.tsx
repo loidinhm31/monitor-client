@@ -1,8 +1,9 @@
-import { Button, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
+import type { TransformedStockData } from "@/types/stock";
+
+import { Button, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
 import { Trash2 } from "lucide-react";
 import React from "react";
 
-import type { TransformedStockData } from "@/types/stock";
 import { COLUMN_LABELS } from "@/utils/stockUtils";
 
 interface PortfolioDataTableProps {
@@ -27,7 +28,7 @@ const PortfolioDataTable: React.FC<PortfolioDataTableProps> = ({ data, onRemoveS
   const renderCell = (column: { key: string }, row: TransformedStockData & { symbol: string }) => {
     if (column.key === "actions") {
       return (
-        <Button isIconOnly color="danger" variant="light" size="sm" onClick={() => onRemoveStock(row.symbol)}>
+        <Button isIconOnly color="danger" size="sm" variant="light" onClick={() => onRemoveStock(row.symbol)}>
           <Trash2 className="w-4 h-4" />
         </Button>
       );
@@ -38,6 +39,7 @@ const PortfolioDataTable: React.FC<PortfolioDataTableProps> = ({ data, onRemoveS
       const percentage = row[column.key]?.percentage;
 
       let colorClass = "text-warning";
+
       if (value > 0) {
         colorClass = "text-success";
       } else if (value < 0) {
@@ -63,7 +65,7 @@ const PortfolioDataTable: React.FC<PortfolioDataTableProps> = ({ data, onRemoveS
   };
 
   return (
-    <Table aria-label="Portfolio data table" className="mt-4" removeWrapper>
+    <Table removeWrapper aria-label="Portfolio data table" className="mt-4">
       <TableHeader>
         {columns.map((column) => (
           <TableColumn key={column.key}>{column.label}</TableColumn>

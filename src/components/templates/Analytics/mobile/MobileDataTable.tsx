@@ -1,8 +1,9 @@
-import { Button, Card, CardBody } from "@nextui-org/react";
+import type { TransformedStockData } from "@/types/stock";
+
+import { Button, Card, CardBody } from "@heroui/react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import React, { useState } from "react";
 
-import type { TransformedStockData } from "@/types/stock";
 import { COLUMN_LABELS } from "@/utils/stockUtils";
 
 interface MobileDataTableProps {
@@ -39,6 +40,7 @@ const MobileDataTable: React.FC<MobileDataTableProps> = ({ data }) => {
       const value = row[key]?.value;
       const percentage = row[key]?.percentage;
       const colorClass = value > 0 ? "text-success" : value < 0 ? "text-danger" : "text-warning";
+
       return (
         <span className={colorClass}>
           {value?.toFixed(2)} ({percentage?.toFixed(2)}%)
@@ -62,7 +64,7 @@ const MobileDataTable: React.FC<MobileDataTableProps> = ({ data }) => {
       {/* Header Card */}
       <Card>
         <CardBody className="grid grid-cols-4 gap-2 py-2">
-          <div className="col-span-1"></div>
+          <div className="col-span-1" />
           {coreColumns.map((column) => (
             <div key={column.key} className="font-medium text-sm">
               {column.label}
@@ -76,7 +78,7 @@ const MobileDataTable: React.FC<MobileDataTableProps> = ({ data }) => {
         <Card key={`${row.date}-${index}`} className="w-full">
           <CardBody className="p-0">
             {/* Main Row */}
-            <Button variant="light" className="w-full px-3 py-4" onClick={() => toggleRow(row.date)}>
+            <Button className="w-full px-3 py-4" variant="light" onClick={() => toggleRow(row.date)}>
               <div className="grid grid-cols-4 gap-2 w-full items-center">
                 <div className="flex justify-start">
                   {expandedRows[row.date] ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}

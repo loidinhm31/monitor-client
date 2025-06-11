@@ -1,5 +1,5 @@
-import { Button } from "@nextui-org/button";
-import { Card, CardBody, CardHeader } from "@nextui-org/card";
+import { Button } from "@heroui/button";
+import { Card, CardBody, CardHeader } from "@heroui/card";
 import React, { useEffect, useRef, useState } from "react";
 
 class AudioStreamPlayer {
@@ -91,6 +91,7 @@ class AudioStreamPlayer {
     // Add some very quiet noise to prevent complete silence
     for (let channel = 0; channel < this.channels; channel++) {
       const channelData = silentBuffer.getChannelData(channel);
+
       for (let i = 0; i < channelData.length; i++) {
         channelData[i] = (Math.random() - 0.5) * 0.0001; // Very quiet white noise
       }
@@ -98,6 +99,7 @@ class AudioStreamPlayer {
 
     // Convert to Float32Array and add to queue
     const initialData = new Float32Array(silentBuffer.length * this.channels);
+
     for (let i = 0; i < silentBuffer.length; i++) {
       for (let channel = 0; channel < this.channels; channel++) {
         initialData[i * this.channels + channel] = silentBuffer.getChannelData(channel)[i];
@@ -127,6 +129,7 @@ class AudioStreamPlayer {
 
     while (this.nextScheduleTime < currentTime + this.scheduleAheadTime) {
       const buffer = this.bufferQueue.shift();
+
       if (!buffer) break;
 
       this.scheduleBuffer(buffer, this.nextScheduleTime);
@@ -148,6 +151,7 @@ class AudioStreamPlayer {
       // Fill audio buffer
       for (let channel = 0; channel < this.channels; channel++) {
         const channelData = audioBuffer.getChannelData(channel);
+
         for (let i = 0; i < channelData.length; i++) {
           channelData[i] = pcmData[i * this.channels + channel];
         }
@@ -155,6 +159,7 @@ class AudioStreamPlayer {
 
       // Create and schedule source
       const source = this.audioContext.createBufferSource();
+
       source.buffer = audioBuffer;
       source.connect(this.audioContext.destination);
       source.start(startTime);
@@ -246,7 +251,9 @@ const TestAudioStreamPlayer = ({ hostConnection, onError }: AudioStreamProps) =>
   const addDebugMessage = (message: string) => {
     setDebugMsg((prev) => {
       const newMessages = [...prev.slice(-4), message];
+
       console.log("Debug:", message);
+
       return newMessages;
     });
   };
@@ -311,6 +318,7 @@ const TestAudioStreamPlayer = ({ hostConnection, onError }: AudioStreamProps) =>
       await playerRef.current.initialize();
 
       const socket = new WebSocket(`ws://${hostConnection}/sensors/ears/ws`);
+
       socketRef.current = socket;
 
       socket.onopen = () => {
@@ -322,6 +330,7 @@ const TestAudioStreamPlayer = ({ hostConnection, onError }: AudioStreamProps) =>
         try {
           if (event.data instanceof Blob) {
             const arrayBuffer = await event.data.arrayBuffer();
+
             await playerRef.current.processAudioData(arrayBuffer);
             updateBufferSize();
           } else if (event.data === "Authenticated") {
@@ -385,9 +394,9 @@ const TestAudioStreamPlayer = ({ hostConnection, onError }: AudioStreamProps) =>
       <div className="flex flex-row gap-4 items-center flex-wrap">
         <Button
           color={isPlaying ? "danger" : "primary"}
+          disabled={!hostConnection}
           isLoading={isInitializing || countdown !== null}
           onClick={() => (isPlaying ? stopPlaying() : startPlaying())}
-          disabled={!hostConnection}
         >
           {isInitializing
             ? "Initializing..."

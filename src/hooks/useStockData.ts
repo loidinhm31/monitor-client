@@ -49,9 +49,11 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
     (stockSymbol: string) => {
       const key = getCacheKey(stockSymbol);
       const cached = apiCache.get(key);
+
       if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
         return cached.data;
       }
+
       return null;
     },
     [getCacheKey],
@@ -60,6 +62,7 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
   const setToCache = useCallback(
     (stockSymbol: string, data: TransformedStockData[]) => {
       const key = getCacheKey(stockSymbol);
+
       apiCache.set(key, { data, timestamp: Date.now() });
     },
     [getCacheKey],
@@ -83,6 +86,7 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
             },
           },
         );
+
         return response.data;
       } catch (error) {
         console.error(`Error fetching page ${pageIndex} for ${stockSymbol}:`, error);
@@ -96,6 +100,7 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
     async (stockSymbol: string): Promise<TransformedStockData[]> => {
       // Check cache first
       const cachedData = getFromCache(stockSymbol);
+
       if (cachedData) {
         return cachedData;
       }
@@ -126,6 +131,7 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
           results.forEach((result: StockApiResponse) => {
             if (result?.Data?.Data && Array.isArray(result.Data.Data)) {
               const transformedData = result.Data.Data.map(transformStockData);
+
               allData = [...allData, ...transformedData];
             }
           });
@@ -133,6 +139,7 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
 
         // Cache the results
         setToCache(stockSymbol, allData);
+
         return allData;
       } catch (error) {
         console.error(`Error fetching all data for ${stockSymbol}:`, error);
@@ -156,6 +163,7 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
       setError("");
       try {
         const data = await fetchAllData(symbol);
+
         if (!ignore && isMounted.current) {
           setMainStock({ symbol, data });
           setComparisonStocks({});
@@ -163,6 +171,7 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
       } catch (error) {
         if (!ignore && isMounted.current) {
           const message = error instanceof Error ? error.message : "Failed to fetch stock data";
+
           setError(message);
         }
       } finally {
@@ -181,6 +190,7 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
 
   useEffect(() => {
     isMounted.current = true;
+
     return () => {
       isMounted.current = false;
       fetchInProgress.current = {};
@@ -193,6 +203,7 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
       setError("");
       try {
         const data = await fetchAllData(newSymbol);
+
         if (isMounted.current) {
           setMainStock({ symbol: newSymbol, data });
           setComparisonStocks({});
@@ -200,6 +211,7 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
       } catch (error) {
         if (isMounted.current) {
           const message = error instanceof Error ? error.message : "Failed to fetch stock data";
+
           setError(message);
         }
       } finally {
@@ -221,18 +233,22 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
       setError("");
       try {
         const data = await fetchAllData(newSymbol);
+
         if (isMounted.current) {
           setComparisonStocks((prev) => ({
             ...prev,
             [newSymbol]: data,
           }));
         }
+
         return true;
       } catch (error) {
         if (isMounted.current) {
           const message = error instanceof Error ? error.message : "Failed to fetch comparison data";
+
           setError(message);
         }
+
         return false;
       } finally {
         if (isMounted.current) {
@@ -246,7 +262,9 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
   const removeComparisonStock = useCallback((symbolToRemove: string) => {
     setComparisonStocks((prev) => {
       const newStocks = { ...prev };
+
       delete newStocks[symbolToRemove];
+
       return newStocks;
     });
   }, []);

@@ -1,4 +1,4 @@
-import { Card, CardBody } from "@nextui-org/react";
+import { Card, CardBody } from "@heroui/react";
 import React, { useEffect, useState } from "react";
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
@@ -24,11 +24,13 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({ data = [], indic
 
     checkDevice();
     window.addEventListener("resize", checkDevice);
+
     return () => window.removeEventListener("resize", checkDevice);
   }, []);
 
   const getMobileConfig = () => {
     const isPortrait = orientation === "portrait";
+
     return {
       height: isPortrait ? 300 : 200,
       fontSize: 10,
@@ -51,79 +53,79 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({ data = [], indic
   const config = isMobile ? getMobileConfig() : getDesktopConfig();
 
   const renderChart = (displayData: ChartData[]) => (
-    <ResponsiveContainer width="100%" height={config.height}>
+    <ResponsiveContainer height={config.height} width="100%">
       <ComposedChart data={displayData} margin={config.margin}>
         <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.6} />
         <XAxis
-          dataKey="date"
-          tick={{ fontSize: config.fontSize }}
-          interval={isMobile ? "preserveStartEnd" : "equidistantPreserveStart"}
           angle={isMobile ? -90 : -45}
-          textAnchor="end"
+          dataKey="date"
           height={60}
+          interval={isMobile ? "preserveStartEnd" : "equidistantPreserveStart"}
           padding={{ left: 10, right: 10 }}
+          textAnchor="end"
+          tick={{ fontSize: config.fontSize }}
         />
 
         {/* Price Scale */}
-        <YAxis yAxisId="price" tick={{ fontSize: config.fontSize }} domain={["auto", "auto"]} />
+        <YAxis domain={["auto", "auto"]} tick={{ fontSize: config.fontSize }} yAxisId="price" />
 
         {/* RSI Scale */}
         {indicators.rsi && (
-          <YAxis yAxisId="rsi" orientation="right" domain={[0, 100]} tick={{ fontSize: config.fontSize }} />
+          <YAxis domain={[0, 100]} orientation="right" tick={{ fontSize: config.fontSize }} yAxisId="rsi" />
         )}
 
         {/* MACD Scale */}
-        {indicators.macd && <YAxis yAxisId="macd" orientation="right" tick={{ fontSize: config.fontSize }} />}
+        {indicators.macd && <YAxis orientation="right" tick={{ fontSize: config.fontSize }} yAxisId="macd" />}
 
         {/* Volume Scale */}
-        {indicators.volume && <YAxis yAxisId="volume" orientation="right" tick={{ fontSize: config.fontSize }} />}
+        {indicators.volume && <YAxis orientation="right" tick={{ fontSize: config.fontSize }} yAxisId="volume" />}
 
         <Tooltip content={<CustomTooltip />} />
         <Legend height={config.legendHeight} iconSize={config.dotSize * 2} />
 
         {/* Main Price Line */}
         <Line
-          yAxisId="price"
-          type="monotone"
           dataKey="closePrice"
-          stroke="#0072F5"
-          name="Close Price"
           dot={false}
+          name="Close Price"
+          stroke="#0072F5"
           strokeWidth={config.strokeWidth}
+          type="monotone"
+          yAxisId="price"
         />
 
         {/* Pivot Points */}
         {indicators.pivotPoints && (
           <>
             <Line
-              yAxisId="price"
-              type="monotone"
               dataKey="pp"
-              stroke="#9333EA"
-              name="Pivot Point"
               dot={false}
+              name="Pivot Point"
+              stroke="#9333EA"
               strokeDasharray="3 3"
               strokeWidth={config.strokeWidth}
+              type="monotone"
+              yAxisId="price"
             />
             <Line
-              yAxisId="price"
-              type="monotone"
               dataKey="r1"
-              stroke="#F43F5E"
-              name="R1"
               dot={false}
+              name="R1"
+              stroke="#F43F5E"
               strokeDasharray="2 2"
               strokeWidth={config.strokeWidth}
+              type="monotone"
+              yAxisId="price"
             />
             <Line
-              yAxisId="price"
-              type="monotone"
               dataKey="s1"
-              stroke="#10B981"
-              name="S1"
               dot={false}
+              name="S1"
+              stroke="#10B981"
               strokeDasharray="2 2"
               strokeWidth={config.strokeWidth}
+              type="monotone"
+              yAxisId="price"
             />
           </>
         )}
@@ -132,24 +134,24 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({ data = [], indic
         {indicators.highLow && (
           <>
             <Line
-              yAxisId="price"
-              type="monotone"
               dataKey="highestPrice"
-              stroke="#17C964"
-              name="High"
               dot={false}
+              name="High"
+              stroke="#17C964"
               strokeDasharray="3 3"
               strokeWidth={config.strokeWidth}
+              type="monotone"
+              yAxisId="price"
             />
             <Line
-              yAxisId="price"
-              type="monotone"
               dataKey="lowestPrice"
-              stroke="#F31260"
-              name="Low"
               dot={false}
+              name="Low"
+              stroke="#F31260"
               strokeDasharray="3 3"
               strokeWidth={config.strokeWidth}
+              type="monotone"
+              yAxisId="price"
             />
           </>
         )}
@@ -157,25 +159,25 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({ data = [], indic
         {/* Moving Averages */}
         {indicators.sma && (
           <Line
-            yAxisId="price"
-            type="monotone"
             dataKey="sma"
-            stroke="#F5A524"
-            name="SMA (20)"
             dot={false}
+            name="SMA (20)"
+            stroke="#F5A524"
             strokeWidth={config.strokeWidth}
+            type="monotone"
+            yAxisId="price"
           />
         )}
 
         {indicators.ema && (
           <Line
-            yAxisId="price"
-            type="monotone"
             dataKey="ema"
-            stroke="#17C964"
-            name="EMA (20)"
             dot={false}
+            name="EMA (20)"
+            stroke="#17C964"
             strokeWidth={config.strokeWidth}
+            type="monotone"
+            yAxisId="price"
           />
         )}
 
@@ -183,42 +185,42 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({ data = [], indic
         {indicators.macd && (
           <>
             <Line
-              yAxisId="macd"
-              type="monotone"
               dataKey="macd"
-              stroke="#0072F5"
-              name="MACD"
               dot={false}
+              name="MACD"
+              stroke="#0072F5"
               strokeWidth={config.strokeWidth}
+              type="monotone"
+              yAxisId="macd"
             />
             <Line
-              yAxisId="macd"
-              type="monotone"
               dataKey="signal"
-              stroke="#F31260"
-              name="Signal"
               dot={false}
+              name="Signal"
+              stroke="#F31260"
               strokeWidth={config.strokeWidth}
+              type="monotone"
+              yAxisId="macd"
             />
-            <Bar yAxisId="macd" dataKey="histogram" fill="#7828C8" name="MACD Histogram" opacity={0.3} />
+            <Bar dataKey="histogram" fill="#7828C8" name="MACD Histogram" opacity={0.3} yAxisId="macd" />
           </>
         )}
 
         {/* RSI Line */}
         {indicators.rsi && (
           <Line
-            yAxisId="rsi"
-            type="monotone"
             dataKey="rsi"
-            stroke="#7828C8"
-            name="RSI"
             dot={false}
+            name="RSI"
+            stroke="#7828C8"
             strokeWidth={config.strokeWidth}
+            type="monotone"
+            yAxisId="rsi"
           />
         )}
 
         {/* Volume Bar */}
-        {indicators.volume && <Bar yAxisId="volume" dataKey="volume" fill="#7828C8" name="Volume" opacity={0.3} />}
+        {indicators.volume && <Bar dataKey="volume" fill="#7828C8" name="Volume" opacity={0.3} yAxisId="volume" />}
       </ComposedChart>
     </ResponsiveContainer>
   );

@@ -1,8 +1,7 @@
-import { IonCol, IonGrid, IonRow } from "@ionic/react";
-import { Button } from "@nextui-org/button";
-import { Input } from "@nextui-org/input";
-import { Select, SelectItem } from "@nextui-org/select";
-import React, { useEffect, useRef, useState } from "react";
+import { Button } from "@heroui/button";
+import { Input } from "@heroui/input";
+import { Select, SelectItem } from "@heroui/select";
+import { useEffect, useRef, useState } from "react";
 
 import { HostConnection } from "@/models/connections";
 
@@ -22,6 +21,7 @@ const HostConnectionControl = ({ appliedHostConnection, setAppliedHostConnection
 
   useEffect(() => {
     const storedHostConnections = JSON.parse(localStorage.getItem("hostConnections") || "[]");
+
     if (storedHostConnections) {
       setHostConnections(storedHostConnections);
     }
@@ -83,76 +83,69 @@ const HostConnectionControl = ({ appliedHostConnection, setAppliedHostConnection
 
   const updateSelectedHostConnection = (key: string) => {
     const currentHostConnection = hostConnections.find((connection) => connection?.key === Number(key));
+
     setSelectedHostConnection(currentHostConnection ? currentHostConnection : null);
   };
 
   return (
-    <IonGrid>
-      <IonRow className="flex items-center ion-align-items-start">
-        <IonCol>
-          <div className="w-full flex flex-row flex-wrap gap-2">
-            <Select
-              label="Select Connection"
-              placeholder="Select Connection"
-              selectedKeys={[
-                selectedHostConnection === null || selectedHostConnection === undefined
+    <>
+      <div className="p-1">
+        <div className="w-full flex flex-row flex-wrap gap-2">
+          <Select
+            label="Select Connection"
+            placeholder="Select Connection"
+            selectedKeys={[
+              selectedHostConnection === null || selectedHostConnection === undefined
+                ? 0
+                : selectedHostConnection.key === undefined
                   ? 0
-                  : selectedHostConnection.key === undefined
-                    ? 0
-                    : selectedHostConnection.key,
-              ]}
-              onChange={(e) => updateSelectedHostConnection(e.target.value)}
-            >
-              {hostConnections.map((connection) => (
-                <SelectItem key={connection.key === undefined ? 0 : connection.key} value={connection.key}>
-                  {connection.host}
-                </SelectItem>
-              ))}
-            </Select>
+                  : selectedHostConnection.key,
+            ]}
+            onChange={(e) => updateSelectedHostConnection(e.target.value)}
+          >
+            {hostConnections.map((connection) => (
+              <SelectItem key={connection.key === undefined ? 0 : connection.key}>{connection.host}</SelectItem>
+            ))}
+          </Select>
 
-            {selectedHostConnection && (
-              <>
-                <Button
-                  variant={appliedHostConnection === null ? "solid" : "flat"}
-                  color="success"
-                  onClick={() => applyHostConnection()}
-                >
-                  {appliedHostConnection === null ? "Apply" : "Withdraw"}
-                </Button>
-
-                <Button color="warning" onClick={editHostConnection}>
-                  Edit
-                </Button>
-                <Button color="danger" onClick={deleteHostConnection}>
-                  Delete
-                </Button>
-              </>
-            )}
-          </div>
-        </IonCol>
-      </IonRow>
-
-      <IonRow>
-        <IonCol>
-          <IonCol>
-            <div className="w-full flex flex-row flex-wrap gap-2">
-              <Input
-                ref={hostConnectionRef}
-                type="text"
-                label="Host Connection"
-                isDisabled={appliedHostConnection !== null}
-                value={hostConnectionValue}
-                onChange={(e) => setHostConnectionValue(e.target.value)}
-              />
-
-              <Button color="primary" onClick={saveHostConnection}>
-                {isEditing ? "Save" : "Add"}
+          {selectedHostConnection && (
+            <>
+              <Button
+                color="success"
+                variant={appliedHostConnection === null ? "solid" : "flat"}
+                onPress={() => applyHostConnection()}
+              >
+                {appliedHostConnection === null ? "Apply" : "Withdraw"}
               </Button>
-            </div>
-          </IonCol>
-        </IonCol>
-      </IonRow>
-    </IonGrid>
+
+              <Button color="warning" onPress={editHostConnection}>
+                Edit
+              </Button>
+              <Button color="danger" onPress={deleteHostConnection}>
+                Delete
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="p-1">
+        <div className="w-full flex flex-row flex-wrap gap-2">
+          <Input
+            ref={hostConnectionRef}
+            isDisabled={appliedHostConnection !== null}
+            label="Host Connection"
+            type="text"
+            value={hostConnectionValue}
+            onChange={(e) => setHostConnectionValue(e.target.value)}
+          />
+
+          <Button color="primary" onPress={saveHostConnection}>
+            {isEditing ? "Save" : "Add"}
+          </Button>
+        </div>
+      </div>
+    </>
   );
 };
 

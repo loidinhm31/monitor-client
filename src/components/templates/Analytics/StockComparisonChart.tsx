@@ -1,4 +1,4 @@
-import { Button, ButtonGroup, Card, CardBody, CardHeader } from "@nextui-org/react";
+import { Button, ButtonGroup, Card, CardBody, CardHeader } from "@heroui/react";
 import { X as CloseIcon } from "lucide-react";
 import React from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -48,6 +48,7 @@ const StockComparisonChart: React.FC<ComparisonChartProps> = ({
       data: [...stock.data].sort((a, b) => {
         const dateA = new Date(a.date.split("/").reverse().join("-"));
         const dateB = new Date(b.date.split("/").reverse().join("-"));
+
         return dateA.getTime() - dateB.getTime();
       }),
     }));
@@ -68,9 +69,11 @@ const StockComparisonChart: React.FC<ComparisonChartProps> = ({
 
     // Get all dates within common range
     const allDates = new Set<string>();
+
     processedStockData.forEach((stock) => {
       stock.data.forEach((point) => {
         const currentDate = new Date(point.date.split("/").reverse().join("-"));
+
         if (currentDate >= latestStart && currentDate <= earliestEnd) {
           allDates.add(point.date);
         }
@@ -80,6 +83,7 @@ const StockComparisonChart: React.FC<ComparisonChartProps> = ({
     const sortedDates = Array.from(allDates).sort((a, b) => {
       const dateA = new Date(a.split("/").reverse().join("-"));
       const dateB = new Date(b.split("/").reverse().join("-"));
+
       return dateA.getTime() - dateB.getTime();
     });
 
@@ -89,6 +93,7 @@ const StockComparisonChart: React.FC<ComparisonChartProps> = ({
 
     processedStockData.forEach((stock) => {
       const firstPoint = stock.data.find((d) => d.date === earliestCommonDate);
+
       if (firstPoint) {
         baselinePrices[stock.symbol] = firstPoint.closePrice;
       }
@@ -100,9 +105,11 @@ const StockComparisonChart: React.FC<ComparisonChartProps> = ({
 
       processedStockData.forEach((stock) => {
         const point = stock.data.find((d) => d.date === date);
+
         if (point && baselinePrices[stock.symbol]) {
           const baselinePrice = baselinePrices[stock.symbol];
           const percentageChange = ((point.closePrice - baselinePrice) / baselinePrice) * 100;
+
           dataPoint[`${stock.symbol}_change`] = date === earliestCommonDate ? 0 : percentageChange;
           dataPoint[`${stock.symbol}_price`] = point.closePrice;
         }
@@ -150,31 +157,31 @@ const StockComparisonChart: React.FC<ComparisonChartProps> = ({
         )}
       </CardHeader>
       <CardBody>
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer height={400} width="100%">
           <LineChart data={normalizedData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" tick={{ fontSize: 12 }} angle={-45} textAnchor="end" height={60} />
+            <XAxis angle={-45} dataKey="date" height={60} textAnchor="end" tick={{ fontSize: 12 }} />
             <YAxis
-              tick={{ fontSize: 12 }}
               label={{
                 value: "Change (%)",
                 angle: -90,
                 position: "insideLeft",
                 style: { textAnchor: "middle" },
               }}
+              tick={{ fontSize: 12 }}
             />
             <Tooltip content={<ComparisonTooltip />} />
             <Legend />
             {stocksData.map((stock, index) => (
               <Line
                 key={stock.symbol}
-                type="monotone"
-                dataKey={`${stock.symbol}_change`}
-                stroke={STOCK_COLORS[index % STOCK_COLORS.length]}
-                name={stock.symbol}
-                dot={false}
-                strokeWidth={2}
                 activeDot={{ r: 6, stroke: STOCK_COLORS[index % STOCK_COLORS.length], strokeWidth: 2 }}
+                dataKey={`${stock.symbol}_change`}
+                dot={false}
+                name={stock.symbol}
+                stroke={STOCK_COLORS[index % STOCK_COLORS.length]}
+                strokeWidth={2}
+                type="monotone"
               />
             ))}
           </LineChart>

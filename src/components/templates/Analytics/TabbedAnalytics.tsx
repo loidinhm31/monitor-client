@@ -1,4 +1,4 @@
-import { Button, Input, Spinner, Tab, Tabs } from "@nextui-org/react";
+import { Button, Input, Spinner, Tab, Tabs } from "@heroui/react";
 import React, { useState } from "react";
 
 import SharedDateControls from "@/components/organisms/SharedDateControls";
@@ -35,33 +35,33 @@ const TabbedAnalytics = () => {
   return (
     <div className="w-full">
       {selectedTab === "analysis" && (
-        <form onSubmit={handleMainStockSubmit} className="mb-6 p-4 rounded-lg bg-content1 shadow-sm">
+        <form className="mb-6 p-4 rounded-lg bg-content1 shadow-sm" onSubmit={handleMainStockSubmit}>
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex-none w-32">
               <Input
-                type="text"
-                label="Stock Symbol"
-                value={inputSymbol}
-                onChange={(e) => setInputSymbol(e.target.value.toUpperCase())}
-                size="sm"
                 isRequired
-                variant="bordered"
+                label="Stock Symbol"
                 placeholder="e.g., AAPL"
+                size="sm"
+                type="text"
+                value={inputSymbol}
+                variant="bordered"
+                onChange={(e) => setInputSymbol(e.target.value.toUpperCase())}
               />
             </div>
 
             <SharedDateControls
-              startDate={startDate}
               endDate={endDate}
-              timeframe={timeframe}
-              onStartDateChange={setStartDate}
-              onEndDateChange={setEndDate}
-              onTimeframeChange={handleTimeframeChange}
               showDatePickers={true}
+              startDate={startDate}
+              timeframe={timeframe}
+              onEndDateChange={setEndDate}
+              onStartDateChange={setStartDate}
+              onTimeframeChange={handleTimeframeChange}
             />
 
-            <Button color="primary" type="submit" size="lg" isDisabled={loading || !inputSymbol} className="flex-none">
-              {loading ? <Spinner size="sm" color="white" /> : "Fetch Data"}
+            <Button className="flex-none" color="primary" isDisabled={loading || !inputSymbol} size="lg" type="submit">
+              {loading ? <Spinner color="white" size="sm" /> : "Fetch Data"}
             </Button>
           </div>
         </form>
@@ -69,16 +69,16 @@ const TabbedAnalytics = () => {
 
       {error && <div className="p-4 mb-4 text-danger rounded-lg bg-danger-50">{error}</div>}
 
-      <Tabs selectedKey={selectedTab} onSelectionChange={(key) => setSelectedTab(key.toString())} className="py-4">
+      <Tabs className="py-4" selectedKey={selectedTab} onSelectionChange={(key) => setSelectedTab(key.toString())}>
         <Tab key="analysis" title="Market Analysis">
           {mainStock && (
             <StockDashboard
-              stockData={mainStock.data}
               compareStocksData={comparisonStocks}
+              stockData={mainStock.data}
               symbol={mainStock.symbol}
+              timeframe={timeframe}
               onAddCompareStock={addComparisonStock}
               onRemoveCompareStock={removeComparisonStock}
-              timeframe={timeframe}
             />
           )}
         </Tab>

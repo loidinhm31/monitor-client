@@ -1,9 +1,7 @@
-import { IonIcon } from "@ionic/react";
-import { Button } from "@nextui-org/button";
-import { Card, CardFooter } from "@nextui-org/card";
-import { Chip } from "@nextui-org/chip";
-import { chevronCollapseOutline, chevronExpandOutline } from "ionicons/icons";
-import React, { useEffect, useRef, useState } from "react";
+import { Button } from "@heroui/button";
+import { Card, CardFooter } from "@heroui/card";
+import { Chip } from "@heroui/chip";
+import { useEffect, useRef, useState } from "react";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 
 interface ServerCameraProps {
@@ -69,9 +67,11 @@ const ServerCamera = ({ hostConnection }: ServerCameraProps) => {
 
       if (msg.event === "camera-frame" && msg.from === "server-camera") {
         const canvas = canvasRef.current;
+
         if (canvas) {
           const ctx = canvas.getContext("2d");
           const img = new Image();
+
           img.onload = () => {
             ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
           };
@@ -138,8 +138,8 @@ const ServerCamera = ({ hostConnection }: ServerCameraProps) => {
       {error && <div className="text-red-500 mb-4 p-2 bg-red-100 rounded">{error}</div>}
 
       <div className="w-full flex flex-col flex-wrap gap-4">
-        <div className="mx-auto flex justify-center" style={{ overflow: "hidden" }} ref={imageContainerRef}>
-          <Card isFooterBlurred radius="lg" className="mx-auto border-none">
+        <div ref={imageContainerRef} className="mx-auto flex justify-center" style={{ overflow: "hidden" }}>
+          <Card isFooterBlurred className="mx-auto border-none" radius="lg">
             <TransformWrapper>
               <TransformComponent>
                 <canvas
@@ -151,22 +151,22 @@ const ServerCamera = ({ hostConnection }: ServerCameraProps) => {
               </TransformComponent>
             </TransformWrapper>
             <CardFooter className="justify-between before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
-              <Chip variant="dot" color="danger" style={{ color: "red" }}>
+              <Chip color="danger" style={{ color: "red" }} variant="dot">
                 {isStarted ? "Streaming" : "Off"}
               </Chip>
             </CardFooter>
-            <Button onClick={toggleFullScreen} className="absolute bottom-0 right-1" isIconOnly variant="faded">
-              <IonIcon size="large" icon={isFullScreen ? chevronCollapseOutline : chevronExpandOutline}></IonIcon>
+            <Button isIconOnly className="absolute bottom-0 right-1" variant="faded" onClick={toggleFullScreen}>
+              {/*<IonIcon size="large" icon={isFullScreen ? chevronCollapseOutline : chevronExpandOutline}></IonIcon>*/}
             </Button>
           </Card>
         </div>
       </div>
 
       <div className="flex gap-4">
-        <Button color="success" disabled={isStarted} onClick={handleStartCamera}>
+        <Button color="success" disabled={isStarted} onPress={handleStartCamera}>
           Start Camera
         </Button>
-        <Button color="danger" disabled={!isStarted} onClick={handleStopCamera}>
+        <Button color="danger" disabled={!isStarted} onPress={handleStopCamera}>
           Stop Camera
         </Button>
       </div>

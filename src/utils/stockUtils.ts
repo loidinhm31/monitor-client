@@ -8,9 +8,11 @@ export interface ParsedPriceChange {
 
 export const parsePriceChange = (change: string): ParsedPriceChange => {
   const matches = change.match(/(-?\d+\.?\d*)\((-?\d+\.?\d*) %\)/);
+
   if (!matches) {
     return { value: 0, percentage: 0 };
   }
+
   return {
     value: parseFloat(matches[1]),
     percentage: parseFloat(matches[2]),

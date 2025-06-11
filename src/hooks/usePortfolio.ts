@@ -26,9 +26,11 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
   const [portfolioSymbols, setPortfolioSymbols] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem(PORTFOLIO_STORAGE_KEY);
+
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
       console.error("Error loading portfolio from storage:", error);
+
       return [];
     }
   });
@@ -43,6 +45,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
 
   useEffect(() => {
     isMounted.current = true;
+
     return () => {
       isMounted.current = false;
     };
@@ -57,6 +60,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
       if (isHoldings) {
         return `holdings-${symbol}-${formatDateForApi(currentDate)}`;
       }
+
       return `compare-${symbol}-${formatDateForApi(startDate)}-${formatDateForApi(endDate)}`;
     },
     [currentDate, startDate, endDate, formatDateForApi],
@@ -66,9 +70,11 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
     (symbol: string, isHoldings: boolean) => {
       const key = getCacheKey(symbol, isHoldings);
       const cached = apiCache.get(key);
+
       if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
         return cached.data;
       }
+
       return null;
     },
     [getCacheKey],
@@ -77,6 +83,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
   const setToCache = useCallback(
     (symbol: string, data: TransformedStockData | TransformedStockData[], isHoldings: boolean) => {
       const key = getCacheKey(symbol, isHoldings);
+
       apiCache.set(key, { data, timestamp: Date.now() });
     },
     [getCacheKey],
@@ -94,6 +101,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
 
       // Check cache first
       const cachedData = getFromCache(symbol, true);
+
       if (cachedData) {
         return cachedData as TransformedStockData;
       }
@@ -115,9 +123,12 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
 
         if (response.data?.Data?.Data?.[0]) {
           const data = transformStockData(response.data.Data.Data[0]);
+
           setToCache(symbol, data, true);
+
           return data;
         }
+
         return null;
       } catch (error) {
         console.error(`Error fetching current data for ${symbol}:`, error);
@@ -145,6 +156,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
             },
           },
         );
+
         return response.data;
       } catch (error) {
         console.error(`Error fetching page ${pageIndex} for ${symbol}:`, error);
@@ -166,6 +178,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
 
       // Check cache first
       const cachedData = getFromCache(symbol, false);
+
       if (cachedData) {
         return cachedData as TransformedStockData[];
       }
@@ -193,6 +206,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
           results.forEach((result: StockApiResponse) => {
             if (result?.Data?.Data && Array.isArray(result.Data.Data)) {
               const transformedData = result.Data.Data.map(transformStockData);
+
               allData = [...allData, ...transformedData];
             }
           });
@@ -202,6 +216,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
         allData.sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
 
         setToCache(symbol, allData, false);
+
         return allData;
       } catch (error) {
         console.error(`Error fetching historical data for ${symbol}:`, error);
@@ -224,9 +239,11 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
       const promises = portfolioSymbols.map(async (symbol) => {
         try {
           const data = await fetchCurrentData(symbol);
+
           return { symbol, data, error: null };
         } catch (err) {
           console.error(`Error refreshing holdings for ${symbol}:`, err);
+
           return { symbol, data: null, error: err };
         }
       });
@@ -273,6 +290,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
       for (const symbol of portfolioSymbols) {
         try {
           const data = await fetchHistoricalData(symbol);
+
           if (data.length > 0 && isMounted.current) {
             newData[symbol] = data;
           }
@@ -307,8 +325,10 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
 
       try {
         const currentData = await fetchCurrentData(symbol);
+
         if (currentData && isMounted.current) {
           const newSymbols = [...portfolioSymbols, symbol];
+
           setPortfolioSymbols(newSymbols);
           localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(newSymbols));
 
@@ -316,13 +336,16 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
             ...prev,
             [symbol]: currentData,
           }));
+
           return true;
         }
+
         return false;
       } catch (error) {
         if (isMounted.current) {
           setError(`Failed to add ${symbol}`);
         }
+
         return false;
       } finally {
         if (isMounted.current) {
@@ -336,18 +359,23 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
   const removeSymbol = useCallback(
     (symbol: string) => {
       const newSymbols = portfolioSymbols.filter((s) => s !== symbol);
+
       setPortfolioSymbols(newSymbols);
       localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(newSymbols));
 
       setHoldingsData((prev) => {
         const newData = { ...prev };
+
         delete newData[symbol];
+
         return newData;
       });
 
       setCompareData((prev) => {
         const newData = { ...prev };
+
         delete newData[symbol];
+
         return newData;
       });
     },

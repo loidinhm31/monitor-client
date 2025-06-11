@@ -1,5 +1,5 @@
 import { CalendarDate } from "@internationalized/date";
-import { Button, Card, CardBody, CardHeader, Input, Spinner, Tab, Tabs } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Input, Spinner, Tab, Tabs } from "@heroui/react";
 import { Plus, RefreshCw } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 
@@ -93,24 +93,24 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateControls }) => {
             <p className="text-sm text-default-500">Track your stock portfolio performance</p>
           </div>
           <div className="flex flex-row gap-4 items-center">
-            <Button isIconOnly variant="flat" onPress={refreshHoldings} isLoading={loading} className="min-w-unit-10">
+            <Button isIconOnly className="min-w-unit-10" isLoading={loading} variant="flat" onPress={refreshHoldings}>
               <RefreshCw className="w-4 h-4" />
             </Button>
 
-            <form onSubmit={handleSubmit} className="flex gap-2 w-full sm:w-auto">
+            <form className="flex gap-2 w-full sm:w-auto" onSubmit={handleSubmit}>
               <Input
+                className="w-32"
+                placeholder="Add stock symbol"
+                size="sm"
                 type="text"
                 value={newSymbol}
                 onChange={(e) => setNewSymbol(e.target.value.toUpperCase())}
-                placeholder="Add stock symbol"
-                size="sm"
-                className="w-32"
               />
               <Button
                 color="primary"
-                type="submit"
                 isDisabled={loading || !newSymbol.trim()}
                 startContent={loading ? <Spinner size="sm" /> : <Plus className="w-4 h-4" />}
+                type="submit"
               >
                 Add
               </Button>
@@ -121,13 +121,13 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateControls }) => {
         {selectedTab === "compare" && (
           <div className="w-full mt-4">
             <SharedDateControls
-              startDate={startDate}
               endDate={endDate}
-              timeframe={timeframe}
-              onStartDateChange={onStartDateChange}
-              onEndDateChange={onEndDateChange}
-              onTimeframeChange={onTimeframeChange}
               showDatePickers={true}
+              startDate={startDate}
+              timeframe={timeframe}
+              onEndDateChange={onEndDateChange}
+              onStartDateChange={onStartDateChange}
+              onTimeframeChange={onTimeframeChange}
             />
           </div>
         )}
@@ -139,15 +139,15 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateControls }) => {
         {portfolioSymbols.length > 0 ? (
           <Tabs selectedKey={selectedTab} onSelectionChange={(key) => setSelectedTab(key.toString())}>
             <Tab key="holdings" title="Holdings">
-              <ResponsivePortfolioDataTable data={tableData} onRemoveStock={removeSymbol} actionColumn={true} />
+              <ResponsivePortfolioDataTable actionColumn={true} data={tableData} onRemoveStock={removeSymbol} />
             </Tab>
             <Tab key="compare" title="Compare">
               <div className="mt-4">
                 <StockComparisonChart
-                  stocksData={comparisonData}
-                  onRemoveStock={removeSymbol}
-                  title="Portfolio Performance Comparison"
                   description="Compare performance of stocks in your portfolio"
+                  stocksData={comparisonData}
+                  title="Portfolio Performance Comparison"
+                  onRemoveStock={removeSymbol}
                 />
               </div>
             </Tab>

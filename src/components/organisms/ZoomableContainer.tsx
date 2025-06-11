@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import React, { ReactNode, useEffect, useRef, useState } from "react";
 
 interface ZoomableContainerProps<T> {
@@ -56,13 +56,13 @@ export function ZoomableContainer<T>({ data, children }: ZoomableContainerProps<
 
   return (
     <div className="w-full mt-4">
-      <div ref={chartRef} onWheel={handleZoom} style={{ touchAction: "none" }}>
+      <div ref={chartRef} style={{ touchAction: "none" }} onWheel={handleZoom}>
         <div className="flex justify-end mb-4">
           <Button
-            variant="bordered"
-            size="sm"
-            onClick={handleReset}
             disabled={startIndex === 0 && endIndex === data.length - 1}
+            size="sm"
+            variant="bordered"
+            onClick={handleReset}
           >
             Reset Zoom
           </Button>

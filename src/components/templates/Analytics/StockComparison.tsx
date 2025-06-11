@@ -1,4 +1,4 @@
-import { Button, Input } from "@nextui-org/react";
+import { Button, Input } from "@heroui/react";
 import { Plus } from "lucide-react";
 import React, { useState } from "react";
 
@@ -34,21 +34,21 @@ const StockComparison: React.FC<StockComparisonProps> = ({ stocksData, onAddStoc
       <div className="flex flex-wrap items-end gap-4">
         <div className="flex-none w-32">
           <Input
-            type="text"
             label="Compare with"
-            value={compareSymbol}
-            onChange={(e) => setCompareSymbol(e.target.value.toUpperCase())}
-            size="sm"
-            variant="bordered"
             placeholder="Symbol"
+            size="sm"
+            type="text"
+            value={compareSymbol}
+            variant="bordered"
+            onChange={(e) => setCompareSymbol(e.target.value.toUpperCase())}
           />
         </div>
         <Button
           color="primary"
+          isDisabled={!compareSymbol || stocksData.some((s) => s.symbol === compareSymbol)}
           size="lg"
           startContent={<Plus className="w-4 h-4" />}
           onClick={handleAddStock}
-          isDisabled={!compareSymbol || stocksData.some((s) => s.symbol === compareSymbol)}
         >
           Add to Compare
         </Button>

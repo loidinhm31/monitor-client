@@ -1,7 +1,7 @@
 import { Capacitor } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
-import { Button } from "@nextui-org/button";
-import React, { useEffect, useRef, useState } from "react";
+import { Button } from "@heroui/button";
+import { useEffect, useRef, useState } from "react";
 
 import { CameraIcon } from "@/icons/CameraIcon";
 
@@ -24,9 +24,11 @@ const SaveDataControl = ({ imageSrc }: SaveDataControlProps) => {
 
   const drawImage = (imageSrc: string) => {
     const canvas = canvasRef.current;
+
     if (canvas) {
       const ctx = canvas.getContext("2d");
       const img = new Image();
+
       img.onload = () => {
         ctx?.clearRect(0, 0, canvas.width, canvas.height);
         ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -63,6 +65,7 @@ const SaveDataControl = ({ imageSrc }: SaveDataControlProps) => {
 
       if (Capacitor.getPlatform() === "android") {
         const base64Data = imageSrc.split(",")[1];
+
         await ensureDirectoryExists(path);
 
         try {
@@ -77,6 +80,7 @@ const SaveDataControl = ({ imageSrc }: SaveDataControlProps) => {
         }
       } else {
         const link = document.createElement("a");
+
         link.href = imageSrc;
         link.download = fileName;
         document.body.appendChild(link);
@@ -108,8 +112,10 @@ const SaveDataControl = ({ imageSrc }: SaveDataControlProps) => {
 
       if (Capacitor.isNativePlatform()) {
         const reader = new FileReader();
+
         reader.onloadend = async () => {
           const base64Data = reader.result as string;
+
           await ensureDirectoryExists(path);
           await Filesystem.writeFile({
             path: path + fileName,
@@ -121,6 +127,7 @@ const SaveDataControl = ({ imageSrc }: SaveDataControlProps) => {
         reader.readAsDataURL(blob);
       } else {
         const link = document.createElement("a");
+
         link.href = url;
         link.download = fileName;
         document.body.appendChild(link);
@@ -144,12 +151,12 @@ const SaveDataControl = ({ imageSrc }: SaveDataControlProps) => {
 
   return (
     <>
-      <canvas ref={canvasRef} style={{ display: "none" }} width="640" height="480"></canvas>
+      <canvas ref={canvasRef} height="480" style={{ display: "none" }} width="640" />
 
-      <Button onClick={captureImage} color="success" endContent={<CameraIcon />}>
+      <Button color="success" endContent={<CameraIcon />} onPress={captureImage}>
         Capture Image
       </Button>
-      <Button onClick={recording ? stopRecording : startRecording} color="secondary">
+      <Button color="secondary" onPress={recording ? stopRecording : startRecording}>
         {recording ? "Stop Recording" : "Start Recording"}
       </Button>
     </>

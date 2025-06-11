@@ -1,7 +1,8 @@
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
+import type { TransformedStockData } from "@/types/stock";
+
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
 import React from "react";
 
-import type { TransformedStockData } from "@/types/stock";
 import { COLUMN_LABELS } from "@/utils/stockUtils";
 
 interface DataTableProps {
@@ -26,6 +27,7 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
 
       // Determine text color class based on value
       let colorClass = "text-warning"; // Default for no change (0)
+
       if (value > 0) {
         colorClass = "text-success";
       } else if (value < 0) {
@@ -47,7 +49,7 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
   };
 
   return (
-    <Table aria-label="Stock data table" className="mt-4" removeWrapper>
+    <Table removeWrapper aria-label="Stock data table" className="mt-4">
       <TableHeader>
         {columns.map((column) => (
           <TableColumn key={column.key}>{column.label}</TableColumn>

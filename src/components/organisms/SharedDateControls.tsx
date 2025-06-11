@@ -1,4 +1,4 @@
-import { CalendarDate, DatePicker, Select, SelectItem } from "@nextui-org/react";
+import { CalendarDate, DatePicker, Select, SelectItem } from "@heroui/react";
 import React from "react";
 
 import { TimeframeOption } from "@/types/stock";
@@ -32,32 +32,32 @@ const SharedDateControls: React.FC<SharedDateControlsProps> = ({
         <>
           <div className="flex-none w-48">
             <DatePicker
+              isRequired
               showMonthAndYearPickers
               label={`Start Date (${formatCustomDate(startDate)})`}
               value={startDate}
               onChange={onStartDateChange}
-              isRequired
             />
           </div>
           <div className="flex-none w-48">
             <DatePicker
+              isRequired
               showMonthAndYearPickers
               label={`End Date (${formatCustomDate(endDate)})`}
               value={endDate}
               onChange={onEndDateChange}
-              isRequired
             />
           </div>
         </>
       )}
       <div className="flex w-full">
         <Select
-          defaultSelectedKeys={[timeframe]}
-          onChange={(e) => onTimeframeChange(e.target.value as TimeframeOption)}
+          aria-label="Select timeframe"
           className="w-full"
+          defaultSelectedKeys={[timeframe]}
           size="sm"
           variant="faded"
-          aria-label="Select timeframe"
+          onChange={(e) => onTimeframeChange(e.target.value as TimeframeOption)}
         >
           <SelectItem key="1W" value="1W">
             1 Week

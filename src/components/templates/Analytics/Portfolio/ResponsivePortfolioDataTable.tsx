@@ -1,8 +1,9 @@
+import type { TransformedStockData } from "@/types/stock";
+
 import React, { useEffect, useState } from "react";
 
 import PortfolioMobileDataTable from "@/components/templates/Analytics/mobile/PortfolioMobileDataTable";
 import PortfolioDataTable from "@/components/templates/Analytics/Portfolio/PortfolioDataTable";
-import type { TransformedStockData } from "@/types/stock";
 
 interface ResponsivePortfolioDataTableProps {
   data: (TransformedStockData & { symbol: string })[];
@@ -24,15 +25,16 @@ const ResponsivePortfolioDataTable: React.FC<ResponsivePortfolioDataTableProps> 
 
     checkMobile();
     window.addEventListener("resize", checkMobile);
+
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   return (
     <div className="w-full">
       {isMobile ? (
-        <PortfolioMobileDataTable data={data} onRemoveStock={onRemoveStock} actionColumn={actionColumn} />
+        <PortfolioMobileDataTable actionColumn={actionColumn} data={data} onRemoveStock={onRemoveStock} />
       ) : (
-        <PortfolioDataTable data={data} onRemoveStock={onRemoveStock} actionColumn={actionColumn} />
+        <PortfolioDataTable actionColumn={actionColumn} data={data} onRemoveStock={onRemoveStock} />
       )}
     </div>
   );

@@ -1,6 +1,6 @@
-import { Button } from "@nextui-org/button";
-import { Card, CardBody, CardHeader } from "@nextui-org/card";
-import React, { useRef, useState } from "react";
+import { Button } from "@heroui/button";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import { useRef, useState } from "react";
 
 class WavRecorder {
   private chunks: Int16Array[];
@@ -67,9 +67,11 @@ class WavRecorder {
 
     // Write audio data
     const audioData = new Int16Array(buffer, headerSize);
+
     audioData.set(fullBuffer);
 
     this.chunks = [];
+
     return new Blob([buffer], { type: "audio/wav" });
   }
 
@@ -105,6 +107,7 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
       recordingStartTimeRef.current = Date.now();
 
       const socket = new WebSocket(`ws://${hostConnection}/sensors/ears/ws`);
+
       socketRef.current = socket;
 
       socket.onopen = () => {
@@ -116,6 +119,7 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
         if (event.data instanceof Blob) {
           const arrayBuffer = await event.data.arrayBuffer();
           const int16Array = new Int16Array(arrayBuffer);
+
           recorderRef.current.addData(int16Array);
         } else if (event.data === "Authenticated") {
           addDebugMessage("Recording started");
@@ -139,7 +143,7 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
         addDebugMessage(`Recording error: ${error.type}`);
         stopRecording();
       };
-    } catch (error) {
+    } catch (error: any) {
       addDebugMessage(`Recording error: ${error.message}`);
       stopRecording();
     }
@@ -160,6 +164,7 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
       const wavBlob = recorderRef.current.stopRecording();
       const url = URL.createObjectURL(wavBlob);
       const a = document.createElement("a");
+
       a.href = url;
       a.download = `recording_${new Date().toISOString()}.wav`;
       a.click();
@@ -168,7 +173,7 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
       setIsRecording(false);
       setRecordingDuration(0);
       addDebugMessage("Recording saved successfully");
-    } catch (error) {
+    } catch (error: any) {
       addDebugMessage(`Error saving recording: ${error.message}`);
     }
   };
@@ -176,7 +181,7 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
   return (
     <>
       <div className="w-full flex flex-row gap-4 items-center flex-wrap">
-        <Button color={isRecording ? "danger" : "primary"} onClick={isRecording ? stopRecording : startRecording}>
+        <Button color={isRecording ? "danger" : "primary"} onPress={isRecording ? stopRecording : startRecording}>
           {isRecording ? "Stop Recording" : "Start Recording"}
         </Button>
 
