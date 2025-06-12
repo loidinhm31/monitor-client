@@ -14,6 +14,10 @@ export const siteConfig = {
       href: "/analytics",
     },
     {
+      label: "Mirror",
+      href: "/mirror",
+    },
+    {
       label: "Logout",
       href: "/logout",
     },

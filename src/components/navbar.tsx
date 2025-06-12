@@ -10,21 +10,19 @@ import {
 } from "@heroui/navbar";
 import { link as linkStyles } from "@heroui/theme";
 import clsx from "clsx";
-
-import { siteConfig } from "@/config/site";
-import { ThemeSwitch } from "@/components/theme-switch";
 import { useState } from "react";
 import { Button } from "@heroui/button";
 
+import { siteConfig } from "@/config/site";
+import { ThemeSwitch } from "@/components/theme-switch";
+
 export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <HeroUINavbar onMenuOpenChange={setIsMenuOpen}>
       <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
-        <NavbarMenuToggle
-          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-          className="sm:hidden"
-        />
+        <NavbarMenuToggle aria-label={isMenuOpen ? "Close menu" : "Open menu"} className="sm:hidden" />
         <NavbarBrand className="gap-3 max-w-fit">
           <Link className="flex justify-start items-center gap-1" color="foreground" href="/">
             LOGO

@@ -10,7 +10,7 @@ export interface ThemeSwitchProps {
   className?: string;
   classNames?: SwitchProps["classNames"];
 }
-
+1
 export const ThemeSwitch: FC<ThemeSwitchProps> = ({ className, classNames }) => {
   const [isMounted, setIsMounted] = useState(false);
 
