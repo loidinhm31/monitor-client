@@ -1,8 +1,7 @@
-import { Chip } from "@heroui/chip";
-import { Select, SelectItem } from "@heroui/select";
-import React from "react";
-
 import { Eyes, SystemInfo } from "@/models/sensors";
+import { Label } from "@/components/ui/label.tsx";
+import { Badge } from "@/components/ui/badge.tsx";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select.tsx";
 
 interface SystemInformationTemplateProps {
   systemInfo: SystemInfo;
@@ -19,8 +18,8 @@ const SystemInformationTemplate = ({
   selectedEyes,
   setSelectedEyes,
 }: SystemInformationTemplateProps) => {
-  const selectEyes = (selection: React.ChangeEvent<HTMLSelectElement>) => {
-    const currEye = systemInfo?.eyes.find((_, i) => i === Number(selection.target.value));
+  const selectEyes = (value: string) => {
+    const currEye = systemInfo?.eyes.find((_, i) => i === Number(value));
 
     if (selectedEyes !== null && currEye?.index !== selectedEyes.index) {
       if (openEyes) {
@@ -36,33 +35,36 @@ const SystemInformationTemplate = ({
 
   return (
     <>
+      <div className="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <Label className="text-cyan-400/70 font-mono">OS Type</Label>
+          <Badge className="mt-1 w-full justify-center bg-cyan-400/10 text-cyan-400 border-cyan-400/30" variant="glass">
+            {systemInfo.os_type}
+          </Badge>
+        </div>
+        <div>
+          <Label className="text-cyan-400/70 font-mono">OS Release</Label>
+          <Badge className="mt-1 w-full justify-center bg-cyan-400/10 text-cyan-400 border-cyan-400/30" variant="glass">
+            {systemInfo.os_release}
+          </Badge>
+        </div>
+      </div>
+
       <div>
-        <Chip className="max-w" color="warning" size="lg">
-          System Information
-        </Chip>
+        <Label className="text-cyan-400 font-mono mb-2 block">Available Eyes</Label>
+        <Select onValueChange={selectEyes}>
+          <SelectTrigger className="w-full bg-black/20 border-cyan-400/30 text-cyan-400">
+            <SelectValue placeholder="Select eyes" />
+          </SelectTrigger>
+          <SelectContent className="bg-black/90 border-cyan-400/30">
+            {systemInfo.eyes.map((eye, index) => (
+              <SelectItem key={index} value={index.toString()}>
+                {eye.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
-
-      <div className="w-full flex flex-row flex-wrap gap-2">
-        <div className="w-full flex flex-row flex-wrap gap-1">
-          <Chip>OS Type</Chip>
-          <p>{systemInfo.os_type}</p>
-        </div>
-
-        <div className="w-full flex flex-row flex-wrap gap-1">
-          <Chip>OS Release</Chip>
-          <p>{systemInfo.os_release}</p>
-        </div>
-      </div>
-
-      <Chip className="max-w" color="success" size="md" variant="dot">
-        Available Eyes
-      </Chip>
-
-      <Select className="max-w-xs" label="Select eyes" onChange={(k) => selectEyes(k)}>
-        {systemInfo.eyes.map((eye, index) => (
-          <SelectItem key={index}>{eye.name}</SelectItem>
-        ))}
-      </Select>
     </>
   );
 };

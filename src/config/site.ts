@@ -1,24 +1,23 @@
+import { Home, LogOut } from "lucide-react";
+
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Vite + HeroUI",
-  description: "Make beautiful websites regardless of your design experience.",
+  name: "Monitor Client",
+  description: "Direct peer-to-peer screen sharing and device monitoring.",
 
   navMenuItems: [
     {
+      id: "home",
       label: "Home",
       href: "/",
+      icon: Home,
     },
     {
-      label: "Analytics",
-      href: "/analytics",
-    },
-    {
+      id: "logout",
       label: "Logout",
       href: "/logout",
+      icon: LogOut,
     },
   ],
-  links: {
-    docs: "https://heroui.com",
-  },
 };

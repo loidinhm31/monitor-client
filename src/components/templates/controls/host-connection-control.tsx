@@ -1,23 +1,26 @@
-import { Button } from "@heroui/button";
-import { Input } from "@heroui/input";
-import { Select, SelectItem } from "@heroui/select";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 
 import { HostConnection } from "@/models/connections";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input.tsx";
+import HolographicButton from "@/components/atoms/holographic-button.tsx";
+import HolographicContainer from "@/components/atoms/holographic-container.tsx";
+import StatusIndicator from "@/components/atoms/status-indicator.tsx";
 
 interface HostConnectionControlProps {
   appliedHostConnection: HostConnection | null;
-  setAppliedHostConnection: (hostConnection: HostConnection | null) => void;
+  setAppliedHostConnection: (connection: HostConnection | null) => void;
 }
 
-const HostConnectionControl = ({ appliedHostConnection, setAppliedHostConnection }: HostConnectionControlProps) => {
-  const hostConnectionRef = useRef<HTMLInputElement | null>(null);
-
+const HostConnectionControl: React.FC<HostConnectionControlProps> = ({
+  appliedHostConnection,
+  setAppliedHostConnection,
+}) => {
   const [hostConnections, setHostConnections] = useState<HostConnection[]>([]);
   const [hostConnectionValue, setHostConnectionValue] = useState<string>("");
   const [selectedHostConnection, setSelectedHostConnection] = useState<HostConnection | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [action, setAction] = useState("");
 
   useEffect(() => {
     const storedHostConnections = JSON.parse(localStorage.getItem("hostConnections") || "[]");
@@ -27,22 +30,6 @@ const HostConnectionControl = ({ appliedHostConnection, setAppliedHostConnection
     }
   }, []);
 
-  useEffect(() => {
-    if (action !== "") {
-      // Store data
-      localStorage.setItem("hostConnections", JSON.stringify(hostConnections));
-
-      if (action === "delete") {
-        setSelectedHostConnection(hostConnections[0]);
-      }
-    }
-  }, [action, hostConnections]);
-
-  const editHostConnection = () => {
-    setHostConnectionValue(selectedHostConnection ? selectedHostConnection?.host : "");
-    setIsEditing(true);
-  };
-
   const saveHostConnection = () => {
     if (hostConnectionValue !== "") {
       if (isEditing) {
@@ -50,27 +37,20 @@ const HostConnectionControl = ({ appliedHostConnection, setAppliedHostConnection
           hostConnections.map((conn) => {
             if (conn.key === selectedHostConnection?.key) {
               return { ...conn, host: hostConnectionValue };
-            } else {
-              return conn;
             }
+
+            return conn;
           }),
         );
-        setAction("edit");
         setIsEditing(false);
       } else {
-        setHostConnections([...hostConnections, { key: hostConnections.length + 1, host: hostConnectionValue }]);
+        const newConnection = { key: hostConnections.length + 1, host: hostConnectionValue };
 
-        setAction("add");
+        setHostConnections([...hostConnections, newConnection]);
       }
-      // Reset input
+      localStorage.setItem("hostConnections", JSON.stringify(hostConnections));
       setHostConnectionValue("");
     }
-  };
-
-  const deleteHostConnection = () => {
-    setHostConnections(hostConnections.filter((conn) => conn.key !== selectedHostConnection?.key));
-
-    setAction("delete");
   };
 
   const applyHostConnection = () => {
@@ -81,71 +61,65 @@ const HostConnectionControl = ({ appliedHostConnection, setAppliedHostConnection
     }
   };
 
-  const updateSelectedHostConnection = (key: string) => {
-    const currentHostConnection = hostConnections.find((connection) => connection?.key === Number(key));
-
-    setSelectedHostConnection(currentHostConnection ? currentHostConnection : null);
-  };
-
   return (
-    <>
-      <div className="p-1">
-        <div className="w-full flex flex-row flex-wrap gap-2">
-          <Select
-            label="Select Connection"
-            placeholder="Select Connection"
-            selectedKeys={[
-              selectedHostConnection === null || selectedHostConnection === undefined
-                ? 0
-                : selectedHostConnection.key === undefined
-                  ? 0
-                  : selectedHostConnection.key,
-            ]}
-            onChange={(e) => updateSelectedHostConnection(e.target.value)}
-          >
-            {hostConnections.map((connection) => (
-              <SelectItem key={connection.key === undefined ? 0 : connection.key}>{connection.host}</SelectItem>
-            ))}
-          </Select>
+    <div className="space-y-6">
+      <div>
+        {/* Connection Status */}
+        <HolographicContainer className="p-4 md:p-6 mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <StatusIndicator online={appliedHostConnection !== null} />
+            <span className="font-mono text-sm text-cyan-400">
+              {appliedHostConnection ? `Connected to ${appliedHostConnection.host}` : "Disconnected"}
+            </span>
+          </div>
 
-          {selectedHostConnection && (
-            <>
-              <Button
-                color="success"
-                variant={appliedHostConnection === null ? "solid" : "flat"}
-                onPress={() => applyHostConnection()}
+          <div className="space-y-4">
+            <Select
+              onValueChange={(value) => {
+                const connection = hostConnections.find((conn) => conn.key === Number(value));
+
+                setSelectedHostConnection(connection || null);
+              }}
+            >
+              <SelectTrigger className="w-full bg-black/20 border-cyan-400/30 text-cyan-400">
+                <SelectValue placeholder="Select connection" />
+              </SelectTrigger>
+              <SelectContent className="bg-black/90 border-cyan-400/30">
+                {hostConnections.map((connection) => (
+                  <SelectItem key={connection.key} value={connection.key?.toString() || "0"}>
+                    {connection.host}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {selectedHostConnection && (
+              <HolographicButton
+                className="w-full"
+                variant={appliedHostConnection === null ? "primary" : "danger"}
+                onClick={applyHostConnection}
               >
-                {appliedHostConnection === null ? "Apply" : "Withdraw"}
-              </Button>
+                {appliedHostConnection === null ? "Connect" : "Disconnect"}
+              </HolographicButton>
+            )}
 
-              <Button color="warning" onPress={editHostConnection}>
-                Edit
-              </Button>
-              <Button color="danger" onPress={deleteHostConnection}>
-                Delete
-              </Button>
-            </>
-          )}
-        </div>
+            <div className="flex gap-2">
+              <Input
+                className="flex-1 bg-black/20 border-cyan-400/30 text-cyan-400 placeholder:text-cyan-400/50"
+                disabled={appliedHostConnection !== null}
+                placeholder="Host connection (e.g., 192.168.1.100)"
+                value={hostConnectionValue}
+                onChange={(e) => setHostConnectionValue(e.target.value)}
+              />
+              <HolographicButton size="sm" onClick={saveHostConnection}>
+                <Plus className="w-4 h-4 mr-1" />
+                {isEditing ? "Save" : "Add"}
+              </HolographicButton>
+            </div>
+          </div>
+        </HolographicContainer>
       </div>
-
-      <div className="p-1">
-        <div className="w-full flex flex-row flex-wrap gap-2">
-          <Input
-            ref={hostConnectionRef}
-            isDisabled={appliedHostConnection !== null}
-            label="Host Connection"
-            type="text"
-            value={hostConnectionValue}
-            onChange={(e) => setHostConnectionValue(e.target.value)}
-          />
-
-          <Button color="primary" onPress={saveHostConnection}>
-            {isEditing ? "Save" : "Add"}
-          </Button>
-        </div>
-      </div>
-    </>
+    </div>
   );
 };
 

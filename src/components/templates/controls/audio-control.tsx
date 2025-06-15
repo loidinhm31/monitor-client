@@ -1,6 +1,8 @@
-import { Button } from "@heroui/button";
-import { Card, CardBody, CardHeader } from "@heroui/card";
 import { useRef, useState } from "react";
+
+import { CardContent, CardHeader } from "@/components/ui/card.tsx";
+import HolographicButton from "@/components/atoms/holographic-button.tsx";
+import HolographicContainer from "@/components/atoms/holographic-container.tsx";
 
 class WavRecorder {
   private chunks: Int16Array[];
@@ -181,9 +183,12 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
   return (
     <>
       <div className="w-full flex flex-row gap-4 items-center flex-wrap">
-        <Button color={isRecording ? "danger" : "primary"} onPress={isRecording ? stopRecording : startRecording}>
+        <HolographicButton
+          variant={isRecording ? "danger" : "primary"}
+          onClick={isRecording ? stopRecording : startRecording}
+        >
           {isRecording ? "Stop Recording" : "Start Recording"}
-        </Button>
+        </HolographicButton>
 
         {isRecording && (
           <span className="text-sm">
@@ -192,11 +197,11 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
         )}
       </div>
 
-      <Card>
+      <HolographicContainer>
         <CardHeader>
           <h3 className="text-sm font-semibold">Debug Log</h3>
         </CardHeader>
-        <CardBody>
+        <CardContent>
           <div className="text-xs space-y-1">
             {debugInfo.map((msg, i) => (
               <div key={i} className="font-mono">
@@ -204,8 +209,8 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
               </div>
             ))}
           </div>
-        </CardBody>
-      </Card>
+        </CardContent>
+      </HolographicContainer>
     </>
   );
 };

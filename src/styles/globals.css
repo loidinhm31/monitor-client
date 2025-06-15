@@ -1,3 +1,843 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@layer base {
+    :root {
+        --background: 220 17% 96%;
+        --foreground: 220 8% 12%;
+        --card: 220 14% 98%;
+        --card-foreground: 220 8% 12%;
+        --popover: 220 14% 98%;
+        --popover-foreground: 220 8% 12%;
+        --primary: 191 77% 42%;
+        --primary-foreground: 220 14% 98%;
+        --secondary: 220 14% 92%;
+        --secondary-foreground: 220 8% 20%;
+        --muted: 220 14% 92%;
+        --muted-foreground: 220 8% 46%;
+        --accent: 220 14% 92%;
+        --accent-foreground: 220 8% 20%;
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 220 14% 98%;
+        --border: 220 13% 88%;
+        --input: 220 13% 88%;
+        --ring: 191 77% 42%;
+        --radius: 1rem;
+    }
+
+    .dark {
+        --background: 220 17% 6%;
+        --foreground: 220 8% 92%;
+        --card: 220 14% 8%;
+        --card-foreground: 220 8% 92%;
+        --popover: 220 14% 8%;
+        --popover-foreground: 220 8% 92%;
+        --primary: 191 77% 52%;
+        --primary-foreground: 220 17% 6%;
+        --secondary: 220 14% 12%;
+        --secondary-foreground: 220 8% 88%;
+        --muted: 220 14% 12%;
+        --muted-foreground: 220 8% 56%;
+        --accent: 220 14% 12%;
+        --accent-foreground: 220 8% 88%;
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 220 14% 98%;
+        --border: 220 13% 18%;
+        --input: 220 13% 18%;
+        --ring: 191 77% 52%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+        font-feature-settings:
+            "rlig" 1,
+            "calt" 1;
+        background: linear-gradient(
+            135deg,
+            rgba(99, 102, 241, 0.05) 0%,
+            rgba(168, 85, 247, 0.05) 50%,
+            rgba(236, 72, 153, 0.05) 100%
+        );
+        min-height: 100vh;
+    }
+
+    .dark body {
+        background: linear-gradient(
+            135deg,
+            rgba(30, 41, 59, 0.95) 0%,
+            rgba(15, 23, 42, 0.95) 50%,
+            rgba(2, 6, 23, 0.95) 100%
+        );
+    }
+}
+
+@layer components {
+    /* Liquid Glass Effect */
+    .liquid-glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    }
+
+    .dark .liquid-glass {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Liquid Button */
+    .liquid-button {
+        @apply relative overflow-hidden rounded-xl px-6 py-3 text-white font-medium transition-all duration-300;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+    }
+
+    .liquid-button:hover {
+        @apply transform scale-105;
+        box-shadow: 0 6px 24px rgba(102, 126, 234, 0.6);
+    }
+
+    .liquid-button:before {
+        @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+        content: "";
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+
+    .liquid-button:hover:before {
+        @apply opacity-100;
+    }
+
+    /* Cloud Cards */
+    .cloud-card {
+        @apply relative p-6 rounded-3xl transition-all duration-500;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .cloud-card:hover {
+        @apply transform scale-105;
+        box-shadow: 0 16px 64px rgba(6, 182, 212, 0.3);
+    }
+
+    .dark .cloud-card {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Liquid Blob */
+    .liquid-blob {
+        @apply absolute -z-10 opacity-20;
+        animation: blob 7s infinite;
+        background: linear-gradient(45deg, #667eea, #764ba2, #f093fb);
+        filter: blur(40px);
+    }
+
+    /* Flowing Background */
+    .flowing-bg {
+        @apply absolute inset-0 -z-10;
+        background:
+            radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(120, 200, 255, 0.3) 0%, transparent 50%);
+        animation: liquid 8s ease-in-out infinite;
+    }
+
+    /* Shimmer Effect */
+    .shimmer {
+        background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.2) 20%,
+            rgba(255, 255, 255, 0.5) 60%,
+            rgba(255, 255, 255, 0)
+        );
+        animation: shimmer 2s infinite;
+    }
+
+    /* Liquid Border */
+    .liquid-border {
+        @apply relative overflow-hidden;
+    }
+
+    .liquid-border::before {
+        @apply absolute inset-0 p-px;
+        content: "";
+        border-radius: inherit;
+        background: linear-gradient(
+            90deg,
+            rgba(6, 182, 212, 0.5) 0%,
+            rgba(217, 70, 239, 0.5) 50%,
+            rgba(6, 182, 212, 0.5) 100%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 3s linear infinite;
+        mask:
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+        mask-composite: xor;
+        -webkit-mask:
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+    }
+
+    /* Floating Elements */
+    .float-element {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .float-element:nth-child(2n) {
+        animation-delay: -2s;
+    }
+
+    .float-element:nth-child(3n) {
+        animation-delay: -4s;
+    }
+
+    /* Liquid Progress */
+    .liquid-progress {
+        @apply relative overflow-hidden rounded-full bg-cloud-200;
+        height: 8px;
+    }
+
+    .liquid-progress::after {
+        @apply absolute inset-0 rounded-full;
+        content: "";
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        width: var(--progress, 0%);
+        transition: width 0.5s ease;
+    }
+
+    /* Cloud Navigation */
+    .cloud-nav {
+        @apply relative;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .dark .cloud-nav {
+        background: rgba(0, 0, 0, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Liquid Input */
+    .liquid-input {
+        @apply relative rounded-xl border-0 bg-white/10 backdrop-blur-md px-4 py-3 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-liquid-500 transition-all duration-300;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .liquid-input:focus {
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+    }
+
+    .dark .liquid-input {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Liquid Table */
+    .liquid-table {
+        @apply relative overflow-hidden rounded-2xl;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .liquid-table thead th {
+        @apply bg-white/5 backdrop-blur-md border-b border-white/10 px-6 py-4 text-left font-semibold;
+    }
+
+    .liquid-table tbody tr {
+        @apply border-b border-white/5 hover:bg-white/5 transition-colors duration-200;
+    }
+
+    .liquid-table tbody td {
+        @apply px-6 py-4;
+    }
+
+    /* Liquid Tabs */
+    .liquid-tabs {
+        @apply relative rounded-xl bg-white/5 backdrop-blur-md p-1;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .liquid-tab {
+        @apply relative rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 hover:bg-white/10;
+    }
+
+    .liquid-tab[data-state="active"] {
+        @apply bg-white/20 text-liquid-600 dark:text-liquid-400;
+        box-shadow: 0 2px 8px rgba(6, 182, 212, 0.2);
+    }
+}
+
+/* Holographic Background Effects */
+.holographic-interface {
+    background:
+        radial-gradient(circle at 20% 30%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(255, 100, 0, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 40% 80%, rgba(0, 255, 136, 0.06) 0%, transparent 50%),
+        linear-gradient(135deg, #000814 0%, #001d3d 50%, #000814 100%);
+}
+
+/* Animated Grid Overlay */
+.tech-grid {
+    background-image:
+        linear-gradient(rgba(0, 212, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 255, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 20s linear infinite;
+    opacity: 0.3;
+}
+
+@keyframes gridMove {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(50px, 50px);
+    }
+}
+
+/* Enhanced Holographic Containers */
+.holo-panel {
+    background: rgba(0, 20, 40, 0.2);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 20px;
+    box-shadow:
+        0 0 40px rgba(0, 212, 255, 0.2),
+        inset 0 0 40px rgba(0, 212, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.holo-panel::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+    animation: scanline 3s infinite;
+    pointer-events: none;
+}
+
+@keyframes scanline {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* HUD Circle Components */
+.hud-circle {
+    width: 100px;
+    height: 100px;
+    border: 2px solid rgba(0, 212, 255, 0.6);
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.hud-circle:hover {
+    border-color: #00d4ff;
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+    transform: scale(1.1);
+}
+
+.hud-circle::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 2px solid transparent;
+    border-top-color: #00d4ff;
+    border-radius: 50%;
+    animation: rotate-border 2s linear infinite;
+}
+
+.hud-circle.active {
+    border-color: #00d4ff;
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.8);
+    background: radial-gradient(circle, rgba(0, 212, 255, 0.2) 0%, transparent 70%);
+}
+
+@keyframes rotate-border {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Holographic Buttons */
+.holo-btn {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 100, 150, 0.1) 100%);
+    border: 1px solid rgba(0, 212, 255, 0.5);
+    color: #00d4ff;
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: "Courier New", monospace;
+}
+
+.holo-btn:hover {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 100, 150, 0.2) 100%);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+.holo-btn::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.holo-btn:hover::after {
+    left: 100%;
+}
+
+.holo-btn.danger {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(185, 28, 28, 0.1) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: #ef4444;
+}
+
+.holo-btn.danger:hover {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(185, 28, 28, 0.2) 100%);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+}
+
+/* Hexagonal Elements */
+.hex-element {
+    width: 80px;
+    height: 80px;
+    background: rgba(0, 212, 255, 0.1);
+    clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
+    border: 2px solid rgba(0, 212, 255, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.hex-element:hover {
+    background: rgba(0, 212, 255, 0.2);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+    transform: scale(1.1);
+}
+
+.hex-element.active {
+    background: rgba(0, 212, 255, 0.2);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
+}
+
+/* Status Indicators */
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #00ff88;
+    box-shadow: 0 0 10px #00ff88;
+    animation: pulse-glow 2s infinite;
+}
+
+.status-dot.offline {
+    background: #ff4444;
+    box-shadow: 0 0 10px #ff4444;
+}
+
+.status-dot.warning {
+    background: #ffa500;
+    box-shadow: 0 0 10px #ffa500;
+}
+
+@keyframes pulse-glow {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.2);
+    }
+}
+
+/* Holographic Text Effects */
+.holo-text {
+    color: #00d4ff;
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    font-weight: 300;
+    letter-spacing: 1px;
+    font-family: "Courier New", monospace;
+}
+
+.holo-title {
+    font-size: 2.5rem;
+    background: linear-gradient(45deg, #00d4ff, #00ff88, #ff6b35);
+    background-size: 200% 200%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textShimmer 3s infinite;
+    font-family: "Courier New", monospace;
+    font-weight: bold;
+}
+
+@keyframes textShimmer {
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* 3D Panel Effects */
+.panel-3d {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transition: transform 0.3s ease;
+}
+
+.panel-3d:hover {
+    transform: rotateX(2deg) rotateY(2deg);
+}
+
+.panel-3d .content {
+    transform: translateZ(20px);
+}
+
+/* Particle Effects */
+.particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #00d4ff;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: float-particle 6s infinite ease-in-out;
+}
+
+@keyframes float-particle {
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Enhanced Glass Effects */
+.liquid-glass-enhanced {
+    background: rgba(0, 20, 40, 0.15);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    box-shadow:
+        0 8px 32px 0 rgba(0, 212, 255, 0.2),
+        inset 0 0 20px rgba(0, 212, 255, 0.05);
+}
+
+.dark .liquid-glass-enhanced {
+    background: rgba(0, 10, 20, 0.25);
+    border: 1px solid rgba(0, 212, 255, 0.15);
+}
+
+/* Loading Animations */
+.holo-loading {
+    width: 60px;
+    height: 60px;
+    border: 3px solid rgba(0, 212, 255, 0.2);
+    border-top: 3px solid #00d4ff;
+    border-radius: 50%;
+    animation: spin-glow 1s linear infinite;
+}
+
+@keyframes spin-glow {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Scan Line Effects */
+.scan-effect {
+    position: relative;
+    overflow: hidden;
+}
+
+.scan-effect::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+    animation: scan-vertical 2s infinite;
+}
+
+@keyframes scan-vertical {
+    0% {
+        transform: translateY(0);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(300px);
+        opacity: 0;
+    }
+}
+
+/* Data Stream Effect */
+.data-stream {
+    position: relative;
+    overflow: hidden;
+}
+
+.data-stream::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: 0;
+    width: 1px;
+    height: 200%;
+    background: linear-gradient(to bottom, transparent, #00d4ff, transparent);
+    animation: data-flow 1s infinite;
+}
+
+@keyframes data-flow {
+    0% {
+        transform: translateX(-100px);
+    }
+    100% {
+        transform: translateX(400px);
+    }
+}
+
+/* Mouse Trail Effect */
+.cursor-trail {
+    position: fixed;
+    width: 4px;
+    height: 4px;
+    background: #00d4ff;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    animation: cursor-fade 1s ease-out forwards;
+}
+
+@keyframes cursor-fade {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0);
+    }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .holo-title {
+        font-size: 2rem;
+    }
+
+    .hud-circle {
+        width: 80px;
+        height: 80px;
+    }
+
+    .hex-element {
+        width: 60px;
+        height: 60px;
+    }
+
+    .panel-3d:hover {
+        transform: none; /* Disable 3D effects on mobile */
+    }
+}
+
+/* Dark mode specific enhancements */
+.dark .holo-panel {
+    background: rgba(0, 10, 20, 0.3);
+    border: 1px solid rgba(0, 212, 255, 0.25);
+}
+
+.dark .holo-btn {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.08) 0%, rgba(0, 100, 150, 0.08) 100%);
+    border: 1px solid rgba(0, 212, 255, 0.4);
+}
+
+/* Performance optimizations */
+.gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    .hud-circle::before,
+    .scan-effect::after,
+    .particle,
+    .data-stream::before {
+        animation: none;
+    }
+
+    .panel-3d:hover {
+        transform: none;
+    }
+}
+
+@keyframes gridMove {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(50px, 50px);
+    }
+}
+
+/* Enhanced Mobile-First Responsive Design */
+@media (max-width: 640px) {
+    /* Mobile optimizations */
+    .holo-panel {
+        border-radius: 15px;
+        padding: 1rem;
+    }
+
+    .hud-circle {
+        width: 60px;
+        height: 60px;
+    }
+
+    .holo-text {
+        font-size: 0.875rem;
+    }
+
+    /* Reduce particle count on mobile for performance */
+    .particle {
+        animation-duration: 8s;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+    /* Tablet optimizations */
+    .holo-panel {
+        border-radius: 18px;
+    }
+
+    .hud-circle {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+@media (min-width: 769px) {
+    /* Desktop optimizations */
+    .holo-panel {
+        border-radius: 20px;
+    }
+
+    .hud-circle {
+        width: 100px;
+        height: 100px;
+    }
+}
+
+/* Sidebar specific styles */
+.sidebar-transition {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced holographic effects for better mobile performance */
+@media (prefers-reduced-motion: reduce) {
+    .holo-panel::before {
+        animation: none;
+    }
+
+    .particle {
+        animation: none;
+        opacity: 0;
+    }
+
+    .grid-overlay {
+        animation: none;
+    }
+}
+
+/* Touch-friendly interactive elements */
+@media (hover: none) and (pointer: coarse) {
+    .hud-circle {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .holo-btn {
+        min-height: 44px;
+        padding: 12px 16px;
+    }
+}
+
+/* Dark theme enhancements */
+.dark .holo-panel {
+    background: rgba(0, 10, 20, 0.4);
+    border: 1px solid rgba(0, 212, 255, 0.25);
+}
+
+.dark .holo-btn {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.05) 0%, rgba(0, 100, 150, 0.05) 100%);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+}

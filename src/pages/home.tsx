@@ -1,43 +1,61 @@
-import { Button } from "@heroui/button";
-import { Spinner } from "@heroui/spinner";
-import axios from "axios";
 import { useEffect, useState } from "react";
+import axios from "axios";
+import { AnimatePresence, motion } from "framer-motion";
+import { Menu } from "lucide-react";
 
-import AudioControl from "@/components/templates/controls/audio-control.tsx";
-import ServerCamera from "@/components/templates/controls/server-camera.tsx";
-import StreamingVideoControl from "@/components/templates/controls/streaming-video-control.tsx";
+import { Spinner } from "@/components/ui/spinner";
+import ParticleField from "@/components/atoms/particle-field.tsx";
+import HolographicContainer from "@/components/atoms/holographic-container.tsx";
+import StatusIndicator from "@/components/atoms/status-indicator.tsx";
+import { HostConnection } from "@/models/connections.tsx";
+import { Eyes, SystemInfo } from "@/models/sensors.tsx";
 import SystemInformationTemplate from "@/components/templates/controls/system-information-template.tsx";
-import { HostConnection } from "@/models/connections";
-import { Eyes, SystemInfo } from "@/models/sensors";
-import DefaultLayout from "@/layouts/default";
 import HostConnectionControl from "@/components/templates/controls/host-connection-control.tsx";
+import ServerCamera from "@/components/templates/controls/server-camera.tsx";
+import AudioControl from "@/components/templates/controls/audio-control.tsx";
+import Breadcrumb from "@/components/molecules/breadcrumb.tsx";
+import Sidebar from "@/components/molecules/sidebar.tsx";
 
 export default function HomePage() {
   const [appliedHostConnection, setAppliedHostConnection] = useState<HostConnection | null>(null);
+  // @ts-ignore
   const [openEyes, setOpenEyes] = useState<boolean>(false);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [selectedEyes, setSelectedEyes] = useState<Eyes | null>(null);
+  // @ts-ignore
   const [eyesStatus, setEyesStatus] = useState<boolean>(false);
-  const [wsConnection, setWsConnection] = useState<WebSocket | null>(null);
+
+  // UI state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeItem, setActiveItem] = useState("dashboard");
+  const [isMobile, setIsMobile] = useState(false);
 
   const auth = "Basic " + btoa("admin:password");
 
+  // Check for mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Fetch system info when connection changes
   useEffect(() => {
     const fetchSystemInfo = async () => {
       try {
         if (appliedHostConnection !== null) {
           const response = await axios.get(`http://${appliedHostConnection?.host}/system`, {
-            headers: {
-              Authorization: auth,
-            },
+            headers: { Authorization: auth },
           });
 
-          const systemInfo: SystemInfo = await response.data;
+          const systemInfo = await response.data;
 
-          systemInfo.eyes.unshift({
-            index: -1,
-            name: "Select eyes",
-          });
+          systemInfo.eyes.unshift({ index: -1, name: "Select eyes" });
           setSystemInfo(response.data);
         }
       } catch (error) {
@@ -49,108 +67,151 @@ export default function HomePage() {
     fetchSystemInfo();
   }, [appliedHostConnection]);
 
-  useEffect(() => {
-    let socket: WebSocket;
-
-    if (appliedHostConnection !== null) {
-      socket = new WebSocket(`ws://${appliedHostConnection.host}/sensors/eyes/ws`);
-
-      socket.onopen = () => {
-        console.log("WebSocket connection established.");
-        socket.send(auth);
-        setWsConnection(socket);
-      };
-
-      socket.onclose = () => {
-        console.log("WebSocket connection closed.");
-        setWsConnection(null);
-      };
-    }
-
-    return () => {
-      if (socket) {
-        socket.close();
-        setWsConnection(null);
-      }
-    };
-  }, [appliedHostConnection]);
-
-  const turnEyes = async (eyesStatus: boolean) => {
-    try {
-      if (wsConnection && selectedEyes?.index !== undefined && selectedEyes.index >= 0) {
-        const control = {
-          type: "control",
-          action: eyesStatus ? "on" : "off",
-          index: selectedEyes.index,
-        };
-
-        wsConnection.send(JSON.stringify(control));
-
-        if (eyesStatus) {
-          setOpenEyes(true);
-          setEyesStatus(false);
-        } else {
-          setOpenEyes(false);
-          setEyesStatus(true);
-        }
-      }
-    } catch (error) {
-      console.error("Error occurred at change eyes:", error);
-    }
+  // Handle back to menu on mobile
+  const handleBackToMenu = () => {
+    setSidebarOpen(true);
   };
 
   return (
-    <DefaultLayout>
-      <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
-        <div className="mx-auto px-1">
-          <HostConnectionControl
-            appliedHostConnection={appliedHostConnection}
-            setAppliedHostConnection={setAppliedHostConnection}
-          />
+    <div className="min-h-screen bg-black text-cyan-400 relative overflow-hidden">
+      {/* Animated background grid */}
+      <div
+        className="fixed inset-0 opacity-20 z-0"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(0, 212, 255, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 212, 255, 0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: "50px 50px",
+          animation: "gridMove 20s linear infinite",
+        }}
+      />
 
-          {appliedHostConnection !== null && (
-            <>
-              <div className="w-full flex flex-col flex-wrap gap-4">
-                {systemInfo ? (
-                  <>
-                    <SystemInformationTemplate
-                      openEyes={openEyes}
-                      selectedEyes={selectedEyes}
-                      setEyesStatus={setEyesStatus}
-                      setSelectedEyes={setSelectedEyes}
-                      systemInfo={systemInfo}
+      {/* Holographic background effects */}
+      <div
+        className="fixed inset-0 z-0"
+        style={{
+          background: `
+            radial-gradient(circle at 20% 30%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, rgba(255, 100, 0, 0.08) 0%, transparent 50%),
+            radial-gradient(circle at 40% 80%, rgba(0, 255, 136, 0.06) 0%, transparent 50%),
+            linear-gradient(135deg, #000814 0%, #001d3d 50%, #000814 100%)
+          `,
+        }}
+      />
+
+      <ParticleField />
+
+      {/* Main Layout */}
+      <div className="flex h-screen relative z-10">
+        {/* Sidebar */}
+        <Sidebar
+          activeItem={activeItem}
+          isMobile={isMobile}
+          isOpen={sidebarOpen}
+          setActiveItem={setActiveItem}
+          onClose={() => setSidebarOpen(false)}
+        />
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Header */}
+          <header className="flex items-center justify-between p-4 lg:p-6 border-b border-cyan-400/20">
+            <div className="flex items-center gap-4">
+              {isMobile && (
+                <button
+                  className="text-cyan-400 hover:text-white transition-colors"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <Menu className="w-6 h-6" />
+                </button>
+              )}
+
+              <motion.h1
+                animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                className="text-xl md:text-2xl lg:text-3xl font-mono font-bold"
+                style={{
+                  background: "linear-gradient(45deg, #00d4ff, #00ff88, #ff6b35)",
+                  backgroundClip: "text",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundSize: "200% 200%",
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                MONITOR CONTROL CENTER
+              </motion.h1>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <StatusIndicator online={appliedHostConnection !== null} />
+              <span className="hidden md:block text-sm font-mono text-cyan-400/70">
+                {appliedHostConnection ? "ONLINE" : "OFFLINE"}
+              </span>
+            </div>
+          </header>
+
+          {/* Content Area */}
+          <main className="flex-1 overflow-auto p-4 lg:p-6">
+            {/* Mobile Breadcrumb */}
+            {isMobile && <Breadcrumb activeItem={activeItem} onBack={handleBackToMenu} />}
+
+            {/* Main Content */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeItem}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-mono text-cyan-400 mb-4 uppercase tracking-wider">
+                      System Dashboard
+                    </h2>
+
+                    {/* Connection Status */}
+                    <HostConnectionControl
+                      appliedHostConnection={appliedHostConnection}
+                      setAppliedHostConnection={setAppliedHostConnection}
                     />
 
-                    <div>
-                      <Button
-                        color={
-                          eyesStatus && !openEyes && selectedEyes !== null && selectedEyes.index >= 0
-                            ? "primary"
-                            : "danger"
-                        }
-                        disabled={selectedEyes === null || selectedEyes.index < 0 || !wsConnection}
-                        variant={selectedEyes === null || selectedEyes.index < 0 ? "faded" : "solid"}
-                        onPress={() => turnEyes(eyesStatus)}
-                      >
-                        {eyesStatus && !openEyes && selectedEyes !== null && selectedEyes.index >= 0
-                          ? "Turn Eyes On"
-                          : "Turn Eyes Off"}
-                      </Button>
-                    </div>
+                    {/* System Controls */}
+                    {appliedHostConnection && (
+                      <HolographicContainer className="p-4 md:p-6">
+                        {/* System Information */}
+                        {systemInfo ? (
+                          <>
+                            <div className="space-y-4">
+                              <SystemInformationTemplate
+                                openEyes={openEyes}
+                                selectedEyes={selectedEyes}
+                                setEyesStatus={setEyesStatus}
+                                setSelectedEyes={setSelectedEyes}
+                                systemInfo={systemInfo}
+                              />
+                            </div>
 
-                    <ServerCamera hostConnection={appliedHostConnection?.host} />
+                            <ServerCamera hostConnection={appliedHostConnection?.host} />
 
-                    {openEyes && <StreamingVideoControl wsConnection={wsConnection} />}
-                    <AudioControl hostConnection={appliedHostConnection?.host} />
-                  </>
-                ) : (
-                  <Spinner color="warning" label="Loading system information..." />
-                )}
-              </div>
-            </>
-          )}
+                            <AudioControl hostConnection={appliedHostConnection?.host} />
+                          </>
+                        ) : (
+                          <div className="flex items-center gap-2 justify-center py-8">
+                            <Spinner size="sm" variant="liquid" />
+                            <span className="text-sm text-cyan-400/70 font-mono">Loading system information...</span>
+                          </div>
+                        )}
+                      </HolographicContainer>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </main>
         </div>
-      </section>
-    </DefaultLayout>
+      </div>
+    </div>
   );
 }
