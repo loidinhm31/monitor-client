@@ -66,9 +66,7 @@ export default defineConfig([
 
     languageOptions: {
       globals: {
-        ...Object.fromEntries(
-          Object.entries(globals.browser).map(([key]) => [key, "off"]),
-        ),
+        ...Object.fromEntries(Object.entries(globals.browser).map(([key]) => [key, "off"])),
         ...globals.node,
       },
 
@@ -88,7 +86,6 @@ export default defineConfig([
         version: "detect",
       },
     },
-
 
     files: ["**/*.ts", "**/*.tsx"],
 
@@ -117,16 +114,7 @@ export default defineConfig([
       "import/order": [
         "warn",
         {
-          groups: [
-            "type",
-            "builtin",
-            "object",
-            "external",
-            "internal",
-            "parent",
-            "sibling",
-            "index",
-          ],
+          groups: ["type", "builtin", "object", "external", "internal", "parent", "sibling", "index"],
 
           pathGroups: [
             {
