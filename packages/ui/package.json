@@ -1,0 +1,61 @@
+{
+  "name": "@repo/ui",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./config/*": "./src/config/*.ts",
+    "./components/*": "./src/components/*.tsx",
+    "./hooks/*": "./src/hooks/*.ts",
+    "./lib/*": "./src/lib/*.ts",
+    "./types/*": "./src/types/*.ts",
+    "./views/*": "./src/views/*.tsx",
+    "./globals.css": "./src/styles/globals.css",
+    "./postcss.config": "./postcss.config.mjs",
+    "./tailwind.config": "./tailwind.config.ts"
+  },
+  "scripts": {
+    "lint": "eslint  --max-warnings 0",
+    "generate:component": "turbo gen react-component",
+    "check-types": "tsc --noEmit",
+    "shadcn": "pnpm dlx shadcn@latest"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@turbo/gen": "^1.12.4",
+    "@types/node": "^20.11.24",
+    "@types/react": "18.3.0",
+    "@types/react-dom": "18.3.1",
+    "typescript": "5.5.4"
+  },
+  "dependencies": {
+    "@internationalized/date": "^3.5.6",
+    "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-select": "^2.2.5",
+    "@radix-ui/react-slot": "^1.2.3",
+    "autoprefixer": "^10.4.20",
+    "axios": "1.8.2",
+    "clsx": "2.1.1",
+    "date-fns": "^3.6.0",
+    "qrcode-generator": "^1.5.0",
+    "framer-motion": "11.15.0",
+    "react-day-picker": "^9.9.0",
+    "react-router-dom": "6.23.0",
+    "react-use-websocket": "^4.8.1",
+    "react-zoom-pan-pinch": "^3.6.1",
+    "recharts": "^2.13.3",
+    "sass": "^1.77.2",
+    "simple-peer": "^9.11.1",
+    "vaul": "^1.1.2",
+    "class-variance-authority": "^0.7.1",
+    "lucide-react": "^0.474.0",
+    "postcss": "^8.5.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss": "^3.4.0",
+    "tailwindcss-animate": "^1.0.7"
+  }
+}

@@ -17,7 +17,9 @@ export class TauriFileManager {
   static async ensureDirectory(path: string): Promise<boolean> {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
+
       await invoke("ensure_directory", { path });
+
       return true;
     } catch (error) {
       console.error("Failed to create directory:", error);
