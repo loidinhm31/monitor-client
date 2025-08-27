@@ -1,19 +1,11 @@
 import { z } from "zod";
 import natural from "natural";
-import {
-  ApiError,
-  HttpStatus,
-  createResponse,
-  createErrorResponse,
-} from "@repo/ui/lib/api";
+import { ApiError, HttpStatus, createResponse, createErrorResponse } from "@repo/ui/lib/api";
 import { TextAnalysisResult } from "@repo/ui/types/text-analysis";
 
 // Define the schema for validating the input using Zod
 const InputSchema = z.object({
-  text: z
-    .string()
-    .min(1, "Text input cannot be empty")
-    .max(10000, "Text input exceeds the maximum allowed length"),
+  text: z.string().min(1, "Text input cannot be empty").max(10000, "Text input exceeds the maximum allowed length"),
 });
 
 export async function POST(request: Request) {
@@ -24,14 +16,8 @@ export async function POST(request: Request) {
     const result = InputSchema.safeParse(body);
 
     if (!result.success) {
-      const errorMessage = result.error.errors
-        .map((err) => err.message)
-        .join(", ");
-      throw new ApiError(
-        HttpStatus.BAD_REQUEST,
-        "VALIDATION_ERROR",
-        errorMessage,
-      );
+      const errorMessage = result.error.errors.map((err) => err.message).join(", ");
+      throw new ApiError(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", errorMessage);
     }
 
     // Extract validated input
@@ -46,11 +32,7 @@ export async function POST(request: Request) {
     const charCount = text.length;
 
     // Sentiment analysis using natural
-    const analyzer = new natural.SentimentAnalyzer(
-      "English",
-      natural.PorterStemmer,
-      "afinn",
-    );
+    const analyzer = new natural.SentimentAnalyzer("English", natural.PorterStemmer, "afinn");
     const sentimentScore = analyzer.getSentiment(words);
 
     // Find the most frequent word
@@ -83,8 +65,5 @@ function findMostFrequentWord(words: string[]): string | null {
     frequencyMap[normalizedWord] = (frequencyMap[normalizedWord] ?? 0) + 1;
   });
 
-  return Object.keys(frequencyMap).reduce(
-    (a, b) => ((frequencyMap[a] || 0) > (frequencyMap[b] || 0) ? a : b),
-    "",
-  );
+  return Object.keys(frequencyMap).reduce((a, b) => ((frequencyMap[a] || 0) > (frequencyMap[b] || 0) ? a : b), "");
 }

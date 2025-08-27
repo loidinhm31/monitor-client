@@ -3,7 +3,6 @@
   "private": true,
   "scripts": {
     "fix:lint": "eslint --fix packages/ --ext .js,.jsx,.ts,.tsx",
-    "fix:format": "prettier --write ./packages",
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",

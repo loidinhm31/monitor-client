@@ -180,13 +180,6 @@
         );
         background-size: 200% 100%;
         animation: shimmer 3s linear infinite;
-        mask:
-            linear-gradient(#fff 0 0) content-box,
-            linear-gradient(#fff 0 0);
-        mask-composite: xor;
-        -webkit-mask:
-            linear-gradient(#fff 0 0) content-box,
-            linear-gradient(#fff 0 0);
         -webkit-mask-composite: xor;
     }
 
@@ -213,7 +206,6 @@
         @apply absolute inset-0 rounded-full;
         content: "";
         background: linear-gradient(90deg, #667eea, #764ba2);
-        width: var(--progress, 0%);
         transition: width 0.5s ease;
     }
 

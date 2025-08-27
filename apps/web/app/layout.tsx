@@ -24,9 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${fontSans.variable} ${fontMono.variable}`}>
-        {children}
-      </body>
+      <body className={`${fontSans.variable} ${fontMono.variable}`}>{children}</body>
     </html>
   );
 }

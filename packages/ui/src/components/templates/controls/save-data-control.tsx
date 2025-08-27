@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import HolographicButton from "@repo/ui/components/atoms/holographic-button";
+import { TauriFs, TauriPath } from "@repo/ui/types/tauri-type.js";
 
 interface SaveDataControlProps {
   getCurrentFrame: () => string | null;
@@ -16,106 +16,91 @@ const SaveDataControl = ({ getCurrentFrame, isStreaming }: SaveDataControlProps)
   const [recording, setRecording] = useState<boolean>(false);
   const [lastCaptureTime, setLastCaptureTime] = useState<string>("");
 
-  // Tauri command để tạo thư mục nếu cần
-  const ensureDirectoryExists = async (path: string): Promise<boolean> => {
-    try {
-      // Gọi custom Tauri command để tạo thư mục
-      await invoke('ensure_directory', { path });
-      return true;
-    } catch (error) {
-      console.log(`Không thể tạo thư mục ${path}:`, error);
-      return false;
-    }
+  // Check if we're in a Tauri environment
+  const isTauri = (): boolean => {
+    return typeof window !== "undefined" && !!window.__TAURI_INTERNALS__;
   };
 
-  // Tauri command để lưu file
-  const saveFileWithTauri = async (fileName: string, data: string, path: string): Promise<boolean> => {
-    try {
-      await invoke('save_file', {
-        fileName,
-        data,
-        path
-      });
-      return true;
-    } catch (error) {
-      console.error('Lỗi khi lưu file với Tauri:', error);
-      return false;
-    }
-  };
+  const ensureDirectoryExists = async (path: string): Promise<void> => {
+    if (!isTauri()) {
+      console.log("Not in Tauri environment, skipping directory creation");
 
-  const captureCurrentFrame = (): string | null => {
-    // Lấy frame hiện tại từ camera chính
-    const frameData = getCurrentFrame();
-
-    if (!frameData) {
-      console.error("Không có dữ liệu frame từ camera");
-      return null;
-    }
-
-    const canvas = captureCanvasRef.current;
-
-    if (!canvas) {
-      console.error("Canvas capture không khả dụng");
-      return null;
-    }
-
-    const ctx = canvas.getContext("2d");
-
-    if (!ctx) {
-      console.error("Canvas context không khả dụng");
-      return null;
-    }
-
-    // Vẽ frame vào canvas
-    const img = new Image();
-    img.onload = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    };
-    img.src = frameData;
-
-    return frameData;
-  };
-
-  const captureImage = async () => {
-    if (!isStreaming) {
-      alert("Camera không đang streaming");
       return;
     }
 
     try {
-      const frameData = captureCurrentFrame();
+      const fs = (await import("@tauri-apps/plugin-fs")) as TauriFs;
+      const dirExists = await fs.exists(path);
 
-      if (!frameData) {
-        alert("Không thể capture frame");
-        return;
+      if (!dirExists) {
+        await fs.mkdir(path, { recursive: true });
+        console.log(`Directory created: ${path}`);
       }
+    } catch (error) {
+      console.log(`Error with directory: ${path}`, error);
+    }
+  };
 
+  const captureCurrentFrame = async (): Promise<void> => {
+    if (!isStreaming) {
+      alert("Camera is not streaming");
+
+      return;
+    }
+
+    const frameData = getCurrentFrame();
+
+    if (!frameData) {
+      console.error("No frame data available from camera");
+      alert("No frame data available");
+
+      return;
+    }
+
+    // Validate frame data format
+    if (!frameData.includes("data:") || !frameData.includes(",")) {
+      console.error("Invalid frame data format");
+      alert("Invalid frame data format");
+
+      return;
+    }
+
+    try {
       const now = new Date();
       const timestamp = now.toISOString().replace(/T/, "_").replace(/:/g, "_").split(".")[0];
       const fileName = `captured-image_${timestamp}.jpg`;
-      const path = "monitor-client/images/";
 
-      // Kiểm tra môi trường Tauri
-      if (window.__TAURI__) {
-        // Chạy trong môi trường Tauri
+      if (isTauri()) {
+        // Tauri native file saving
+        const pathModule = (await import("@tauri-apps/api/path")) as TauriPath;
+        const fsModule = (await import("@tauri-apps/plugin-fs")) as TauriFs;
+
+        const downloadsPath = await pathModule.downloadDir();
+        const dirPath = `${downloadsPath}monitor-client/images`;
+        const fullPath = `${dirPath}/${fileName}`;
+
+        await ensureDirectoryExists(dirPath);
+
+        // Extract base64 data and convert to Uint8Array
         const base64Data = frameData.split(",")[1];
 
-        await ensureDirectoryExists(path);
-
-        const success = await saveFileWithTauri(fileName, base64Data, path);
-
-        if (success) {
-          setLastCaptureTime(now.toLocaleTimeString());
-          alert("Hình ảnh đã được lưu vào thiết bị");
-        } else {
-          alert("Lỗi khi lưu hình ảnh");
+        if (!base64Data) {
+          throw new Error("Invalid image data format");
         }
+
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        await fsModule.writeFile(fullPath, bytes);
+        alert(`Image saved to: ${fullPath}`);
       } else {
-        // Fallback cho web browser - tải xuống file
+        // Web browser file download
         const response = await fetch(frameData);
         const blob = await response.blob();
-
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
 
@@ -124,35 +109,39 @@ const SaveDataControl = ({ getCurrentFrame, isStreaming }: SaveDataControlProps)
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-
         URL.revokeObjectURL(url);
-        setLastCaptureTime(now.toLocaleTimeString());
-        alert("Hình ảnh đã được tải xuống");
+
+        alert(`Image downloaded: ${fileName}`);
       }
+
+      setLastCaptureTime(now.toLocaleTimeString());
     } catch (error) {
-      console.error("Lỗi khi capture hình ảnh:", error);
-      alert(`Lỗi khi capture hình ảnh: ${error}`);
+      console.error("Error capturing image:", error);
+      alert(`Error capturing image: ${error}`);
     }
   };
 
   const startRecording = () => {
     if (!isStreaming) {
-      alert("Camera không đang streaming");
+      alert("Camera is not streaming");
+
       return;
     }
 
     const canvas = captureCanvasRef.current;
 
     if (!canvas) {
-      alert("Canvas capture không khả dụng");
+      alert("Capture canvas not available");
+
       return;
     }
 
     try {
-      // Bắt đầu capture frames theo khoảng thời gian cho việc ghi
+      // Start capturing frames at intervals for recording
       const recordingInterval = setInterval(() => {
         if (!recording) {
           clearInterval(recordingInterval);
+
           return;
         }
 
@@ -171,10 +160,11 @@ const SaveDataControl = ({ getCurrentFrame, isStreaming }: SaveDataControlProps)
             img.src = frameData;
           }
         }
-      }, 100); // Capture ở 10fps cho việc ghi
+      }, 100); // Capture at 10fps for recording
 
-      // Capture stream từ canvas
+      // Capture stream from canvas
       const stream = canvas.captureStream(10); // 10fps
+
       streamRef.current = stream;
 
       const mediaRecorder = new MediaRecorder(stream, {
@@ -195,28 +185,26 @@ const SaveDataControl = ({ getCurrentFrame, isStreaming }: SaveDataControlProps)
           const now = new Date();
           const timestamp = now.toISOString().replace(/T/, "_").replace(/:/g, "_").split(".")[0];
           const fileName = `recorded-video_${timestamp}.webm`;
-          const path = "monitor-client/videos/";
 
-          if (window.__TAURI__) {
-            // Chạy trong môi trường Tauri
-            const reader = new FileReader();
+          if (isTauri()) {
+            // Tauri native file saving
+            const pathModule = (await import("@tauri-apps/api/path")) as TauriPath;
+            const fsModule = (await import("@tauri-apps/plugin-fs")) as TauriFs;
 
-            reader.onloadend = async () => {
-              const base64Data = (reader.result as string).split(",")[1];
+            const downloadsPath = await pathModule.downloadDir();
+            const dirPath = `${downloadsPath}monitor-client/videos`;
+            const fullPath = `${dirPath}/${fileName}`;
 
-              await ensureDirectoryExists(path);
-              const success = await saveFileWithTauri(fileName, base64Data, path);
+            await ensureDirectoryExists(dirPath);
 
-              if (success) {
-                alert("Video đã được lưu vào thiết bị");
-              } else {
-                alert("Lỗi khi lưu video");
-              }
-            };
+            // Convert blob to Uint8Array
+            const arrayBuffer = await blob.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
 
-            reader.readAsDataURL(blob);
+            await fsModule.writeFile(fullPath, uint8Array);
+            alert(`Video saved to: ${fullPath}`);
           } else {
-            // Fallback cho web browser - tải xuống file
+            // Web browser file download
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
 
@@ -225,16 +213,16 @@ const SaveDataControl = ({ getCurrentFrame, isStreaming }: SaveDataControlProps)
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
             URL.revokeObjectURL(url);
-            alert("Video đã được tải xuống");
+
+            alert(`Video downloaded: ${fileName}`);
           }
 
-          // Reset chunks cho lần ghi tiếp theo
+          // Reset chunks for next recording
           recordedChunksRef.current = [];
         } catch (error) {
-          console.error("Lỗi khi lưu video:", error);
-          alert(`Lỗi khi lưu video: ${error}`);
+          console.error("Error saving video:", error);
+          alert(`Error saving video: ${error}`);
         }
       };
 
@@ -242,10 +230,10 @@ const SaveDataControl = ({ getCurrentFrame, isStreaming }: SaveDataControlProps)
       mediaRecorder.start();
       setRecording(true);
 
-      console.log("Bắt đầu ghi");
+      console.log("Recording started");
     } catch (error) {
-      console.error("Lỗi khi bắt đầu ghi:", error);
-      alert(`Lỗi khi bắt đầu ghi: ${error}`);
+      console.error("Error starting recording:", error);
+      alert(`Error starting recording: ${error}`);
     }
   };
 
@@ -254,63 +242,43 @@ const SaveDataControl = ({ getCurrentFrame, isStreaming }: SaveDataControlProps)
       mediaRecorderRef.current.stop();
       setRecording(false);
 
-      // Dừng tất cả tracks trong stream
+      // Stop all tracks in the stream
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
       }
 
-      console.log("Dừng ghi");
+      console.log("Recording stopped");
     }
   };
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Canvas ẩn chỉ dùng cho capture/recording */}
+      {/* Hidden canvas used only for capture/recording */}
       <canvas ref={captureCanvasRef} height={480} style={{ display: "none" }} width={640} />
 
-      {/* Thông tin trạng thái */}
-      <div className="text-center">
-        <div className="grid grid-cols-2 gap-4 text-xs">
-          <div>
-            <span className={`font-mono ${isStreaming ? "text-green-400" : "text-red-400"}`}>
-              Stream: {isStreaming ? "ON" : "OFF"}
-            </span>
-          </div>
-          <div>
-            <span className={`font-mono ${recording ? "text-red-400" : "text-cyan-400"}`}>
-              Recording: {recording ? "ON" : "OFF"}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Các nút điều khiển */}
-      <div className="flex gap-2 justify-center">
-        <HolographicButton
-          disabled={!isStreaming}
-          size="sm"
-          variant="primary"
-          onClick={captureImage}
-        >
-          Capture Ảnh
+      {/* Control buttons */}
+      <div className="flex gap-2 flex-wrap">
+        <HolographicButton disabled={!isStreaming} onClick={captureCurrentFrame}>
+          Capture Image
         </HolographicButton>
 
         <HolographicButton
           disabled={!isStreaming}
-          size="sm"
           variant={recording ? "danger" : "primary"}
           onClick={recording ? stopRecording : startRecording}
         >
-          {recording ? "Dừng Ghi" : "Bắt Đầu Ghi"}
+          {recording ? "Stop Recording" : "Start Recording"}
         </HolographicButton>
       </div>
 
-      {lastCaptureTime && (
-        <div className="text-center text-xs text-cyan-400">
-          Lần capture cuối: {lastCaptureTime}
-        </div>
-      )}
+      {/* Status information */}
+      <div className="text-xs text-gray-400">
+        Environment: {isTauri() ? "Tauri Native" : "Web Browser"}
+        {lastCaptureTime && <div>Last capture: {lastCaptureTime}</div>}
+      </div>
+
+      {recording && <div className="text-xs text-red-400">Recording in progress...</div>}
     </div>
   );
 };
