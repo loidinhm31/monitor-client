@@ -2,7 +2,8 @@ import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, X } from "lucide-react";
 import HolographicContainer from "@repo/ui/components/atoms/holographic-container";
-import { getRoutes } from "@repo/ui/lib/menu-site";
+import { getRoutes, RouteConfig } from "@repo/ui/lib/menu-site";
+import { useNavigate } from "react-router-dom";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -13,9 +14,11 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeItem, setActiveItem, isMobile }) => {
-  const handleItemClick = (itemId: string): void => {
-    setActiveItem(itemId);
+  const navigate = useNavigate();
+  const handleItemClick = (item: RouteConfig): void => {
+    setActiveItem(item.id);
     if (isMobile) onClose();
+    navigate(item.path);
   };
 
   return (
@@ -67,7 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeItem, setActiv
                   type="button"
                   whileHover={{ x: 4 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => handleItemClick(item.id)}
+                  onClick={() => handleItemClick(item)}
                 >
                   {/*<item.icon className="w-5 h-5" />*/}
                   <span className="font-mono text-sm uppercase tracking-wide">{item.title}</span>
