@@ -1,9 +1,7 @@
-import { HashRouter, Route, Routes } from "react-router-dom";
-import { Suspense, lazy } from "react";
-
-// Dynamic imports
-const HomePage = lazy(() => import("@repo/ui/views/home"));
-const AnalyticsPage = lazy(() => import("@repo/ui/views/analytics"));
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { Suspense } from "react";
+import { DefaultLayout } from "@repo/ui/views/default-layout";
+import { getRoutes } from "@repo/ui/lib/menu-site";
 
 // Loading component
 function Loading() {
@@ -16,14 +14,18 @@ function Loading() {
 
 function RouterApp() {
   return (
-    <HashRouter>
+    <BrowserRouter>
       <Suspense fallback={<Loading />}>
         <Routes>
-          <Route element={<HomePage />} path="/" />
-          <Route element={<AnalyticsPage />} path="/analytics" />
+          <Route element={<Navigate replace to="/system-remote" />} path="/" />
+          {getRoutes().map((route) => {
+            const Component = route.component;
+
+            return <Route key={route.path} element={<DefaultLayout children={<Component />} />} path={route.path} />;
+          })}
         </Routes>
       </Suspense>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
 

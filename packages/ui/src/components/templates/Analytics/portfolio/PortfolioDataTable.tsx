@@ -1,15 +1,20 @@
 import type { TransformedStockData } from "@repo/ui/types/stock";
 
+import { Trash2 } from "lucide-react";
 import React from "react";
+
+import { Button } from "@repo/ui/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/components/ui/table";
 import { COLUMN_LABELS } from "@repo/ui/lib/stock-utils";
-
-interface DataTableProps {
-  data: TransformedStockData[];
+interface PortfolioDataTableProps {
+  data: (TransformedStockData & { symbol: string })[];
+  onRemoveStock: (symbol: string) => void;
+  actionColumn?: boolean;
 }
 
-const DataTable: React.FC<DataTableProps> = ({ data }) => {
+const PortfolioDataTable: React.FC<PortfolioDataTableProps> = ({ data, onRemoveStock, actionColumn = true }) => {
   const columns = [
+    { key: "symbol", label: "Symbol" },
     { key: "date", label: COLUMN_LABELS.date },
     { key: "closePrice", label: COLUMN_LABELS.closePrice },
     { key: "priceChange", label: COLUMN_LABELS.change },
@@ -17,15 +22,23 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
     { key: "openPrice", label: COLUMN_LABELS.openPrice },
     { key: "highestPrice", label: COLUMN_LABELS.highestPrice },
     { key: "lowestPrice", label: COLUMN_LABELS.lowestPrice },
+    ...(actionColumn ? [{ key: "actions", label: "Actions" }] : []),
   ];
 
-  const renderCell = (column: { key: string }, row: TransformedStockData) => {
+  const renderCell = (column: { key: string }, row: TransformedStockData & { symbol: string }) => {
+    if (column.key === "actions") {
+      return (
+        <Button variant="destructive" size="sm" onClick={() => onRemoveStock(row.symbol)}>
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      );
+    }
+
     if (column.key === "priceChange") {
       const value = row[column.key]?.value;
       const percentage = row[column.key]?.percentage;
 
-      // Determine text color class based on value
-      let colorClass = "text-warning"; // Default for no change (0)
+      let colorClass = "text-warning";
 
       if (value > 0) {
         colorClass = "text-success";
@@ -35,7 +48,7 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
 
       return (
         <span className={colorClass}>
-          {value} ({percentage}%)
+          {value?.toFixed(2)} ({percentage?.toFixed(2)}%)
         </span>
       );
     }
@@ -44,11 +57,15 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
       return row[column.key].toLocaleString();
     }
 
+    if (["closePrice", "openPrice", "highestPrice", "lowestPrice"].includes(column.key)) {
+      return row[column.key]?.toFixed(2);
+    }
+
     return row[column.key];
   };
 
   return (
-    <Table aria-label="Stock data table" className="mt-4">
+    <Table aria-label="Portfolio data table" className="mt-4">
       <TableHeader>
         {columns.map((column) => (
           <TableHead key={column.key}>{column.label}</TableHead>
@@ -56,7 +73,7 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
       </TableHeader>
       <TableBody>
         {data.map((row, index) => (
-          <TableRow key={index}>
+          <TableRow key={`${row.symbol}-${index}`}>
             {columns.map((column) => (
               <TableCell key={column.key}>{renderCell(column, row)}</TableCell>
             ))}
@@ -67,4 +84,4 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
   );
 };
 
-export default DataTable;
+export default PortfolioDataTable;

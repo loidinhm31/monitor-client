@@ -23,28 +23,49 @@ const inputVariants = cva(
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement>, VariantProps<typeof inputVariants> {
   icon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  label?: string;
+  isRequired?: boolean;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, variant, type, icon, rightIcon, ...props }, ref) => {
-    if (icon || rightIcon) {
+  ({ className, variant, type, icon, rightIcon, label, isRequired, ...props }, ref) => {
+    const inputElement = icon || rightIcon ? (
+      <div className="relative">
+        {icon && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{icon}</div>}
+        <input
+          ref={ref}
+          className={cn(inputVariants({ variant }), icon && "pl-10", rightIcon && "pr-10", className)}
+          type={type}
+          required={isRequired}
+          {...props}
+        />
+        {rightIcon && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">{rightIcon}</div>
+        )}
+      </div>
+    ) : (
+      <input 
+        ref={ref} 
+        className={cn(inputVariants({ variant }), className)} 
+        type={type} 
+        required={isRequired}
+        {...props} 
+      />
+    );
+
+    if (label) {
       return (
-        <div className="relative">
-          {icon && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{icon}</div>}
-          <input
-            ref={ref}
-            className={cn(inputVariants({ variant }), icon && "pl-10", rightIcon && "pr-10", className)}
-            type={type}
-            {...props}
-          />
-          {rightIcon && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">{rightIcon}</div>
-          )}
+        <div className="w-full">
+          <label className="block text-sm font-medium text-foreground mb-1">
+            {label}
+            {isRequired && <span className="text-red-500 ml-1">*</span>}
+          </label>
+          {inputElement}
         </div>
       );
     }
 
-    return <input ref={ref} className={cn(inputVariants({ variant }), className)} type={type} {...props} />;
+    return inputElement;
   },
 );
 

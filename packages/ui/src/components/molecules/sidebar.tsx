@@ -2,7 +2,7 @@ import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, X } from "lucide-react";
 import HolographicContainer from "@repo/ui/components/atoms/holographic-container";
-import { siteConfig } from "@repo/ui/config/site";
+import { getRoutes } from "@repo/ui/lib/menu-site";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -56,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeItem, setActiv
 
             {/* Menu Items */}
             <nav className="flex-1 space-y-2">
-              {siteConfig.navMenuItems.map((item) => (
+              {getRoutes().map((item) => (
                 <motion.button
                   key={item.id}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
@@ -69,8 +69,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeItem, setActiv
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleItemClick(item.id)}
                 >
-                  <item.icon className="w-5 h-5" />
-                  <span className="font-mono text-sm uppercase tracking-wide">{item.label}</span>
+                  {/*<item.icon className="w-5 h-5" />*/}
+                  <span className="font-mono text-sm uppercase tracking-wide">{item.title}</span>
                   {activeItem === item.id && <ChevronRight className="w-4 h-4 ml-auto" />}
                 </motion.button>
               ))}

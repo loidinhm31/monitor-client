@@ -1,7 +1,7 @@
 import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
 import { useState } from "react";
 
-import { TimeframeOption } from "@/types/stock";
+import { TimeframeOption } from "@repo/ui/types/stock";
 
 export const useSharedDates = () => {
   const currentDate = today(getLocalTimeZone());

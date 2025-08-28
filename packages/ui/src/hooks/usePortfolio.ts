@@ -1,9 +1,9 @@
 import { CalendarDate } from "@internationalized/date";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { HttpService } from "@/core/services/HttpService";
-import { StockApiResponse, TransformedStockData } from "@/types/stock";
-import { transformStockData } from "@/utils/stockUtils";
+import { HttpService } from "@repo/ui/lib/services/HttpService";
+import { StockApiResponse, TransformedStockData } from "@repo/ui/types/stock";
+import { transformStockData } from "@repo/ui/lib/stock-utils";
 
 const PORTFOLIO_STORAGE_KEY = "stockPortfolioSymbols";
 const PAGE_SIZE = 32;

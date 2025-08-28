@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { siteConfig } from "@repo/ui/config/site";
+import { getRoutes } from "@repo/ui/lib/menu-site";
 
 interface BreadcrumbProps {
   activeItem: string;
@@ -9,7 +9,7 @@ interface BreadcrumbProps {
 }
 
 const Breadcrumb: React.FC<BreadcrumbProps> = ({ activeItem, onBack }) => {
-  const currentItem = siteConfig.navMenuItems.find((item) => item.id === activeItem);
+  const currentItem = getRoutes().find((item) => item.id === activeItem);
 
   return (
     <div className="flex items-center gap-2 mb-4 lg:hidden">
@@ -24,7 +24,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ activeItem, onBack }) => {
         <span className="font-mono text-sm uppercase tracking-wide">Menu</span>
       </motion.button>
       <ChevronRight className="w-4 h-4 text-cyan-400/50" />
-      <span className="font-mono text-sm uppercase tracking-wide text-cyan-400">{currentItem?.label}</span>
+      <span className="font-mono text-sm uppercase tracking-wide text-cyan-400">{currentItem?.title}</span>
     </div>
   );
 };
