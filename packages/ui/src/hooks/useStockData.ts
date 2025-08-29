@@ -21,7 +21,7 @@ export interface StockDataItem {
   data: TransformedStockData[];
 }
 
-export const useStockData = ({ startDate, endDate, symbol, dataSource }: UseStockDataOptions) => {
+export const useStockData = ({ startDate, endDate, dataSource }: UseStockDataOptions) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [mainStock, setMainStock] = useState<StockDataItem | null>(null);
@@ -62,7 +62,6 @@ export const useStockData = ({ startDate, endDate, symbol, dataSource }: UseStoc
           symbol: stockSymbol,
           startDate: formatDateForApi(startDate),
           endDate: formatDateForApi(endDate),
-          limit: 1000, // Get comprehensive data
         };
 
         const standardData = await stockDataSourceManager.fetchHistoricalData(params, source);

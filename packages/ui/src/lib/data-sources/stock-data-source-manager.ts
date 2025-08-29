@@ -36,7 +36,6 @@ export interface HistoricalDataParams {
   symbol: string;
   startDate: string; // YYYY-MM-DD format
   endDate: string;
-  limit?: number; // Max records to fetch
   page?: number;
 }
 
@@ -155,7 +154,44 @@ export class TCBSDataSource implements IStockDataSource {
 
     try {
       const endTimestamp = Math.floor(new Date(params.endDate).getTime() / 1000);
+      // Calculate countBack from date range
+      const startDate = new Date(params.startDate)
+      const endDate = new Date(params.endDate);
+      const vTimezoneDiff = endDate.getTimezoneOffset() - startDate.getTimezoneOffset();
 
+      if (vTimezoneDiff != 0) {
+        // Handle daylight saving time difference between two dates.
+        startDate.setMinutes(startDate.getMinutes() + vTimezoneDiff);
+      }
+      const timeDiff = endDate.getTime() - startDate.getTime() + 1;
+      let daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+      const weeks = Math.floor(daysDiff / 7);
+
+      daysDiff = daysDiff - weeks * 2;
+
+      // Special case
+      const startDay = startDate.getDay();
+      const endDay = endDate.getDay();
+
+      // Remove weekend days not previously removed
+      if (startDay - endDay > 1) {
+        daysDiff -= 2;
+      }
+
+      // Remove start day if span starts on Sunday but ends before Saturday
+      if (startDay === 0 && endDay !== 6) {
+        daysDiff -= 1;
+      }
+
+      // Remove end day if span ends on Saturday but starts after Sunday
+      if (endDay === 6 && startDay !== 0) {
+        daysDiff -= 1;
+      }
+
+      // Ensure at least 1 day
+
+      const countBack = Math.max(daysDiff, 1);
       const url = `${this.baseUrl}/stock-insight/v2/stock/bars-long-term`;
 
       const queryParams = new URLSearchParams({
@@ -163,7 +199,7 @@ export class TCBSDataSource implements IStockDataSource {
         ticker: params.symbol,
         type: "stock",
         to: endTimestamp.toString(),
-        countBack: (params.limit || 365).toString(),
+        countBack: countBack.toString(),
       });
 
       console.log(`📊 Fetching TCBS historical data for ${params.symbol}`);

@@ -80,7 +80,6 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
           symbol: symbol,
           startDate: formatDateForApi(startDate),
           endDate: formatDateForApi(endDate),
-          limit: 1000,
         };
 
         const standardData = await stockDataSourceManager.fetchHistoricalData(params, currentPortfolioSource);

@@ -5,7 +5,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/ui
 import { Card, CardContent, CardHeader } from "@repo/ui/components/ui/card";
 import { Activity, Database, Info, Settings, TrendingUp } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
-
 import SharedDateControls from "@repo/ui/components/organisms/SharedDateControls";
 import Portfolio from "@repo/ui/components/templates/Analytics/portfolio/Portfolio";
 import StockDashboard from "@repo/ui/components/templates/Analytics/StockDashboard";
