@@ -5,7 +5,6 @@ import { Spinner } from "@repo/ui/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/ui/tabs";
 import React, { useEffect, useMemo, useState } from "react";
 import EnhancedChartContainer from "@repo/ui/components/organisms/ChartContainer";
-import IndicatorControls, { Indicators } from "@repo/ui/components/templates/Analytics/IndicatorControls";
 import ResponsiveDataTable from "@repo/ui/components/templates/Analytics/ResponsiveDataTable";
 import StockComparison from "@repo/ui/components/templates/Analytics/StockComparison";
 import { filterDataByTimeframe } from "@repo/ui/lib/stock-utils";
@@ -16,6 +15,7 @@ import {
   calculateRSI,
   calculateSMA,
 } from "@repo/ui/lib/technical-indicators";
+import IndicatorControls, { Indicators } from "@repo/ui/components/templates/Analytics/indicator-controls";
 
 interface StockDashboardProps {
   stockData: TransformedStockData[];

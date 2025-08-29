@@ -21,9 +21,9 @@ export const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
   disabled = false,
   className = "",
 }) => {
-  const [healthStatus, setHealthStatus] = useState<Record<DataSource, boolean>>({});
+  const [healthStatus, setHealthStatus] = useState<Partial<Record<DataSource, boolean>>>({});
   const [checkingHealth, setCheckingHealth] = useState(false);
-  const [sourceErrors, setSourceErrors] = useState<Record<DataSource, Error | null>>({});
+  const [sourceErrors, setSourceErrors] = useState<Partial<Record<DataSource, Error | null>>>({});
 
   const availableSources = stockDataSourceManager.getAvailableSources();
 
@@ -77,8 +77,8 @@ export const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
   };
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <TooltipProvider>
+    <TooltipProvider>
+      <div className={`flex items-center gap-2 ${className}`}>
         <Select disabled={disabled} value={currentSource} onValueChange={(value: DataSource) => onSourceChange(value)}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Select data source" />
@@ -101,43 +101,43 @@ export const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
             ))}
           </SelectContent>
         </Select>
-      </TooltipProvider>
 
-      {showHealthStatus && (
-        <>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="sm" onClick={checkHealth} disabled={checkingHealth}>
-                <RefreshCw className={`w-4 h-4 ${checkingHealth ? "animate-spin" : ""}`} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Check data source health</p>
-            </TooltipContent>
-          </Tooltip>
+        {showHealthStatus && (
+          <>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="sm" onClick={checkHealth} disabled={checkingHealth}>
+                  <RefreshCw className={`w-4 h-4 ${checkingHealth ? "animate-spin" : ""}`} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Check data source health</p>
+              </TooltipContent>
+            </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex items-center gap-1">
-                <Badge variant={healthStatus[currentSource] === true ? "default" : "destructive"} className="text-xs">
-                  {currentSource}
-                </Badge>
-                {!healthStatus[currentSource] && sourceErrors[currentSource] && (
-                  <Info className="w-3 h-3 text-red-500" />
-                )}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div className="space-y-1">
-                <p>{getSourceDescription(currentSource)}</p>
-                {!healthStatus[currentSource] && sourceErrors[currentSource] && (
-                  <p className="text-red-500 text-xs">Error: {sourceErrors[currentSource]?.message}</p>
-                )}
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </>
-      )}
-    </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1">
+                  <Badge className="text-xs" variant={healthStatus[currentSource] === true ? "default" : "destructive"}>
+                    {currentSource}
+                  </Badge>
+                  {!healthStatus[currentSource] && sourceErrors[currentSource] && (
+                    <Info className="w-3 h-3 text-red-500" />
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="space-y-1">
+                  <p>{getSourceDescription(currentSource)}</p>
+                  {!healthStatus[currentSource] && sourceErrors[currentSource] && (
+                    <p className="text-red-500 text-xs">Error: {sourceErrors[currentSource]?.message}</p>
+                  )}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </>
+        )}
+      </div>
+    </TooltipProvider>
   );
 };

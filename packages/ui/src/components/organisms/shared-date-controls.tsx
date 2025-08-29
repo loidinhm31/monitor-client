@@ -39,22 +39,22 @@ const SharedDateControls: React.FC<SharedDateControlsProps> = ({
             <DatePicker
               isRequired
               showMonthAndYearPickers
+              disabled={disabled}
               label="Start Date"
               placeholder={formatCustomDate(startDate)}
               value={startDate}
               onChange={onStartDateChange}
-              disabled={disabled}
             />
           </div>
           <div className="flex-none w-48">
             <DatePicker
               isRequired
               showMonthAndYearPickers
+              disabled={disabled}
               label="End Date"
               placeholder={formatCustomDate(endDate)}
               value={endDate}
               onChange={onEndDateChange}
-              disabled={disabled}
             />
           </div>
         </>

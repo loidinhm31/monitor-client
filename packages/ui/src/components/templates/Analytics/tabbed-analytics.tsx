@@ -5,9 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/ui
 import { Card, CardContent, CardHeader } from "@repo/ui/components/ui/card";
 import { Activity, Database, Info, Settings, TrendingUp } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
-import SharedDateControls from "@repo/ui/components/organisms/SharedDateControls";
+import SharedDateControls from "@repo/ui/components/organisms/shared-date-controls";
 import Portfolio from "@repo/ui/components/templates/Analytics/portfolio/Portfolio";
-import StockDashboard from "@repo/ui/components/templates/Analytics/StockDashboard";
+import StockDashboard from "@repo/ui/components/templates/Analytics/stock-dashboard";
 import { useSharedDates } from "@repo/ui/hooks/useSharedDates";
 import { useStockData } from "@repo/ui/hooks/useStockData";
 import { usePortfolio } from "@repo/ui/hooks/usePortfolio";
@@ -40,7 +40,6 @@ const TabbedAnalytics = () => {
     endDate,
   });
 
-
   const {
     portfolioSymbols,
     holdingsData,
@@ -59,6 +58,15 @@ const TabbedAnalytics = () => {
     currentDate,
   });
 
+  // Determine loading state
+  const isLoading = stockLoading || portfolioLoading;
+
+  // Determine error state
+  const currentError = stockError || portfolioError;
+
+  // Get source health status
+  const [sourceHealth, setSourceHealth] = useState<Partial<Record<DataSource, boolean>>>({});
+
   const handleMainStockSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputSymbol || stockLoading) return;
@@ -73,6 +81,42 @@ const TabbedAnalytics = () => {
 
   const handleTimeframeChange = (newTimeframe: TimeframeOption) => {
     setTimeframe(newTimeframe);
+
+    // Automatically adjust start and end dates based on the selected timeframe
+    switch (newTimeframe) {
+      case "1W":
+        setStartDate(currentDate.subtract({ weeks: 1 }));
+        setEndDate(currentDate);
+        break;
+      case "1M":
+        setStartDate(currentDate.subtract({ months: 1 }));
+        setEndDate(currentDate);
+        break;
+      case "3M":
+        setStartDate(currentDate.subtract({ months: 3 }));
+        setEndDate(currentDate);
+        break;
+      case "6M":
+        setStartDate(currentDate.subtract({ months: 6 }));
+        setEndDate(currentDate);
+        break;
+      case "1Y":
+        setStartDate(currentDate.subtract({ years: 1 }));
+        setEndDate(currentDate);
+        break;
+      case "2Y":
+        setStartDate(currentDate.subtract({ years: 2 }));
+        setEndDate(currentDate);
+        break;
+      case "ALL":
+        // For "ALL" timeframe, set a very early start date or keep current range
+        // You can adjust this based on your specific requirements
+        setStartDate(currentDate.subtract({ years: 10 })); // Example: 10 years ago
+        setEndDate(currentDate);
+        break;
+      default:
+        break;
+    }
   };
 
   const handleStockDataSourceChange = useCallback(
@@ -98,15 +142,6 @@ const TabbedAnalytics = () => {
     [changePortfolioDataSource],
   );
 
-  // Determine loading state
-  const isLoading = stockLoading || portfolioLoading;
-
-  // Determine error state
-  const currentError = stockError || portfolioError;
-
-  // Get source health status
-  const [sourceHealth, setSourceHealth] = useState<Record<DataSource, boolean>>({});
-
   const updateSourceHealth = useCallback(async () => {
     try {
       const health = await checkSourceHealth();
@@ -124,7 +159,6 @@ const TabbedAnalytics = () => {
 
     return () => clearInterval(interval);
   }, [updateSourceHealth]);
-
 
   return (
     <div className="w-full space-y-6">

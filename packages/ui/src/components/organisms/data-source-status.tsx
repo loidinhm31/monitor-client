@@ -10,8 +10,8 @@ interface DataSourceStatusProps {
 }
 
 export const DataSourceStatus: React.FC<DataSourceStatusProps> = ({ showDetails = false }) => {
-  const [healthStatus, setHealthStatus] = useState<Record<DataSource, boolean>>({});
-  const [sourceErrors, setSourceErrors] = useState<Record<DataSource, Error | null>>({});
+  const [healthStatus, setHealthStatus] = useState<Partial<Record<DataSource, boolean>>>({});
+  const [sourceErrors, setSourceErrors] = useState<Partial<Record<DataSource, Error | null>>>({});
   const [loading, setLoading] = useState(false);
 
   const checkAllSources = useCallback(async () => {
