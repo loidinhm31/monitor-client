@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import HolographicButton from "@repo/ui/components/atoms/holographic-button";
-import { TauriFs, TauriPath } from "@repo/ui/types/tauri-type.js";
+import { TauriFs, TauriPath } from "@repo/ui/types/tauri-type";
 
 interface SaveDataControlProps {
   getCurrentFrame: () => string | null;

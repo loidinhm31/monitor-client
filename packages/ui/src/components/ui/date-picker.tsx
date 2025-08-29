@@ -22,6 +22,7 @@ function isValidDate(date: Date | undefined) {
   if (!date) {
     return false;
   }
+
   return !isNaN(date.getTime());
 }
 
@@ -33,15 +34,15 @@ export function DatePicker() {
 
   return (
     <div className="flex flex-col gap-3">
-      <Label htmlFor="date" className="px-1">
+      <Label className="px-1" htmlFor="date">
         Subscription Date
       </Label>
       <div className="relative flex gap-2">
         <Input
-          id="date"
-          value={value}
-          placeholder="June 01, 2025"
           className="bg-background pr-10"
+          id="date"
+          placeholder="June 01, 2025"
+          value={value}
           onChange={(e) => {
             const date = new Date(e.target.value);
             setValue(e.target.value);
@@ -59,17 +60,17 @@ export function DatePicker() {
         />
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <Button id="date-picker" variant="ghost" className="absolute top-1/2 right-2 size-6 -translate-y-1/2">
+            <Button className="absolute top-1/2 right-2 size-6 -translate-y-1/2" id="date-picker" variant="ghost">
               <CalendarIcon className="size-3.5" />
               <span className="sr-only">Select date</span>
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto overflow-hidden p-0" align="end" alignOffset={-8} sideOffset={10}>
+          <PopoverContent align="end" alignOffset={-8} className="w-auto overflow-hidden p-0" sideOffset={10}>
             <Calendar
-              mode="single"
-              selected={date}
               captionLayout="dropdown"
+              mode="single"
               month={month}
+              selected={date}
               onMonthChange={setMonth}
               onSelect={(date) => {
                 setDate(date);

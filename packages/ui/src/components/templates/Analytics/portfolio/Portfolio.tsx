@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader } from "@repo/ui/components/ui/card";
 import { Input } from "@repo/ui/components/ui/input";
 import { Spinner } from "@repo/ui/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/ui/tabs";
-import { Plus, RefreshCw } from "lucide-react";
+import { Activity, Database, Plus, RefreshCw } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 
 import SharedDateControls from "@repo/ui/components/organisms/SharedDateControls";
@@ -13,7 +13,7 @@ import StockComparisonChart from "@repo/ui/components/templates/Analytics/StockC
 import { usePortfolio } from "@repo/ui/hooks/usePortfolio";
 import { TimeframeOption } from "@repo/ui/types/stock";
 
-interface PortfolioProps {
+export interface PortfolioProps {
   dateControls: {
     startDate: CalendarDate;
     endDate: CalendarDate;
@@ -23,127 +23,153 @@ interface PortfolioProps {
     onEndDateChange: (date: CalendarDate) => void;
     onTimeframeChange: (timeframe: TimeframeOption) => void;
   };
+  portfolioProps?: {
+    portfolioSymbols: string[];
+    holdingsData: HoldingsData;
+    compareData: PortfolioData;
+    loading: boolean;
+    error: string;
+    addSymbol: (symbol: string) => Promise<boolean>;
+    removeSymbol: (symbol: string) => void;
+    refreshHoldings: () => Promise<void>;
+    loadComparisonData: () => Promise<void>;
+    currentDataSource: DataSource;
+  };
 }
-
-const Portfolio: React.FC<PortfolioProps> = ({ dateControls }) => {
+const Portfolio: React.FC<PortfolioProps> = ({ dateControls, portfolioProps }) => {
   const [newSymbol, setNewSymbol] = useState("");
   const [selectedTab, setSelectedTab] = useState("holdings");
-  const { startDate, endDate, timeframe, currentDate, onStartDateChange, onEndDateChange, onTimeframeChange } =
-    dateControls;
 
   const {
-    portfolioSymbols,
-    holdingsData,
-    compareData,
-    loading,
-    error,
+    portfolioSymbols = [],
+    holdingsData = {},
+    compareData = {},
+    loading = false,
+    error = "",
     addSymbol,
     removeSymbol,
     refreshHoldings,
     loadComparisonData,
-  } = usePortfolio({
-    startDate,
-    endDate,
-    currentDate,
-  });
+    currentDataSource = 'TCBS'
+  } = portfolioProps || {};
 
-  // Load holdings data initially and when currentDate changes
+  // Auto-refresh holdings when switching to portfolio tab
   useEffect(() => {
-    if (selectedTab === "holdings") {
-      refreshHoldings();
+    if (selectedTab === "holdings" && portfolioSymbols.length > 0) {
+      refreshHoldings?.();
     }
-  }, [currentDate, selectedTab]);
+  }, [selectedTab, portfolioSymbols.length, refreshHoldings]);
 
-  // Load comparison data when switching to Compare tab or when date range changes
+  // Load comparison data when switching to compare tab
   useEffect(() => {
-    if (selectedTab === "compare") {
-      loadComparisonData();
+    if (selectedTab === "compare" && portfolioSymbols.length > 0) {
+      loadComparisonData?.();
     }
-  }, [selectedTab, startDate, endDate]);
+  }, [selectedTab, portfolioSymbols.length, loadComparisonData]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newSymbol.trim()) {
-      await addSymbol(newSymbol.trim().toUpperCase());
+  const handleAddSymbol = async () => {
+    if (!newSymbol.trim() || !addSymbol) return;
+
+    const success = await addSymbol(newSymbol.trim());
+    if (success) {
       setNewSymbol("");
     }
   };
 
-  // Transform holdings data for table view
-  const tableData = useMemo(() => {
-    return Object.entries(holdingsData).map(([symbol, data]) => ({
-      ...data,
-      symbol,
-    }));
-  }, [holdingsData]);
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleAddSymbol();
+    }
+  };
 
-  // Transform comparison data for chart
-  const comparisonData = useMemo(() => {
-    return Object.entries(compareData).map(([symbol, data]) => ({
-      symbol,
-      data: data.map((d) => ({
-        date: d.date,
-        closePrice: d.closePrice,
-      })),
-    }));
-  }, [compareData]);
+  const tableData = Object.entries(holdingsData).map(([symbol, data]) => ({
+    ...data,
+    symbol,
+  }));
+
+  const comparisonData = Object.entries(compareData).map(([symbol, data]) => ({
+    symbol,
+    data: data.map(item => ({
+      date: item.date,
+      closePrice: item.closePrice,
+    })),
+  }));
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row justify-between items-center w-full gap-4">
-          <div className="flex-1">
-            <h4 className="text-xl font-bold">portfolio Tracker</h4>
-            <p className="text-sm text-default-500">Track your stock portfolio performance</p>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Activity className="w-5 h-5" />
+            <h4 className="text-xl font-bold">Portfolio Management</h4>
           </div>
-          <div className="flex flex-row gap-4 items-center">
-            <Button size="icon" className="min-w-10" variant="outline" disabled={loading} onClick={refreshHoldings}>
-              <RefreshCw className="w-4 h-4" />
-            </Button>
-
-            <form className="flex gap-2 w-full sm:w-auto" onSubmit={handleSubmit}>
-              <Input
-                className="w-32"
-                placeholder="Add stock symbol"
-                type="text"
-                value={newSymbol}
-                onChange={(e) => setNewSymbol(e.target.value.toUpperCase())}
-              />
-              <Button variant="default" disabled={loading || !newSymbol.trim()} type="submit">
-                {loading ? <Spinner size="sm" /> : <Plus className="w-4 h-4" />}
-                Add
-              </Button>
-            </form>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Database className="w-4 h-4" />
+            <span>Source: <strong>{currentDataSource}</strong></span>
           </div>
         </div>
-
-        {selectedTab === "compare" && (
-          <div className="w-full mt-4">
-            <SharedDateControls
-              endDate={endDate}
-              showDatePickers={true}
-              startDate={startDate}
-              timeframe={timeframe}
-              onEndDateChange={onEndDateChange}
-              onStartDateChange={onStartDateChange}
-              onTimeframeChange={onTimeframeChange}
-            />
-          </div>
-        )}
+        <p className="text-sm text-default-500">Track your investments and compare performance</p>
       </CardHeader>
 
-      <CardContent>
-        {error && <div className="text-danger text-sm mb-4 p-2 bg-danger-50 rounded">{error}</div>}
+      <CardContent className="space-y-6">
+        {/* Add Symbol Section */}
+        <div className="flex flex-wrap items-end gap-4 p-4 bg-gray-50 rounded-lg">
+          <div className="flex-1 min-w-32">
+            <Input
+              label="Add Stock Symbol"
+              placeholder="e.g., TCB, VIC, HPG"
+              value={newSymbol}
+              onChange={(e) => setNewSymbol(e.target.value.toUpperCase())}
+              onKeyPress={handleKeyPress}
+              disabled={loading}
+            />
+          </div>
+          <Button
+            onClick={handleAddSymbol}
+            disabled={loading || !newSymbol.trim() || portfolioSymbols.includes(newSymbol.trim())}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add to Portfolio
+          </Button>
+          {portfolioSymbols.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={refreshHoldings}
+              disabled={loading}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh Data
+            </Button>
+          )}
+        </div>
 
+        {/* Error Display */}
+        {error && (
+          <div className="p-3 text-red-700 bg-red-50 rounded-lg border border-red-200">
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
+
+        {/* Portfolio Content */}
         {portfolioSymbols.length > 0 ? (
-          <Tabs value={selectedTab} onValueChange={(key) => setSelectedTab(key)}>
+          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
             <TabsList>
-              <TabsTrigger value="holdings">Holdings</TabsTrigger>
-              <TabsTrigger value="compare">Compare</TabsTrigger>
+              <TabsTrigger value="holdings">
+                Holdings ({Object.keys(holdingsData).length})
+              </TabsTrigger>
+              <TabsTrigger value="compare">
+                Compare ({Object.keys(compareData).length})
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="holdings">
-              <ResponsivePortfolioDataTable actionColumn={true} data={tableData} onRemoveStock={removeSymbol} />
+              <ResponsivePortfolioDataTable
+                actionColumn={true}
+                data={tableData}
+                onRemoveStock={removeSymbol}
+              />
             </TabsContent>
 
             <TabsContent value="compare">
@@ -158,8 +184,37 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateControls }) => {
             </TabsContent>
           </Tabs>
         ) : (
-          <div className="text-center py-8 text-default-500">
-            {loading ? <Spinner size="lg" /> : "No stocks in portfolio. Add some stocks to get started."}
+          <div className="text-center py-12">
+            {loading ? (
+              <div className="flex flex-col items-center gap-4">
+                <Spinner size="lg" />
+                <p className="text-gray-500">Loading portfolio data...</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <Activity className="w-16 h-16 mx-auto text-gray-400" />
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Build Your Portfolio</h3>
+                  <p className="text-gray-500 mt-1">
+                    Add stock symbols to track their performance and compare investments.
+                  </p>
+                </div>
+                <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
+                  <span>Popular stocks:</span>
+                  {["TCB", "VCB", "HPG", "VIC", "MSN"].map(symbol => (
+                    <Button
+                      key={symbol}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setNewSymbol(symbol)}
+                      className="text-gray-600 hover:text-gray-900"
+                    >
+                      {symbol}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

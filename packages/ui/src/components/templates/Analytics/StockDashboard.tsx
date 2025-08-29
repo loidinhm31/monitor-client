@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader } from "@repo/ui/components/ui/card";
 import { Spinner } from "@repo/ui/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/ui/tabs";
 import React, { useEffect, useMemo, useState } from "react";
-
 import EnhancedChartContainer from "@repo/ui/components/organisms/ChartContainer";
 import IndicatorControls, { Indicators } from "@repo/ui/components/templates/Analytics/IndicatorControls";
 import ResponsiveDataTable from "@repo/ui/components/templates/Analytics/ResponsiveDataTable";

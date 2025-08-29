@@ -1,16 +1,19 @@
 import { CalendarDate } from "@internationalized/date";
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  DataSource,
+  HistoricalDataParams,
+  stockDataSourceManager,
+  transformToLegacyFormat,
+} from "@repo/ui/lib/data-sources/stock-data-source-manager";
 
-import { HttpService } from "@repo/ui/lib/services/HttpService";
-import { StockApiResponse, TransformedStockData } from "@repo/ui/types/stock";
-import { transformStockData } from "@repo/ui/lib/stock-utils";
+import { TransformedStockData } from "@repo/ui/types/stock";
 
-const PAGE_SIZE = 32;
-
-interface UseStockDataProps {
+interface UseStockDataOptions {
   startDate: CalendarDate;
   endDate: CalendarDate;
   symbol?: string;
+  dataSource?: DataSource;
 }
 
 export interface StockDataItem {
@@ -18,196 +21,84 @@ export interface StockDataItem {
   data: TransformedStockData[];
 }
 
-const getRandomSleep = () => Math.floor(Math.random() * (1000 - 500 + 1)) + 500;
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// Cache object to store recent API responses
-const apiCache = new Map<string, { data: TransformedStockData[]; timestamp: number }>();
-const CACHE_DURATION = 10; // 5 seconds cache
-
-export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) => {
+export const useStockData = ({ startDate, endDate, symbol, dataSource }: UseStockDataOptions) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [mainStock, setMainStock] = useState<StockDataItem | null>(null);
   const [comparisonStocks, setComparisonStocks] = useState<Record<string, TransformedStockData[]>>({});
+  const [currentDataSource, setCurrentDataSource] = useState<DataSource>(
+    dataSource || stockDataSourceManager.getDefaultSource(),
+  );
 
   const fetchInProgress = useRef<Record<string, boolean>>({});
   const isMounted = useRef(true);
 
+  // Format date for API
   const formatDateForApi = useCallback((date: CalendarDate): string => {
     return `${date.year}-${date.month.toString().padStart(2, "0")}-${date.day.toString().padStart(2, "0")}`;
   }, []);
 
-  const getCacheKey = useCallback(
-    (stockSymbol: string) => {
-      return `${stockSymbol}-${formatDateForApi(startDate)}-${formatDateForApi(endDate)}`;
-    },
-    [startDate, endDate, formatDateForApi],
-  );
-
-  const getFromCache = useCallback(
-    (stockSymbol: string) => {
-      const key = getCacheKey(stockSymbol);
-      const cached = apiCache.get(key);
-
-      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        return cached.data;
-      }
-
-      return null;
-    },
-    [getCacheKey],
-  );
-
-  const setToCache = useCallback(
-    (stockSymbol: string, data: TransformedStockData[]) => {
-      const key = getCacheKey(stockSymbol);
-
-      apiCache.set(key, { data, timestamp: Date.now() });
-    },
-    [getCacheKey],
-  );
-
-  const fetchDataPage = useCallback(
-    async (stockSymbol: string, pageIndex: number): Promise<StockApiResponse> => {
-      try {
-        // Add random delay between 500ms and 1500ms before each API call
-        await sleep(getRandomSleep());
-
-        const response = await HttpService.getAxiosClient().get<StockApiResponse>(
-          "https://s.cafef.vn/Ajax/PageNew/DataHistory/PriceHistory.ashx",
-          {
-            params: {
-              Symbol: stockSymbol,
-              StartDate: formatDateForApi(startDate),
-              EndDate: formatDateForApi(endDate),
-              PageIndex: pageIndex,
-              PageSize: PAGE_SIZE,
-            },
-          },
-        );
-
-        return response.data;
-      } catch (error) {
-        console.error(`Error fetching page ${pageIndex} for ${stockSymbol}:`, error);
-        throw error;
-      }
-    },
-    [startDate, endDate, formatDateForApi],
-  );
-
+  // Fetch all historical data for a symbol
   const fetchAllData = useCallback(
-    async (stockSymbol: string): Promise<TransformedStockData[]> => {
-      // Check cache first
-      const cachedData = getFromCache(stockSymbol);
+    async (stockSymbol: string, preferredSource?: DataSource): Promise<TransformedStockData[]> => {
+      const source = preferredSource || currentDataSource;
+      const cacheKey = `${stockSymbol}-${source}-${formatDateForApi(startDate)}-${formatDateForApi(endDate)}`;
 
-      if (cachedData) {
-        return cachedData;
-      }
-
-      // If a fetch is already in progress for this symbol, skip
-      if (fetchInProgress.current[stockSymbol]) {
+      // Check if fetch is already in progress
+      if (fetchInProgress.current[cacheKey]) {
+        // Wait for ongoing fetch to complete
+        let attempts = 0;
+        while (fetchInProgress.current[cacheKey] && attempts < 100) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          attempts++;
+        }
         return [];
       }
 
       try {
-        fetchInProgress.current[stockSymbol] = true;
-        const firstPage = await fetchDataPage(stockSymbol, 1);
+        fetchInProgress.current[cacheKey] = true;
 
-        if (!firstPage?.Data?.TotalCount || !Array.isArray(firstPage.Data.Data)) {
-          throw new Error(`Invalid data format received from API for ${stockSymbol}`);
-        }
+        const params: HistoricalDataParams = {
+          symbol: stockSymbol,
+          startDate: formatDateForApi(startDate),
+          endDate: formatDateForApi(endDate),
+          limit: 1000, // Get comprehensive data
+        };
 
-        const totalCount = firstPage.Data.TotalCount;
-        const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+        const standardData = await stockDataSourceManager.fetchHistoricalData(params, source);
 
-        let allData: TransformedStockData[] = firstPage.Data.Data.map(transformStockData);
+        // Transform to legacy format for backward compatibility with existing components
+        const transformedData = transformToLegacyFormat(standardData);
 
-        if (totalPages > 1) {
-          const remainingPages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
-          const promises = remainingPages.map((pageIndex) => fetchDataPage(stockSymbol, pageIndex));
-          const results = await Promise.all(promises);
+        return transformedData;
+      } catch (error) {
+        throw new Error(
+          `Failed to fetch data for ${stockSymbol}: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
+      } finally {
+        fetchInProgress.current[cacheKey] = false;
+      }
+    },
+    [startDate, endDate, formatDateForApi, currentDataSource],
+  );
 
-          results.forEach((result: StockApiResponse) => {
-            if (result?.Data?.Data && Array.isArray(result.Data.Data)) {
-              const transformedData = result.Data.Data.map(transformStockData);
+  // Set main stock symbol
+  const setMainStockSymbol = useCallback(
+    async (newSymbol: string, preferredSource?: DataSource) => {
+      if (loading) return;
 
-              allData = [...allData, ...transformedData];
-            }
+      setLoading(true);
+      setError("");
+
+      try {
+        const data = await fetchAllData(newSymbol, preferredSource);
+
+        if (isMounted.current) {
+          setMainStock({
+            symbol: newSymbol,
+            data: data,
           });
         }
-
-        // Cache the results
-        setToCache(stockSymbol, allData);
-
-        return allData;
-      } catch (error) {
-        console.error(`Error fetching all data for ${stockSymbol}:`, error);
-        throw error;
-      } finally {
-        if (isMounted.current) {
-          fetchInProgress.current[stockSymbol] = false;
-        }
-      }
-    },
-    [fetchDataPage, getFromCache, setToCache],
-  );
-
-  useEffect(() => {
-    if (!symbol) return;
-
-    let ignore = false;
-
-    const loadMainStockData = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        const data = await fetchAllData(symbol);
-
-        if (!ignore && isMounted.current) {
-          setMainStock({ symbol, data });
-          setComparisonStocks({});
-        }
-      } catch (error) {
-        if (!ignore && isMounted.current) {
-          const message = error instanceof Error ? error.message : "Failed to fetch stock data";
-
-          setError(message);
-        }
-      } finally {
-        if (!ignore && isMounted.current) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadMainStockData();
-
-    return () => {
-      ignore = true;
-    };
-  }, [symbol, fetchAllData]);
-
-  useEffect(() => {
-    isMounted.current = true;
-
-    return () => {
-      isMounted.current = false;
-      fetchInProgress.current = {};
-    };
-  }, []);
-
-  const setMainStockSymbol = useCallback(
-    async (newSymbol: string) => {
-      setLoading(true);
-      setError("");
-      try {
-        const data = await fetchAllData(newSymbol);
-
-        if (isMounted.current) {
-          setMainStock({ symbol: newSymbol, data });
-          setComparisonStocks({});
-        }
       } catch (error) {
         if (isMounted.current) {
           const message = error instanceof Error ? error.message : "Failed to fetch stock data";
@@ -220,19 +111,21 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
         }
       }
     },
-    [fetchAllData],
+    [fetchAllData, loading],
   );
 
+  // Add comparison stock
   const addComparisonStock = useCallback(
-    async (newSymbol: string) => {
+    async (newSymbol: string, preferredSource?: DataSource) => {
       if (newSymbol === mainStock?.symbol || newSymbol in comparisonStocks) {
         return false;
       }
 
       setLoading(true);
       setError("");
+
       try {
-        const data = await fetchAllData(newSymbol);
+        const data = await fetchAllData(newSymbol, preferredSource);
 
         if (isMounted.current) {
           setComparisonStocks((prev) => ({
@@ -248,7 +141,6 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
 
           setError(message);
         }
-
         return false;
       } finally {
         if (isMounted.current) {
@@ -259,6 +151,7 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
     [mainStock?.symbol, comparisonStocks, fetchAllData],
   );
 
+  // Remove comparison stock
   const removeComparisonStock = useCallback((symbolToRemove: string) => {
     setComparisonStocks((prev) => {
       const newStocks = { ...prev };
@@ -269,14 +162,94 @@ export const useStockData = ({ startDate, endDate, symbol }: UseStockDataProps) 
     });
   }, []);
 
+  // Change data source and refresh data
+  const changeDataSource = useCallback(
+    async (newSource: DataSource) => {
+      setCurrentDataSource(newSource);
+      stockDataSourceManager.setDefaultSource(newSource);
+
+      // Clear cache to force fresh data from new source
+      stockDataSourceManager.clearCache();
+
+      // Reload current data with new source if we have a main stock
+      if (mainStock) {
+        setLoading(true);
+        try {
+          await setMainStockSymbol(mainStock.symbol, newSource);
+
+          // Reload comparison stocks too
+          const comparisonPromises = Object.keys(comparisonStocks).map(async (symbol) => {
+            try {
+              const data = await fetchAllData(symbol, newSource);
+
+              return { symbol, data };
+            } catch (_error) {
+              return null;
+            }
+          });
+
+          const results = await Promise.all(comparisonPromises);
+          const newComparisonStocks: Record<string, TransformedStockData[]> = {};
+
+          results.forEach((result) => {
+            if (result) {
+              newComparisonStocks[result.symbol] = result.data;
+            }
+          });
+
+          setComparisonStocks(newComparisonStocks);
+        } catch (error) {
+          setError(`Failed to switch to ${newSource}: ${error instanceof Error ? error.message : "Unknown error"}`);
+        } finally {
+          setLoading(false);
+        }
+      }
+    },
+    [mainStock, comparisonStocks, setMainStockSymbol, fetchAllData],
+  );
+
+  // Get available data sources
+  const getAvailableDataSources = useCallback(() => {
+    return stockDataSourceManager.getAvailableSources();
+  }, []);
+
+  // Health check for all sources
+  const checkSourceHealth = useCallback(async () => {
+    return stockDataSourceManager.healthCheckAll();
+  }, []);
+
+  // Get source errors
+  const getSourceErrors = useCallback(() => {
+    return stockDataSourceManager.getSourceErrors();
+  }, []);
+
+  // Clean up on unmount
+  useEffect(() => {
+    isMounted.current = true;
+
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
   return {
+    // Core data
     mainStock,
     comparisonStocks,
     loading,
     error,
+
+    // Data management
     setMainStockSymbol,
     addComparisonStock,
     removeComparisonStock,
     fetchAllData,
+
+    // Data source management
+    currentDataSource,
+    changeDataSource,
+    getAvailableDataSources,
+    checkSourceHealth,
+    getSourceErrors,
   };
 };

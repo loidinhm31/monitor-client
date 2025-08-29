@@ -1,310 +1,204 @@
-import { CalendarDate } from "@internationalized/date";
+import {
+  DataSource,
+  HistoricalDataParams,
+  stockDataSourceManager,
+  transformSingleToLegacyFormat,
+  transformToLegacyFormat
+} from "@repo/ui/lib/data-sources/stock-data-source-manager";
 import { useCallback, useEffect, useRef, useState } from "react";
-
-import { HttpService } from "@repo/ui/lib/services/HttpService";
-import { StockApiResponse, TransformedStockData } from "@repo/ui/types/stock";
-import { transformStockData } from "@repo/ui/lib/stock-utils";
+import { CalendarDate } from "@internationalized/date";
+import { TransformedStockData } from "@repo/ui/types/stock";
 
 const PORTFOLIO_STORAGE_KEY = "stockPortfolioSymbols";
-const PAGE_SIZE = 32;
+const PORTFOLIO_SOURCE_KEY = "portfolioDataSource";
 
 interface UsePortfolioOptions {
   startDate: CalendarDate;
   endDate: CalendarDate;
   currentDate: CalendarDate;
+  dataSource?: DataSource;
 }
 
 interface PortfolioData {
   [symbol: string]: TransformedStockData[];
 }
 
-// Cache object to store recent API responses
-const apiCache = new Map<string, { data: TransformedStockData | TransformedStockData[]; timestamp: number }>();
-const CACHE_DURATION = 5000; // 5 seconds cache
+interface HoldingsData {
+  [symbol: string]: TransformedStockData;
+}
 
-export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOptions) => {
+export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: UsePortfolioOptions) => {
   const [portfolioSymbols, setPortfolioSymbols] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem(PORTFOLIO_STORAGE_KEY);
-
       return stored ? JSON.parse(stored) : [];
-    } catch (error) {
-      console.error("Error loading portfolio from storage:", error);
-
+    } catch {
       return [];
     }
   });
 
-  const [holdingsData, setHoldingsData] = useState<Record<string, TransformedStockData>>({});
+  const [currentPortfolioSource, setCurrentPortfolioSource] = useState<DataSource>(() => {
+    try {
+      const stored = localStorage.getItem(PORTFOLIO_SOURCE_KEY);
+      return (stored as DataSource) || dataSource || stockDataSourceManager.getDefaultSource();
+    } catch {
+      return dataSource || stockDataSourceManager.getDefaultSource();
+    }
+  });
+
+  const [holdingsData, setHoldingsData] = useState<HoldingsData>({});
   const [compareData, setCompareData] = useState<PortfolioData>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
 
-  const fetchInProgress = useRef<Record<string, boolean>>({});
   const isMounted = useRef(true);
 
-  useEffect(() => {
-    isMounted.current = true;
-
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-
+  // Format date for API
   const formatDateForApi = useCallback((date: CalendarDate): string => {
     return `${date.year}-${date.month.toString().padStart(2, "0")}-${date.day.toString().padStart(2, "0")}`;
   }, []);
 
-  const getCacheKey = useCallback(
-    (symbol: string, isHoldings: boolean): string => {
-      if (isHoldings) {
-        return `holdings-${symbol}-${formatDateForApi(currentDate)}`;
-      }
-
-      return `compare-${symbol}-${formatDateForApi(startDate)}-${formatDateForApi(endDate)}`;
-    },
-    [currentDate, startDate, endDate, formatDateForApi],
-  );
-
-  const getFromCache = useCallback(
-    (symbol: string, isHoldings: boolean) => {
-      const key = getCacheKey(symbol, isHoldings);
-      const cached = apiCache.get(key);
-
-      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        return cached.data;
-      }
-
-      return null;
-    },
-    [getCacheKey],
-  );
-
-  const setToCache = useCallback(
-    (symbol: string, data: TransformedStockData | TransformedStockData[], isHoldings: boolean) => {
-      const key = getCacheKey(symbol, isHoldings);
-
-      apiCache.set(key, { data, timestamp: Date.now() });
-    },
-    [getCacheKey],
-  );
-
-  // Fetch single day data for holdings view
+  // Fetch current data for a symbol
   const fetchCurrentData = useCallback(
-    async (symbol: string): Promise<TransformedStockData | null> => {
-      const cacheKey = getCacheKey(symbol, true);
-
-      // Check if fetch is in progress
-      if (fetchInProgress.current[cacheKey]) {
-        return null;
-      }
-
-      // Check cache first
-      const cachedData = getFromCache(symbol, true);
-
-      if (cachedData) {
-        return cachedData as TransformedStockData;
-      }
-
+    async (symbol: string): Promise<TransformedStockData> => {
       try {
-        fetchInProgress.current[cacheKey] = true;
-        const response = await HttpService.getAxiosClient().get<StockApiResponse>(
-          "https://s.cafef.vn/Ajax/PageNew/DataHistory/PriceHistory.ashx",
-          {
-            params: {
-              Symbol: symbol,
-              StartDate: formatDateForApi(currentDate),
-              EndDate: formatDateForApi(currentDate),
-              PageIndex: 1,
-              PageSize: 1,
-            },
-          },
-        );
-
-        if (response.data?.Data?.Data?.[0]) {
-          const data = transformStockData(response.data.Data.Data[0]);
-
-          setToCache(symbol, data, true);
-
-          return data;
-        }
-
-        return null;
+        const standardData = await stockDataSourceManager.fetchCurrentData(symbol, currentPortfolioSource);
+        return transformSingleToLegacyFormat(standardData);
       } catch (error) {
         console.error(`Error fetching current data for ${symbol}:`, error);
         throw error;
-      } finally {
-        fetchInProgress.current[cacheKey] = false;
       }
     },
-    [currentDate, formatDateForApi, getCacheKey, getFromCache, setToCache],
+    [currentPortfolioSource],
   );
 
-  // Fetch a single page of historical data
-  const fetchHistoricalDataPage = useCallback(
-    async (symbol: string, pageIndex: number): Promise<StockApiResponse> => {
-      try {
-        const response = await HttpService.getAxiosClient().get<StockApiResponse>(
-          "https://s.cafef.vn/Ajax/PageNew/DataHistory/PriceHistory.ashx",
-          {
-            params: {
-              Symbol: symbol,
-              StartDate: formatDateForApi(startDate),
-              EndDate: formatDateForApi(endDate),
-              PageIndex: pageIndex,
-              PageSize: PAGE_SIZE,
-            },
-          },
-        );
-
-        return response.data;
-      } catch (error) {
-        console.error(`Error fetching page ${pageIndex} for ${symbol}:`, error);
-        throw error;
-      }
-    },
-    [startDate, endDate, formatDateForApi],
-  );
-
-  // Fetch all historical data for comparison view
+  // Fetch historical data for a symbol
   const fetchHistoricalData = useCallback(
     async (symbol: string): Promise<TransformedStockData[]> => {
-      const cacheKey = getCacheKey(symbol, false);
-
-      // Check if fetch is in progress
-      if (fetchInProgress.current[cacheKey]) {
-        return [];
-      }
-
-      // Check cache first
-      const cachedData = getFromCache(symbol, false);
-
-      if (cachedData) {
-        return cachedData as TransformedStockData[];
-      }
-
       try {
-        fetchInProgress.current[cacheKey] = true;
+        const params: HistoricalDataParams = {
+          symbol: symbol,
+          startDate: formatDateForApi(startDate),
+          endDate: formatDateForApi(endDate),
+          limit: 1000,
+        };
 
-        // Get first page to determine total count
-        const firstPage = await fetchHistoricalDataPage(symbol, 1);
-
-        if (!firstPage?.Data?.TotalCount || !Array.isArray(firstPage.Data.Data)) {
-          throw new Error(`Invalid data format received from API for ${symbol}`);
-        }
-
-        const totalCount = firstPage.Data.TotalCount;
-        const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-
-        let allData: TransformedStockData[] = firstPage.Data.Data.map(transformStockData);
-
-        if (totalPages > 1) {
-          const remainingPages = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
-          const promises = remainingPages.map((pageIndex) => fetchHistoricalDataPage(symbol, pageIndex));
-          const results = await Promise.all(promises);
-
-          results.forEach((result: StockApiResponse) => {
-            if (result?.Data?.Data && Array.isArray(result.Data.Data)) {
-              const transformedData = result.Data.Data.map(transformStockData);
-
-              allData = [...allData, ...transformedData];
-            }
-          });
-        }
-
-        // Sort data by date
-        allData.sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
-
-        setToCache(symbol, allData, false);
-
-        return allData;
+        const standardData = await stockDataSourceManager.fetchHistoricalData(params, currentPortfolioSource);
+        return transformToLegacyFormat(standardData);
       } catch (error) {
         console.error(`Error fetching historical data for ${symbol}:`, error);
         throw error;
-      } finally {
-        fetchInProgress.current[cacheKey] = false;
       }
     },
-    [startDate, endDate, getCacheKey, getFromCache, setToCache, fetchHistoricalDataPage],
+    [startDate, endDate, currentPortfolioSource, formatDateForApi],
   );
 
+  // Batch fetch current data for all symbols (more efficient)
+  const fetchBatchCurrentData = useCallback(
+    async (symbols: string[]): Promise<HoldingsData> => {
+      try {
+        const standardDataArray = await stockDataSourceManager.fetchMultipleCurrentData(
+          symbols,
+          currentPortfolioSource,
+        );
+        const holdingsMap: HoldingsData = {};
+
+        standardDataArray.forEach((standardData) => {
+          holdingsMap[standardData.symbol] = transformSingleToLegacyFormat(standardData);
+        });
+
+        return holdingsMap;
+      } catch (error) {
+        console.error("Error fetching batch current data:", error);
+        // Fallback to individual requests
+        const holdingsMap: HoldingsData = {};
+
+        for (const symbol of symbols) {
+          try {
+            const data = await fetchCurrentData(symbol);
+            holdingsMap[symbol] = data;
+          } catch (err) {
+            console.error(`Failed to fetch current data for ${symbol}:`, err);
+          }
+        }
+
+        return holdingsMap;
+      }
+    },
+    [currentPortfolioSource, fetchCurrentData],
+  );
+
+  // Refresh holdings data (current prices)
   const refreshHoldings = useCallback(async () => {
-    if (loading) return;
+    if (loading || portfolioSymbols.length === 0) return;
 
     setLoading(true);
     setError("");
 
     try {
-      // Create array of promises for all symbols
-      const promises = portfolioSymbols.map(async (symbol) => {
-        try {
-          const data = await fetchCurrentData(symbol);
-
-          return { symbol, data, error: null };
-        } catch (err) {
-          console.error(`Error refreshing holdings for ${symbol}:`, err);
-
-          return { symbol, data: null, error: err };
-        }
-      });
-
-      // Wait for all requests to complete
-      const results = await Promise.all(promises);
+      // Use batch fetch for better performance
+      const newHoldings = await fetchBatchCurrentData(portfolioSymbols);
 
       if (isMounted.current) {
-        const newHoldings: Record<string, TransformedStockData> = {};
-        let hasErrors = false;
-
-        // Process all results
-        results.forEach(({ symbol, data, error }) => {
-          if (data) {
-            newHoldings[symbol] = data;
-          }
-          if (error) {
-            hasErrors = true;
-          }
-        });
-
         setHoldingsData(newHoldings);
-        if (hasErrors) {
-          setError("Some symbols failed to load");
+
+        // Check if any symbols failed to load
+        const failedSymbols = portfolioSymbols.filter((symbol) => !newHoldings[symbol]);
+        if (failedSymbols.length > 0) {
+          setError(`Failed to load data for: ${failedSymbols.join(", ")}`);
         }
+      }
+    } catch (error) {
+      if (isMounted.current) {
+        setError(`Failed to refresh holdings: ${error instanceof Error ? error.message : "Unknown error"}`);
       }
     } finally {
       if (isMounted.current) {
         setLoading(false);
       }
     }
-  }, [loading, portfolioSymbols, fetchCurrentData]);
+  }, [loading, portfolioSymbols, fetchBatchCurrentData]);
 
+  // Load comparison data (historical)
   const loadComparisonData = useCallback(async () => {
-    if (loading) return;
+    if (loading || portfolioSymbols.length === 0) return;
 
     setLoading(true);
     setError("");
 
     try {
       const newData: PortfolioData = {};
-      let hasErrors = false;
+      const errors: string[] = [];
 
-      for (const symbol of portfolioSymbols) {
+      // Parallel fetch for better performance
+      const fetchPromises = portfolioSymbols.map(async (symbol) => {
         try {
           const data = await fetchHistoricalData(symbol);
-
-          if (data.length > 0 && isMounted.current) {
-            newData[symbol] = data;
-          }
+          return { symbol, data };
         } catch (err) {
-          hasErrors = true;
+          errors.push(symbol);
           console.error(`Error loading comparison data for ${symbol}:`, err);
+          return null;
         }
-      }
+      });
+
+      const results = await Promise.all(fetchPromises);
+
+      results.forEach((result) => {
+        if (result && result.data.length > 0) {
+          newData[result.symbol] = result.data;
+        }
+      });
 
       if (isMounted.current) {
         setCompareData(newData);
-        if (hasErrors) {
-          setError("Some symbols failed to load");
+        if (errors.length > 0) {
+          setError(`Failed to load comparison data for: ${errors.join(", ")}`);
         }
+      }
+    } catch (error) {
+      if (isMounted.current) {
+        setError(`Failed to load comparison data: ${error instanceof Error ? error.message : "Unknown error"}`);
       }
     } finally {
       if (isMounted.current) {
@@ -313,9 +207,9 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
     }
   }, [loading, portfolioSymbols, fetchHistoricalData]);
 
-  // Add a new symbol to the portfolio
+  // Add symbol to portfolio
   const addSymbol = useCallback(
-    async (symbol: string) => {
+    async (symbol: string): Promise<boolean> => {
       if (portfolioSymbols.includes(symbol)) {
         return false;
       }
@@ -324,11 +218,11 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
       setError("");
 
       try {
+        // Test fetch to make sure symbol is valid
         const currentData = await fetchCurrentData(symbol);
 
         if (currentData && isMounted.current) {
           const newSymbols = [...portfolioSymbols, symbol];
-
           setPortfolioSymbols(newSymbols);
           localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(newSymbols));
 
@@ -343,9 +237,8 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
         return false;
       } catch (error) {
         if (isMounted.current) {
-          setError(`Failed to add ${symbol}`);
+          setError(`Failed to add ${symbol}: ${error instanceof Error ? error.message : "Unknown error"}`);
         }
-
         return false;
       } finally {
         if (isMounted.current) {
@@ -356,41 +249,73 @@ export const usePortfolio = ({ startDate, endDate, currentDate }: UsePortfolioOp
     [portfolioSymbols, fetchCurrentData],
   );
 
+  // Remove symbol from portfolio
   const removeSymbol = useCallback(
     (symbol: string) => {
       const newSymbols = portfolioSymbols.filter((s) => s !== symbol);
-
       setPortfolioSymbols(newSymbols);
       localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(newSymbols));
 
       setHoldingsData((prev) => {
         const newData = { ...prev };
-
         delete newData[symbol];
-
         return newData;
       });
 
       setCompareData((prev) => {
         const newData = { ...prev };
-
         delete newData[symbol];
-
         return newData;
       });
     },
     [portfolioSymbols],
   );
 
+  // Change portfolio data source
+  const changePortfolioDataSource = useCallback(
+    async (newSource: DataSource) => {
+      setCurrentPortfolioSource(newSource);
+      localStorage.setItem(PORTFOLIO_SOURCE_KEY, newSource);
+
+      // Clear cache and refresh data with new source
+      stockDataSourceManager.clearCache();
+
+      if (portfolioSymbols.length > 0) {
+        await refreshHoldings();
+      }
+    },
+    [refreshHoldings, portfolioSymbols],
+  );
+
+  // Get available data sources
+  const getAvailableDataSources = useCallback(() => {
+    return stockDataSourceManager.getAvailableSources();
+  }, []);
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
   return {
+    // Portfolio data
     portfolioSymbols,
     holdingsData,
     compareData,
     loading,
     error,
+
+    // Portfolio management
     addSymbol,
     removeSymbol,
     refreshHoldings,
     loadComparisonData,
+
+    // Data source management
+    currentPortfolioSource,
+    changePortfolioDataSource,
+    getAvailableDataSources,
   };
 };

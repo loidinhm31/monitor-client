@@ -28,5 +28,26 @@ export default defineConfig(async () => ({
       // 3. tell vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
     },
+    proxy: {
+      "/api/tcbs": {
+        target: "https://apipubaws.tcbs.com.vn",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/tcbs/, ""),
+        configure: (
+          proxy: { on: (arg0: string, arg1: (proxyReq: any, _req: any, res: any) => void) => void },
+          _options: any,
+        ) => {
+          proxy.on("proxyReq", (proxyReq, _req, _res) => {
+            // Add proper headers to mimic browser request
+            proxyReq.setHeader("Referer", "https://tcinvest.tcbs.com.vn");
+            proxyReq.setHeader("Origin", "https://tcinvest.tcbs.com.vn");
+            proxyReq.setHeader(
+              "User-Agent",
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            );
+          });
+        },
+      },
+    },
   },
 }));
