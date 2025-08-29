@@ -19,8 +19,8 @@ export const getRoutes = (): RouteConfig[] => [
     title: "System Remote Control",
   },
   {
-    id: "analytics",
-    path: "/analytics",
+    id: "analytic-stocks",
+    path: "/analytic-stocks",
     component: AnalyticsPage,
     title: "Analytics Dashboard",
   },

@@ -1,4 +1,4 @@
-import TabbedAnalytics from "@repo/ui/components/templates/Analytics/tabbed-analytics";
+import TabbedAnalytics from "@repo/ui/components/templates/analytic-stocks/tabbed-analytics";
 
 export default function AnalyticsPage() {
   return (

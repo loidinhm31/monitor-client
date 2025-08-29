@@ -8,8 +8,8 @@ import { Activity, Database, Plus, RefreshCw } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 
 import SharedDateControls from "@repo/ui/components/organisms/shared-date-controls.js";
-import ResponsivePortfolioDataTable from "@repo/ui/components/templates/Analytics/portfolio/ResponsivePortfolioDataTable";
-import StockComparisonChart from "@repo/ui/components/templates/Analytics/StockComparisonChart";
+import ResponsivePortfolioDataTable from "@repo/ui/components/templates/analytic-stocks/portfolio/ResponsivePortfolioDataTable";
+import StockComparisonChart from "@repo/ui/components/templates/analytic-stocks/StockComparisonChart";
 import { usePortfolio } from "@repo/ui/hooks/usePortfolio";
 import { TimeframeOption } from "@repo/ui/types/stock";
 

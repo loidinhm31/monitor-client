@@ -3,7 +3,7 @@ import React, { useMemo } from "react";
 
 import { Input } from "@repo/ui/components/ui/input";
 import { Button } from "@repo/ui/components/ui/button";
-import StockComparisonChart from "@repo/ui/components/templates/Analytics/StockComparisonChart";
+import StockComparisonChart from "@repo/ui/components/templates/analytic-stocks/StockComparisonChart";
 
 interface PortfolioComparisonProps {
   portfolioData: Array<{

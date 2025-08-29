@@ -3,7 +3,7 @@ import { Input } from "@repo/ui/components/ui/input";
 import { Plus } from "lucide-react";
 import React, { useState } from "react";
 
-import ComparisonChart from "@repo/ui/components/templates/Analytics/StockComparisonChart";
+import ComparisonChart from "@repo/ui/components/templates/analytic-stocks/StockComparisonChart";
 interface StockComparisonProps {
   stocksData: {
     symbol: string;

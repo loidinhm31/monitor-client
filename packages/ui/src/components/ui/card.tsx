@@ -1,18 +1,36 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { motion } from "framer-motion";
 import { cn } from "@repo/ui/lib/utils";
 
 const cardVariants = cva(
-  "rounded-3xl text-card-foreground shadow-liquid-md transition-all duration-500 relative overflow-hidden group",
+  "rounded-3xl text-card-foreground shadow-lg transition-all duration-500 relative overflow-hidden group",
   {
     variants: {
       variant: {
         default: "bg-card border border-border",
         glass: "bg-white/10 backdrop-blur-md border border-white/20 shadow-glass",
-        cloud: "cloud-card hover:shadow-liquid-lg",
-        liquid: "bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20 liquid-border",
-        floating: "cloud-card float-element hover:shadow-liquid-xl",
-        glow: "bg-card border border-border shadow-liquid-lg hover:shadow-cloud-glow",
+        holographic: [
+          "bg-gradient-to-br from-cyan-400/5 to-cyan-600/5",
+          "backdrop-blur-md border border-cyan-400/30",
+          "shadow-cyan-400/20 shadow-lg",
+          "hover:shadow-cyan-400/30 hover:shadow-xl",
+          "before:absolute before:inset-0 before:bg-gradient-to-r",
+          "before:from-transparent before:via-cyan-400/10 before:to-transparent",
+          "before:translate-x-[-100%] hover:before:translate-x-[100%]",
+          "before:transition-transform before:duration-1000",
+        ],
+        liquid: "bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20",
+        floating: [
+          "bg-card/80 backdrop-blur-sm border border-border/50",
+          "hover:shadow-2xl hover:shadow-primary/20",
+          "transform-gpu transition-all duration-500",
+        ],
+        glow: [
+          "bg-card border border-border",
+          "shadow-lg hover:shadow-2xl hover:shadow-primary/20",
+          "transition-all duration-300",
+        ],
       },
     },
     defaultVariants: {
@@ -21,18 +39,35 @@ const cardVariants = cva(
   },
 );
 
-export interface CardProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {}
+interface CardProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {
+  animated?: boolean;
+}
 
-const Card = React.forwardRef<HTMLDivElement, CardProps>(({ className, variant, children, ...props }, ref) => (
-  <div ref={ref} className={cn(cardVariants({ variant }), className)} {...props}>
-    {variant === "liquid" && (
-      <div className="absolute inset-0 bg-gradient-to-br from-liquid-500/10 to-dream-500/10 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-    )}
-    {variant === "floating" && <div className="liquid-blob absolute -top-20 -right-20 w-40 h-40 rounded-full" />}
-    <div className="relative z-10">{children}</div>
-  </div>
-));
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, variant, animated = false, children, ...props }, ref) => {
+    if (animated) {
+      return (
+        <motion.div
+          ref={ref}
+          className={cn(cardVariants({ variant }), className)}
+          initial={{ opacity: 0, scale: 0.9, rotateX: -10 }}
+          animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+          transition={{ duration: 0.5 }}
+          whileHover={variant === "floating" ? { scale: 1.02, y: -4 } : undefined}
+          {...props}
+        >
+          {children}
+        </motion.div>
+      );
+    }
 
+    return (
+      <div ref={ref} className={cn(cardVariants({ variant }), className)} {...props}>
+        {children}
+      </div>
+    );
+  },
+);
 Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
@@ -40,36 +75,25 @@ const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
     <div ref={ref} className={cn("flex flex-col space-y-1.5 p-6", className)} {...props} />
   ),
 );
-
 CardHeader.displayName = "CardHeader";
 
-const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        "text-2xl font-semibold leading-none tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent",
-        className,
-      )}
-      {...props}
-    />
+    <h3 ref={ref} className={cn("font-semibold leading-none tracking-tight", className)} {...props} />
   ),
 );
-
 CardTitle.displayName = "CardTitle";
 
-const CardDescription = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("text-sm text-muted-foreground", className)} {...props} />
+    <p ref={ref} className={cn("text-sm text-muted-foreground", className)} {...props} />
   ),
 );
-
 CardDescription.displayName = "CardDescription";
 
 const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />,
 );
-
 CardContent.displayName = "CardContent";
 
 const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
@@ -77,7 +101,6 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
     <div ref={ref} className={cn("flex items-center p-6 pt-0", className)} {...props} />
   ),
 );
-
 CardFooter.displayName = "CardFooter";
 
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, cardVariants };
