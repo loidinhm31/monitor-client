@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Badge } from "@repo/ui/components/ui/badge";
-import { Button } from "@repo/ui/components/ui/button";
+import { Badge } from "@repo/ui/components/atoms/badge";
+import { Button } from "@repo/ui/components/atoms/button";
 import { AlertTriangle, CheckCircle, Info, RefreshCw, XCircle } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/components/atoms/tooltip";
 import { DataSource, stockDataSourceManager } from "@repo/ui/lib/data-sources/stock-data-source-manager";
 
 interface DataSourceStatusProps {

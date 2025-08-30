@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
-import { CardContent, CardHeader } from "@repo/ui/components/ui/card";
-import HolographicButton from "@repo/ui/components/atoms/holographic-button";
+import { CardContent, CardHeader } from "@repo/ui/components/atoms/card";
 import HolographicContainer from "@repo/ui/components/atoms/holographic-container";
+import { Button } from "@repo/ui/components/atoms/button";
 
 class WavRecorder {
   private chunks: Int16Array[];
@@ -182,12 +182,12 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
   return (
     <>
       <div className="w-full flex flex-row gap-4 items-center flex-wrap">
-        <HolographicButton
-          variant={isRecording ? "danger" : "primary"}
+        <Button
+          variant={isRecording ? "holographic-destructive" : "holographic"}
           onClick={isRecording ? stopRecording : startRecording}
         >
           {isRecording ? "Stop Recording" : "Start Recording"}
-        </HolographicButton>
+        </Button>
 
         {isRecording && (
           <span className="text-sm">

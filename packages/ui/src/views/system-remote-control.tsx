@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Spinner } from "@repo/ui/components/ui/spinner";
+import { Spinner } from "@repo/ui/components/atoms/spinner";
 import HolographicContainer from "@repo/ui/components/atoms/holographic-container";
 import { Eyes, SystemInfo } from "@repo/ui/types/sensors";
 import SystemInformationTemplate from "@repo/ui/components/templates/controls/system-information-template";

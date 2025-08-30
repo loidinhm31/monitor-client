@@ -3,8 +3,8 @@ import type { TransformedStockData } from "@repo/ui/types/stock";
 import { ChevronDown, ChevronRight, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { COLUMN_LABELS } from "@repo/ui/lib/stock-utils";
-import { Card } from "@repo/ui/components/ui/card";
-import { Button } from "@repo/ui/components/ui/button";
+import { Card } from "@repo/ui/components/atoms/card";
+import { Button } from "@repo/ui/components/atoms/button";
 
 interface PortfolioMobileDataTableProps {
   data: (TransformedStockData & { symbol: string })[];

@@ -1,94 +1,49 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React from "react";
 import { LucideIcon } from "lucide-react";
+import { Button } from "@repo/ui/components/atoms/button";
+import { cn } from "@repo/ui/lib/utils";
 
 interface HudCircleProps {
   icon: LucideIcon;
   label: string;
-  active?: boolean;
   onClick?: () => void;
-  className?: string;
+  active?: boolean;
   disabled?: boolean;
+  className?: string;
 }
 
 const HudCircle: React.FC<HudCircleProps> = ({
   icon: Icon,
   label,
-  active = false,
   onClick,
-  className = "",
+  active = false,
   disabled = false,
+  className,
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
-  const handleClick = () => {
-    if (!disabled && onClick) {
-      onClick();
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.key === "Enter" || e.key === " ") && !disabled && onClick) {
-      e.preventDefault();
-      onClick();
-    }
-  };
-
-  const handleHoverStart = () => {
-    if (!disabled) {
-      setIsHovered(true);
-    }
-  };
-
-  const handleHoverEnd = () => {
-    if (!disabled) {
-      setIsHovered(false);
-    }
-  };
-
   return (
-    <motion.div
-      aria-disabled={disabled}
-      aria-label={`${label} button`}
-      aria-pressed={active}
-      className={`relative w-16 h-16 md:w-20 md:h-20 rounded-full border-2 cursor-pointer flex flex-col items-center justify-center transition-all duration-300 ${disabled ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
-      role="button"
-      style={{
-        borderColor: active ? "#00d4ff" : "rgba(0, 212, 255, 0.6)",
-        background: active
-          ? "radial-gradient(circle, rgba(0, 212, 255, 0.2) 0%, transparent 70%)"
-          : "radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%)",
-      }}
-      tabIndex={disabled ? -1 : 0}
-      whileHover={!disabled ? { scale: 1.1 } : {}}
-      whileTap={!disabled ? { scale: 0.95 } : {}}
-      onClick={handleClick}
-      onHoverEnd={handleHoverEnd}
-      onHoverStart={handleHoverStart}
-      onKeyDown={handleKeyDown}
-    >
-      {/* Rotating border effect */}
-      <motion.div
-        animate={{ rotate: 360 }}
-        className="absolute inset-0 rounded-full border-2 border-transparent border-t-cyan-400"
-        style={{ opacity: isHovered ? 1 : 0.3 }}
-        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-      />
-
-      <Icon className="w-4 h-4 md:w-5 md:h-5 text-cyan-400 mb-1" />
-      <span className="text-xs text-cyan-400 font-mono uppercase tracking-wider">{label}</span>
-
-      {active && (
-        <motion.div
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          className="absolute inset-0 rounded-full"
-          style={{
-            boxShadow: "0 0 30px rgba(0, 212, 255, 0.5)",
-          }}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
+    <Button
+      variant="hud"
+      size="hud"
+      animated
+      disabled={disabled}
+      aria-label={`${label} control`}
+      className={cn(
+        "flex-col gap-1 relative",
+        // Rotating border effect for active state
+        active && [
+          "before:absolute before:inset-0 before:rounded-full",
+          "before:border-2 before:border-transparent before:border-t-cyan-400",
+          "before:animate-spin before:opacity-100",
+        ],
+        // Pulsing glow for active state
+        active && "shadow-cyan-400/50 shadow-lg animate-pulse",
+        className,
       )}
-    </motion.div>
+      onClick={onClick}
+    >
+      <Icon className="w-4 h-4 md:w-5 md:h-5 text-cyan-400" />
+      <span className="text-xs text-cyan-400 font-mono uppercase tracking-wider">{label}</span>
+    </Button>
   );
 };
 

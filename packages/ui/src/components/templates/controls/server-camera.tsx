@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { Maximize, Minimize } from "lucide-react";
-import { CardFooter } from "@repo/ui/components/ui/card";
-import HolographicButton from "@repo/ui/components/atoms/holographic-button";
+import { CardFooter } from "@repo/ui/components/atoms/card";
 import HolographicContainer from "@repo/ui/components/atoms/holographic-container";
 import StatusIndicator from "@repo/ui/components/atoms/status-indicator";
 import StreamingVideoControl from "@repo/ui/components/templates/controls/streaming-video-control";
+import { Button } from "@repo/ui/components/atoms/button";
 
 interface ServerCameraProps {
   hostConnection: string | null;
@@ -276,7 +276,7 @@ const ServerCamera = ({ hostConnection }: ServerCameraProps) => {
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold text-cyan-400">Camera Stream</h3>
           <div className="flex items-center gap-2">
-            <StatusIndicator online={connectionStatus === "Connected" && isStarted} />
+            <StatusIndicator status={connectionStatus === "Connected" && isStarted ? "online" : "error"} />
             <span className="text-xs font-mono text-cyan-400">{connectionStatus}</span>
           </div>
         </div>
@@ -320,7 +320,7 @@ const ServerCamera = ({ hostConnection }: ServerCameraProps) => {
             <CardFooter className="absolute bottom-2 left-2 right-2 bg-black/50 backdrop-blur-sm border border-cyan-400/30 rounded-lg p-2 flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <StatusIndicator online={isStarted} pulse={isStarted} />
+                  <StatusIndicator pulse={isStarted} status={isStarted ? "online" : "error"} />
                   <span className="font-mono text-xs text-cyan-400">{isStarted ? "LIVE" : "OFFLINE"}</span>
                 </div>
 
@@ -332,26 +332,25 @@ const ServerCamera = ({ hostConnection }: ServerCameraProps) => {
                 )}
               </div>
 
-              <HolographicButton size="sm" onClick={toggleFullScreen}>
+              <Button variant="holographic" size="sm" onClick={toggleFullScreen}>
                 {isFullScreen ? <Minimize size={16} /> : <Maximize size={16} />}
-              </HolographicButton>
+              </Button>
             </CardFooter>
           </div>
         </div>
 
         {/* Camera Controls */}
         <div className="flex gap-4 justify-center mt-2">
-          <HolographicButton
+          <Button variant="holographic"
             disabled={!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || isStarted}
-            variant="primary"
             onClick={handleStartCamera}
           >
             Start Camera
-          </HolographicButton>
+          </Button>
 
-          <HolographicButton disabled={!isStarted} variant="danger" onClick={handleStopCamera}>
+          <Button disabled={!isStarted} variant="holographic-destructive" onClick={handleStopCamera}>
             Stop Camera
-          </HolographicButton>
+          </Button>
         </div>
       </HolographicContainer>
 

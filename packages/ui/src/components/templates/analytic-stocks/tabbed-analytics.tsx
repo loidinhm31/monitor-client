@@ -1,8 +1,7 @@
-import { Button } from "@repo/ui/components/ui/button";
-import { Input } from "@repo/ui/components/ui/input";
-import { Spinner } from "@repo/ui/components/ui/spinner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/ui/tabs";
-import { Card, CardContent, CardHeader } from "@repo/ui/components/ui/card";
+import { Button } from "@repo/ui/components/atoms/button";
+import { Spinner } from "@repo/ui/components/atoms/spinner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/atoms/tabs";
+import { Card, CardContent, CardHeader } from "@repo/ui/components/atoms/card";
 import { Activity, Database, Info, Settings, TrendingUp } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import SharedDateControls from "@repo/ui/components/organisms/shared-date-controls";
@@ -15,6 +14,7 @@ import { TimeframeOption } from "@repo/ui/types/stock";
 import { DataSource } from "@repo/ui/lib/data-sources/stock-data-source-manager";
 import { DataSourceSelector } from "@repo/ui/components/organisms/data-source-selector";
 import { DataSourceStatus } from "@repo/ui/components/organisms/data-source-status";
+import { InputLabel } from "@repo/ui/components/atoms/input-label";
 
 const TabbedAnalytics = () => {
   const [selectedTab, setSelectedTab] = useState("analysis");
@@ -279,7 +279,7 @@ const TabbedAnalytics = () => {
 
         <TabsContent className="space-y-6" value="analysis">
           {/* Analysis Tab - Stock Symbol */}
-          <Card>
+          <Card variant="holographic">
             <CardHeader>
               <h4 className="font-medium">Stock Analysis</h4>
             </CardHeader>
@@ -287,14 +287,15 @@ const TabbedAnalytics = () => {
               <form className="space-y-4" onSubmit={handleMainStockSubmit}>
                 <div className="flex flex-wrap items-end gap-4">
                   <div className="flex-none w-40">
-                    <Input
+                    <InputLabel
                       required
                       disabled={isLoading}
                       label="Stock Symbol"
                       placeholder="e.g., VN30, TCB, VIC"
                       type="text"
+                      variant="holographic"
                       value={inputSymbol}
-                      onChange={(e) => setInputSymbol(e.target.value.toUpperCase())}
+                      onChange={(e: { target: { value: string } }) => setInputSymbol(e.target.value.toUpperCase())}
                     />
                   </div>
 
@@ -308,7 +309,12 @@ const TabbedAnalytics = () => {
                     onTimeframeChange={handleTimeframeChange}
                   />
 
-                  <Button className="flex items-center gap-2" disabled={isLoading || !inputSymbol} type="submit">
+                  <Button
+                    className="flex items-center gap-2"
+                    disabled={isLoading || !inputSymbol}
+                    type="submit"
+                    variant="holographic"
+                  >
                     {isLoading ? <Spinner size="sm" /> : <TrendingUp className="w-4 h-4" />}
                     {isLoading ? "Fetching..." : "Analyze Stock"}
                   </Button>

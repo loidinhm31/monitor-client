@@ -1,5 +1,5 @@
 import React, { ReactNode, useEffect, useRef, useState } from "react";
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@repo/ui/components/atoms/button";
 
 interface ZoomableContainerProps<T> {
   data: T[];

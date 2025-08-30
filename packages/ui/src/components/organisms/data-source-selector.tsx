@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/ui/select";
-import { Badge } from "@repo/ui/components/ui/badge";
-import { Button } from "@repo/ui/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/atoms/select";
+import { Badge } from "@repo/ui/components/atoms/badge";
+import { Button } from "@repo/ui/components/atoms/button";
 import { AlertTriangle, CheckCircle, Info, RefreshCw, XCircle } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@repo/ui/components/atoms/tooltip";
 import { DataSource, stockDataSourceManager } from "@repo/ui/lib/data-sources/stock-data-source-manager";
 
 interface DataSourceSelectorProps {
@@ -79,11 +79,11 @@ export const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
   return (
     <TooltipProvider>
       <div className={`flex items-center gap-2 ${className}`}>
-        <Select disabled={disabled} value={currentSource} onValueChange={(value: DataSource) => onSourceChange(value)}>
-          <SelectTrigger className="w-48">
+        <Select  disabled={disabled} value={currentSource} onValueChange={(value: DataSource) => onSourceChange(value)}>
+          <SelectTrigger variant="holographic" className="w-48">
             <SelectValue placeholder="Select data source" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent variant="holographic">
             {availableSources.map((source) => (
               <SelectItem key={source.name} value={source.name}>
                 <div className="flex items-center justify-between w-full">
@@ -92,7 +92,7 @@ export const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
                     {showHealthStatus && getHealthIcon(source.name)}
                   </div>
                   <div className="flex items-center gap-1 ml-2">
-                    <Badge variant={source.priority === 1 ? "default" : "secondary"} className="text-xs">
+                    <Badge className="text-xs" variant={source.priority === 1 ? "holographic" : "secondary"}>
                       {source.priority === 1 ? "Primary" : "Secondary"}
                     </Badge>
                   </div>
@@ -118,7 +118,7 @@ export const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-1">
-                  <Badge className="text-xs" variant={healthStatus[currentSource] === true ? "default" : "destructive"}>
+                  <Badge className="text-xs" variant={healthStatus[currentSource] === true ? "holographic" : "destructive"}>
                     {currentSource}
                   </Badge>
                   {!healthStatus[currentSource] && sourceErrors[currentSource] && (

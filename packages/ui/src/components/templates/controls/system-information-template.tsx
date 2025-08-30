@@ -1,7 +1,7 @@
 import { Eyes, SystemInfo } from "@repo/ui/types/sensors";
-import { Label } from "@repo/ui/components/ui/label";
-import { Badge } from "@repo/ui/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/ui/select";
+import { Label } from "@repo/ui/components/atoms/label";
+import { Badge } from "@repo/ui/components/atoms/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/atoms/select";
 
 interface SystemInformationTemplateProps {
   systemInfo: SystemInfo;

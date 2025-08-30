@@ -1,5 +1,5 @@
-import { Button } from "@repo/ui/components/ui/button";
-import { Input } from "@repo/ui/components/ui/input";
+import { Button } from "@repo/ui/components/atoms/button";
+import { Input } from "@repo/ui/components/atoms/input";
 import { Plus } from "lucide-react";
 import React, { useState } from "react";
 

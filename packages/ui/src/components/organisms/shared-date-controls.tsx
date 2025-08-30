@@ -1,8 +1,8 @@
 import React from "react";
 import { TimeframeOption } from "@repo/ui/types/stock";
 import { CalendarDate } from "@internationalized/date";
-import { DatePicker } from "@repo/ui/components/ui/date-picker";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/ui/select";
+import { DatePicker } from "@repo/ui/components/atoms/date-picker";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/atoms/select";
 
 interface SharedDateControlsProps {
   startDate: CalendarDate;
@@ -43,6 +43,7 @@ const SharedDateControls: React.FC<SharedDateControlsProps> = ({
               label="Start Date"
               placeholder={formatCustomDate(startDate)}
               value={startDate}
+              variant="holographic"
               onChange={onStartDateChange}
             />
           </div>
@@ -54,17 +55,18 @@ const SharedDateControls: React.FC<SharedDateControlsProps> = ({
               label="End Date"
               placeholder={formatCustomDate(endDate)}
               value={endDate}
+              variant="holographic"
               onChange={onEndDateChange}
             />
           </div>
         </>
       )}
       <div className="flex w-full">
-        <Select value={timeframe} onValueChange={onTimeframeChange} disabled={disabled}>
-          <SelectTrigger className="w-full" aria-label="Select timeframe">
+        <Select disabled={disabled} value={timeframe} onValueChange={onTimeframeChange}>
+          <SelectTrigger aria-label="Select timeframe" className="w-full" variant="holographic">
             <SelectValue placeholder="Select timeframe" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent variant="holographic">
             <SelectItem value="1W">1 Week</SelectItem>
             <SelectItem value="1M">1 Month</SelectItem>
             <SelectItem value="3M">3 Months</SelectItem>

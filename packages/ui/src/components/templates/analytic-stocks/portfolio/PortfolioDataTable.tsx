@@ -3,8 +3,8 @@ import type { TransformedStockData } from "@repo/ui/types/stock";
 import { Trash2 } from "lucide-react";
 import React from "react";
 
-import { Button } from "@repo/ui/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/components/ui/table";
+import { Button } from "@repo/ui/components/atoms/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/components/atoms/table";
 import { COLUMN_LABELS } from "@repo/ui/lib/stock-utils";
 interface PortfolioDataTableProps {
   data: (TransformedStockData & { symbol: string })[];

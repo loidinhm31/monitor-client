@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { HostConnection } from "@repo/ui/types/connections";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/ui/select";
-import { Input } from "@repo/ui/components/ui/input";
-import HolographicButton from "@repo/ui/components/atoms/holographic-button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/atoms/select";
+import { Input } from "@repo/ui/components/atoms/input";
 import HolographicContainer from "@repo/ui/components/atoms/holographic-container";
 import StatusIndicator from "@repo/ui/components/atoms/status-indicator";
+import { Button } from "@repo/ui/components/atoms/button";
 
 interface HostConnectionControlProps {
   appliedHostConnection: HostConnection | null;
@@ -66,7 +66,7 @@ const HostConnectionControl: React.FC<HostConnectionControlProps> = ({
         {/* Connection Status */}
         <HolographicContainer className="p-4 md:p-6 mb-6">
           <div className="flex items-center gap-3 mb-4">
-            <StatusIndicator online={appliedHostConnection !== null} />
+            <StatusIndicator status={appliedHostConnection !== null ? "online" : "offline"} />
             <span className="font-mono text-sm text-cyan-400">
               {appliedHostConnection ? `Connected to ${appliedHostConnection.host}` : "Disconnected"}
             </span>
@@ -93,13 +93,13 @@ const HostConnectionControl: React.FC<HostConnectionControlProps> = ({
             </Select>
 
             {selectedHostConnection && (
-              <HolographicButton
+              <Button
                 className="w-full"
-                variant={appliedHostConnection === null ? "primary" : "danger"}
+                variant={appliedHostConnection === null ? "holographic" : "holographic-destructive"}
                 onClick={applyHostConnection}
               >
                 {appliedHostConnection === null ? "Connect" : "Disconnect"}
-              </HolographicButton>
+              </Button>
             )}
 
             <div className="flex gap-2">
@@ -110,10 +110,10 @@ const HostConnectionControl: React.FC<HostConnectionControlProps> = ({
                 value={hostConnectionValue}
                 onChange={(e) => setHostConnectionValue(e.target.value)}
               />
-              <HolographicButton size="sm" onClick={saveHostConnection}>
+              <Button size="sm" variant="holographic" onClick={saveHostConnection}>
                 <Plus className="w-4 h-4 mr-1" />
                 {isEditing ? "Save" : "Add"}
-              </HolographicButton>
+              </Button>
             </div>
           </div>
         </HolographicContainer>

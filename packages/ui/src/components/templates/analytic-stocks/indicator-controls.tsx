@@ -1,6 +1,6 @@
 import React from "react";
-import { Switch } from "@repo/ui/components/ui/switch";
-import { Label } from "@repo/ui/components/ui/label";
+import { Switch } from "@repo/ui/components/atoms/switch";
+import { Label } from "@repo/ui/components/atoms/label";
 
 export interface Indicators {
   sma: boolean;
@@ -22,6 +22,7 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
     <div className="flex flex-wrap gap-4 mb-4">
       <div className="flex items-center space-x-2">
         <Switch
+          variant="holographic"
           checked={indicators.highLow}
           id="high-low-switch"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, highLow: value })}
@@ -33,6 +34,7 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
 
       <div className="flex items-center space-x-2">
         <Switch
+          variant="holographic"
           checked={indicators.pivotPoints}
           id="pivot-points-switch"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, pivotPoints: value })}
@@ -44,6 +46,7 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
 
       <div className="flex items-center space-x-2">
         <Switch
+          variant="holographic"
           checked={indicators.sma}
           id="sma-switch"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, sma: value })}
@@ -55,6 +58,7 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
 
       <div className="flex items-center space-x-2">
         <Switch
+          variant="holographic"
           checked={indicators.ema}
           id="ema-switch"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, ema: value })}
@@ -66,6 +70,7 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
 
       <div className="flex items-center space-x-2">
         <Switch
+          variant="holographic"
           checked={indicators.macd}
           id="macd-switch"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, macd: value })}

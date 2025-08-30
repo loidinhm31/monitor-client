@@ -1,7 +1,7 @@
 import type { TransformedStockData } from "@repo/ui/types/stock";
 
 import React from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/components/atoms/table";
 import { COLUMN_LABELS } from "@repo/ui/lib/stock-utils";
 
 interface DataTableProps {

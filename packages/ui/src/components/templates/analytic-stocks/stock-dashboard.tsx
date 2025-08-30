@@ -1,8 +1,8 @@
 import type { ChartData, TimeframeOption, TransformedStockData } from "@repo/ui/types/stock";
 
-import { Card, CardContent, CardHeader } from "@repo/ui/components/ui/card";
-import { Spinner } from "@repo/ui/components/ui/spinner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/ui/tabs";
+import { Card, CardContent, CardHeader } from "@repo/ui/components/atoms/card";
+import { Spinner } from "@repo/ui/components/atoms/spinner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/atoms/tabs";
 import React, { useEffect, useMemo, useState } from "react";
 import EnhancedChartContainer from "@repo/ui/components/organisms/ChartContainer";
 import ResponsiveDataTable from "@repo/ui/components/templates/analytic-stocks/ResponsiveDataTable";

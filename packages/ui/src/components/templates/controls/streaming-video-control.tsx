@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import SaveDataControl from "@repo/ui/components/templates/controls/save-data-control";
 import HolographicContainer from "@repo/ui/components/atoms/holographic-container";
-import { CardContent, CardHeader } from "@repo/ui/components/ui/card";
+import { CardContent, CardHeader } from "@repo/ui/components/atoms/card";
 
 interface StreamingControlProps {
   wsConnection: WebSocket | null;

@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import HolographicButton from "@repo/ui/components/atoms/holographic-button";
 import { TauriFs, TauriPath } from "@repo/ui/types/tauri-type";
+import { Button } from "@repo/ui/components/atoms/button";
 
 interface SaveDataControlProps {
   getCurrentFrame: () => string | null;
@@ -259,17 +259,17 @@ const SaveDataControl = ({ getCurrentFrame, isStreaming }: SaveDataControlProps)
 
       {/* Control buttons */}
       <div className="flex gap-2 flex-wrap">
-        <HolographicButton disabled={!isStreaming} onClick={captureCurrentFrame}>
+        <Button variant="holographic" disabled={!isStreaming} onClick={captureCurrentFrame}>
           Capture Image
-        </HolographicButton>
+        </Button>
 
-        <HolographicButton
+        <Button
           disabled={!isStreaming}
-          variant={recording ? "danger" : "primary"}
+          variant={recording ? "holographic-destructive" : "holographic"}
           onClick={recording ? stopRecording : startRecording}
         >
           {recording ? "Stop Recording" : "Start Recording"}
-        </HolographicButton>
+        </Button>
       </div>
 
       {/* Status information */}

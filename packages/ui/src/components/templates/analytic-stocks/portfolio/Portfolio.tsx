@@ -1,16 +1,13 @@
 import { CalendarDate } from "@internationalized/date";
-import { Button } from "@repo/ui/components/ui/button";
-import { Card, CardContent, CardHeader } from "@repo/ui/components/ui/card";
-import { Input } from "@repo/ui/components/ui/input";
-import { Spinner } from "@repo/ui/components/ui/spinner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/ui/tabs";
+import { Button } from "@repo/ui/components/atoms/button";
+import { Card, CardContent, CardHeader } from "@repo/ui/components/atoms/card";
+import { Input } from "@repo/ui/components/atoms/input";
+import { Spinner } from "@repo/ui/components/atoms/spinner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/atoms/tabs";
 import { Activity, Database, Plus, RefreshCw } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
-
-import SharedDateControls from "@repo/ui/components/organisms/shared-date-controls.js";
+import React, { useEffect, useState } from "react";
 import ResponsivePortfolioDataTable from "@repo/ui/components/templates/analytic-stocks/portfolio/ResponsivePortfolioDataTable";
 import StockComparisonChart from "@repo/ui/components/templates/analytic-stocks/StockComparisonChart";
-import { usePortfolio } from "@repo/ui/hooks/usePortfolio";
 import { TimeframeOption } from "@repo/ui/types/stock";
 
 export interface PortfolioProps {
@@ -50,7 +47,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateControls, portfolioProps }) =
     removeSymbol,
     refreshHoldings,
     loadComparisonData,
-    currentDataSource = 'TCBS'
+    currentDataSource = "TCBS",
   } = portfolioProps || {};
 
   // Auto-refresh holdings when switching to portfolio tab
@@ -77,7 +74,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateControls, portfolioProps }) =
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleAddSymbol();
     }
   };
@@ -89,7 +86,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateControls, portfolioProps }) =
 
   const comparisonData = Object.entries(compareData).map(([symbol, data]) => ({
     symbol,
-    data: data.map(item => ({
+    data: data.map((item) => ({
       date: item.date,
       closePrice: item.closePrice,
     })),
@@ -105,7 +102,9 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateControls, portfolioProps }) =
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Database className="w-4 h-4" />
-            <span>Source: <strong>{currentDataSource}</strong></span>
+            <span>
+              Source: <strong>{currentDataSource}</strong>
+            </span>
           </div>
         </div>
         <p className="text-sm text-default-500">Track your investments and compare performance</p>
@@ -133,13 +132,8 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateControls, portfolioProps }) =
             Add to Portfolio
           </Button>
           {portfolioSymbols.length > 0 && (
-            <Button
-              variant="outline"
-              onClick={refreshHoldings}
-              disabled={loading}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <Button variant="outline" onClick={refreshHoldings} disabled={loading} className="flex items-center gap-2">
+              <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
               Refresh Data
             </Button>
           )}
@@ -156,20 +150,12 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateControls, portfolioProps }) =
         {portfolioSymbols.length > 0 ? (
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
             <TabsList>
-              <TabsTrigger value="holdings">
-                Holdings ({Object.keys(holdingsData).length})
-              </TabsTrigger>
-              <TabsTrigger value="compare">
-                Compare ({Object.keys(compareData).length})
-              </TabsTrigger>
+              <TabsTrigger value="holdings">Holdings ({Object.keys(holdingsData).length})</TabsTrigger>
+              <TabsTrigger value="compare">Compare ({Object.keys(compareData).length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="holdings">
-              <ResponsivePortfolioDataTable
-                actionColumn={true}
-                data={tableData}
-                onRemoveStock={removeSymbol}
-              />
+              <ResponsivePortfolioDataTable actionColumn={true} data={tableData} onRemoveStock={removeSymbol} />
             </TabsContent>
 
             <TabsContent value="compare">
@@ -201,7 +187,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateControls, portfolioProps }) =
                 </div>
                 <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
                   <span>Popular stocks:</span>
-                  {["TCB", "VCB", "HPG", "VIC", "MSN"].map(symbol => (
+                  {["TCB", "VCB", "HPG", "VIC", "MSN"].map((symbol) => (
                     <Button
                       key={symbol}
                       variant="ghost"

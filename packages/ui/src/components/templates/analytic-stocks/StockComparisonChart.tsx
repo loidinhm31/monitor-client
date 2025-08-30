@@ -3,8 +3,8 @@ import React from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import ComparisonTooltip from "@repo/ui/components/organisms/ComparisonTooltip";
-import { Card, CardHeader, CardContent } from "@repo/ui/components/ui/card";
-import { Button } from "@repo/ui/components/ui/button";
+import { Card, CardHeader, CardContent } from "@repo/ui/components/atoms/card";
+import { Button } from "@repo/ui/components/atoms/button";
 
 const STOCK_COLORS = [
   "#0072F5", // Blue

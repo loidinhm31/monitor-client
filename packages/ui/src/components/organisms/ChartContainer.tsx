@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import CustomTooltip from "@repo/ui/components/organisms/CustomTooltip";
-import { Indicators } from "@repo/ui/components/templates/analytic-stocks/indicator-controls.js";
+import { Indicators } from "@repo/ui/components/templates/analytic-stocks/indicator-controls";
 import { ZoomableContainer } from "@repo/ui/components/organisms/ZoomableContainer";
 import { ChartData } from "@repo/ui/types/stock";
-import { Card, CardContent } from "@repo/ui/components/ui/card";
+import { Card, CardContent } from "@repo/ui/components/atoms/card";
 
 interface EnhancedChartProps {
   data: ChartData[];

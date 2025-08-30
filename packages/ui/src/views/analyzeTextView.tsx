@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Textarea } from "@repo/ui/components/ui/textarea";
+import { Textarea } from "@repo/ui/components/atoms/textarea";
 import { TextAnalysisResult } from "@repo/ui/types/text-analysis";
-import { Card, CardContent, CardHeader, CardTitle } from "@repo/ui/components/ui/card";
-import { Button } from "@repo/ui/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@repo/ui/components/atoms/card";
+import { Button } from "@repo/ui/components/atoms/button";
 
 function getSentimentText(score: number): string {
   if (score === 0) return "Neutral 😐";
@@ -29,7 +29,7 @@ export const AnalyzeTextView = () => {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await responseon();
 
         setResult(data.data);
       } else {
