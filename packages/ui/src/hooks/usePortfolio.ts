@@ -3,7 +3,7 @@ import {
   HistoricalDataParams,
   stockDataSourceManager,
   transformSingleToLegacyFormat,
-  transformToLegacyFormat
+  transformToLegacyFormat,
 } from "@repo/ui/lib/data-sources/stock-data-source-manager";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CalendarDate } from "@internationalized/date";
@@ -31,6 +31,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
   const [portfolioSymbols, setPortfolioSymbols] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem(PORTFOLIO_STORAGE_KEY);
+
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -40,6 +41,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
   const [currentPortfolioSource, setCurrentPortfolioSource] = useState<DataSource>(() => {
     try {
       const stored = localStorage.getItem(PORTFOLIO_SOURCE_KEY);
+
       return (stored as DataSource) || dataSource || stockDataSourceManager.getDefaultSource();
     } catch {
       return dataSource || stockDataSourceManager.getDefaultSource();
@@ -63,6 +65,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
     async (symbol: string): Promise<TransformedStockData> => {
       try {
         const standardData = await stockDataSourceManager.fetchCurrentData(symbol, currentPortfolioSource);
+
         return transformSingleToLegacyFormat(standardData);
       } catch (error) {
         console.error(`Error fetching current data for ${symbol}:`, error);
@@ -83,6 +86,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
         };
 
         const standardData = await stockDataSourceManager.fetchHistoricalData(params, currentPortfolioSource);
+
         return transformToLegacyFormat(standardData);
       } catch (error) {
         console.error(`Error fetching historical data for ${symbol}:`, error);
@@ -115,6 +119,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
         for (const symbol of symbols) {
           try {
             const data = await fetchCurrentData(symbol);
+
             holdingsMap[symbol] = data;
           } catch (err) {
             console.error(`Failed to fetch current data for ${symbol}:`, err);
@@ -143,6 +148,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
 
         // Check if any symbols failed to load
         const failedSymbols = portfolioSymbols.filter((symbol) => !newHoldings[symbol]);
+
         if (failedSymbols.length > 0) {
           setError(`Failed to load data for: ${failedSymbols.join(", ")}`);
         }
@@ -173,10 +179,12 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
       const fetchPromises = portfolioSymbols.map(async (symbol) => {
         try {
           const data = await fetchHistoricalData(symbol);
+
           return { symbol, data };
         } catch (err) {
           errors.push(symbol);
           console.error(`Error loading comparison data for ${symbol}:`, err);
+
           return null;
         }
       });
@@ -222,6 +230,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
 
         if (currentData && isMounted.current) {
           const newSymbols = [...portfolioSymbols, symbol];
+
           setPortfolioSymbols(newSymbols);
           localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(newSymbols));
 
@@ -238,6 +247,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
         if (isMounted.current) {
           setError(`Failed to add ${symbol}: ${error instanceof Error ? error.message : "Unknown error"}`);
         }
+
         return false;
       } finally {
         if (isMounted.current) {
@@ -252,18 +262,23 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
   const removeSymbol = useCallback(
     (symbol: string) => {
       const newSymbols = portfolioSymbols.filter((s) => s !== symbol);
+
       setPortfolioSymbols(newSymbols);
       localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(newSymbols));
 
       setHoldingsData((prev) => {
         const newData = { ...prev };
+
         delete newData[symbol];
+
         return newData;
       });
 
       setCompareData((prev) => {
         const newData = { ...prev };
+
         delete newData[symbol];
+
         return newData;
       });
     },

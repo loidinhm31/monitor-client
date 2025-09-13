@@ -42,7 +42,7 @@ export const DataSourceStatus: React.FC<DataSourceStatusProps> = ({ showDetails 
     const totalCount = availableSources.length;
 
     return (
-      <Badge variant={healthyCount === totalCount ? "default" : "destructive"}>
+      <Badge variant={healthyCount === totalCount ? "holographic" : "holographic-destructive"}>
         {healthyCount}/{totalCount} Sources Online
       </Badge>
     );
@@ -52,7 +52,7 @@ export const DataSourceStatus: React.FC<DataSourceStatusProps> = ({ showDetails 
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <h4 className="font-medium">Data Source Status</h4>
-        <Button disabled={loading} size="sm" variant="outline" onClick={checkAllSources}>
+        <Button disabled={loading} size="sm" variant="holographic" onClick={checkAllSources}>
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
@@ -72,7 +72,9 @@ export const DataSourceStatus: React.FC<DataSourceStatusProps> = ({ showDetails 
               <span className="font-medium">{source.displayName}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant={source.priority === 1 ? "default" : "secondary"}>Priority {source.priority}</Badge>
+              <Badge variant={source.priority === 1 ? "holographic" : "holographic-secondary"}>
+                Priority {source.priority}
+              </Badge>
               {sourceErrors[source.name] && (
                 <Tooltip>
                   <TooltipTrigger>

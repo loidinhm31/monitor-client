@@ -11,18 +11,12 @@ const badgeVariants = cva(
         secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive: "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
         outline: "text-foreground",
-        glass: [
-          "border-white/20 bg-white/10 text-white backdrop-blur-md",
-          "hover:bg-white/20",
-        ],
+        glass: ["border-white/20 bg-white/10 text-white backdrop-blur-md", "hover:bg-white/20"],
         "glass-secondary": [
           "border-slate-400/20 bg-slate-400/10 text-slate-400 backdrop-blur-md",
           "hover:bg-slate-400/20",
         ],
-        "glass-destructive": [
-          "border-red-400/20 bg-red-400/10 text-red-400 backdrop-blur-md",
-          "hover:bg-red-400/20",
-        ],
+        "glass-destructive": ["border-red-400/20 bg-red-400/10 text-red-400 backdrop-blur-md", "hover:bg-red-400/20"],
         holographic: [
           "border-cyan-400/30 bg-cyan-400/10 text-cyan-400",
           "hover:bg-cyan-400/20 hover:shadow-cyan-400/40 hover:shadow-sm",
@@ -38,29 +32,18 @@ const badgeVariants = cva(
           "hover:bg-red-400/20 hover:shadow-red-400/40 hover:shadow-sm",
           "font-mono uppercase tracking-wider",
         ],
-        success: [
-          "border-green-400/30 bg-green-400/10 text-green-400",
-          "hover:bg-green-400/20",
-        ],
-        warning: [
-          "border-yellow-400/30 bg-yellow-400/10 text-yellow-400",
-          "hover:bg-yellow-400/20",
-        ],
-        danger: [
-          "border-red-400/30 bg-red-400/10 text-red-400",
-          "hover:bg-red-400/20",
-        ],
+        success: ["border-green-400/30 bg-green-400/10 text-green-400", "hover:bg-green-400/20"],
+        warning: ["border-yellow-400/30 bg-yellow-400/10 text-yellow-400", "hover:bg-yellow-400/20"],
+        danger: ["border-red-400/30 bg-red-400/10 text-red-400", "hover:bg-red-400/20"],
       },
     },
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
-export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {}
 
 function Badge({ className, variant, ...props }: BadgeProps) {
   return <div className={cn(badgeVariants({ variant }), className)} {...props} />;

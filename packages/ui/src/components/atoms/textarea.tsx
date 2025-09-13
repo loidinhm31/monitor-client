@@ -43,8 +43,9 @@ export interface TextareaProps
     VariantProps<typeof textareaVariants> {}
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(({ className, variant, ...props }, ref) => {
-  return <textarea className={cn(textareaVariants({ variant }), className)} ref={ref} {...props} />;
+  return <textarea ref={ref} className={cn(textareaVariants({ variant }), className)} {...props} />;
 });
+
 Textarea.displayName = "Textarea";
 
 export { Textarea, textareaVariants };

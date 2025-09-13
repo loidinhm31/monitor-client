@@ -22,10 +22,7 @@ const HudCircle: React.FC<HudCircleProps> = ({
 }) => {
   return (
     <Button
-      variant="hud"
-      size="hud"
       animated
-      disabled={disabled}
       aria-label={`${label} control`}
       className={cn(
         "flex-col gap-1 relative",
@@ -39,6 +36,9 @@ const HudCircle: React.FC<HudCircleProps> = ({
         active && "shadow-cyan-400/50 shadow-lg animate-pulse",
         className,
       )}
+      disabled={disabled}
+      size="hud"
+      variant="hud"
       onClick={onClick}
     >
       <Icon className="w-4 h-4 md:w-5 md:h-5 text-cyan-400" />

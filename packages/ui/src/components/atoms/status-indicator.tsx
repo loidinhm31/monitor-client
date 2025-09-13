@@ -39,8 +39,8 @@ const StatusIndicator: React.FC<EnhancedStatusIndicatorProps> = ({ status, pulse
 
   return (
     <Badge
-      variant={variant}
       className={cn("inline-flex items-center gap-1", !label && "w-3 h-3 p-0 rounded-full", classes, className)}
+      variant={variant}
     >
       {!label && <div className="w-2 h-2 rounded-full bg-current" />}
       {label}

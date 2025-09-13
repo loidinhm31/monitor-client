@@ -21,16 +21,13 @@ const tooltipContentVariants = cva(
           "bg-black/90 backdrop-blur-md border border-red-400/30",
           "text-red-400 font-mono shadow-red-400/20 shadow-lg",
         ],
-        glass: [
-          "bg-white/10 backdrop-blur-md border border-white/20",
-          "text-white shadow-lg",
-        ],
+        glass: ["bg-white/10 backdrop-blur-md border border-white/20", "text-white shadow-lg"],
       },
     },
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 const TooltipProvider = TooltipPrimitive.Provider;
@@ -41,17 +38,17 @@ interface TooltipContentProps
   extends React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>,
     VariantProps<typeof tooltipContentVariants> {}
 
-const TooltipContent = React.forwardRef<
-  React.ElementRef<typeof TooltipPrimitive.Content>,
-  TooltipContentProps
->(({ className, variant, sideOffset = 4, ...props }, ref) => (
-  <TooltipPrimitive.Content
-    ref={ref}
-    sideOffset={sideOffset}
-    className={cn(tooltipContentVariants({ variant }), className)}
-    {...props}
-  />
-));
+const TooltipContent = React.forwardRef<React.ElementRef<typeof TooltipPrimitive.Content>, TooltipContentProps>(
+  ({ className, variant, sideOffset = 4, ...props }, ref) => (
+    <TooltipPrimitive.Content
+      ref={ref}
+      className={cn(tooltipContentVariants({ variant }), className)}
+      sideOffset={sideOffset}
+      {...props}
+    />
+  ),
+);
+
 TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider, tooltipContentVariants };

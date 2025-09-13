@@ -1,4 +1,4 @@
-export type DataSource = "TCBS" | "VIETCAP" | "SSI";
+export type DataSource = "VNDIRECT" | "SSI";
 
 export interface StockDataSourceConfig {
   name: DataSource;
@@ -12,7 +12,6 @@ export interface StockDataSourceConfig {
   };
 }
 
-// Standard interface all sources must implement
 export interface IStockDataSource {
   getName(): DataSource;
   isEnabled(): boolean;
@@ -31,7 +30,6 @@ export interface IStockDataSource {
   getLastError(): Error | null;
 }
 
-// Standardized parameters for API calls
 export interface HistoricalDataParams {
   symbol: string;
   startDate: string; // YYYY-MM-DD format
@@ -39,7 +37,6 @@ export interface HistoricalDataParams {
   page?: number;
 }
 
-// Standardized data format that replaces TransformedStockData
 export interface StandardStockData {
   // Core identification
   symbol: string;
@@ -69,7 +66,6 @@ export interface StandardStockData {
   fetchedAt: Date;
 }
 
-// Rate limiting helper
 class RateLimiter {
   private requests: number[] = [];
 
@@ -80,6 +76,7 @@ class RateLimiter {
 
   async waitIfNeeded(): Promise<void> {
     const now = Date.now();
+
     this.requests = this.requests.filter((time) => now - time < this.windowMs);
 
     if (this.requests.length >= this.maxRequests) {
@@ -95,8 +92,18 @@ class RateLimiter {
   }
 }
 
-export class TCBSDataSource implements IStockDataSource {
-  private baseUrl = "/api/tcbs"; // Use proxy endpoint instead of direct API
+interface VNDHistoricalResponse {
+  t: number[]; // timestamps
+  c: number[]; // closing prices
+  o: number[]; // opening prices
+  h: number[]; // high prices
+  l: number[]; // low prices
+  v: number[]; // volume
+  s: string; // status ("ok" or error)
+}
+
+export class VNDDataSource implements IStockDataSource {
+  private baseUrl = "https://dchart-api.vndirect.com.vn/dchart";
   private config: StockDataSourceConfig;
   private rateLimiter: RateLimiter;
   private lastError: Error | null = null;
@@ -110,7 +117,7 @@ export class TCBSDataSource implements IStockDataSource {
   }
 
   getName(): DataSource {
-    return "TCBS";
+    return "VNDIRECT";
   }
 
   isEnabled(): boolean {
@@ -127,24 +134,38 @@ export class TCBSDataSource implements IStockDataSource {
 
   async healthCheck(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/tcanalysis/v1/ticker/TCB/overview`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
+      // Test with a simple historical data request for VND symbol
+      const testEndDate = new Date();
+      const testStartDate = new Date(testEndDate);
+
+      testStartDate.setDate(testStartDate.getDate() - 7); // Last 7 days
+
+      const endTimestamp = Math.floor(testEndDate.getTime() / 1000);
+      const startTimestamp = Math.floor(testStartDate.getTime() / 1000);
+
+      const response = await fetch(
+        `${this.baseUrl}/history?resolution=1D&symbol=VND&from=${startTimestamp}&to=${endTimestamp}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          signal: AbortSignal.timeout(5000), // 5 second timeout
         },
-        signal: AbortSignal.timeout(5000), // 5 second timeout
-      });
+      );
 
       if (response.ok) {
-        console.log("✅ TCBS health check passed");
-        return true;
-      } else {
-        console.warn(`⚠️ TCBS health check failed: ${response.status} ${response.statusText}`);
-        return false;
+        const data: VNDHistoricalResponse = await response.json();
+
+        if (data.s === "ok") {
+          return true;
+        }
       }
+
+      return false;
     } catch (error) {
       this.lastError = error as Error;
-      console.error("❌ TCBS health check error:", error);
+
       return false;
     }
   }
@@ -153,56 +174,18 @@ export class TCBSDataSource implements IStockDataSource {
     await this.rateLimiter.waitIfNeeded();
 
     try {
+      // Convert date strings to timestamps for VND Direct API
+      const startTimestamp = Math.floor(new Date(params.startDate).getTime() / 1000);
       const endTimestamp = Math.floor(new Date(params.endDate).getTime() / 1000);
-      // Calculate countBack from date range
-      const startDate = new Date(params.startDate)
-      const endDate = new Date(params.endDate);
-      const vTimezoneDiff = endDate.getTimezoneOffset() - startDate.getTimezoneOffset();
 
-      if (vTimezoneDiff != 0) {
-        // Handle daylight saving time difference between two dates.
-        startDate.setMinutes(startDate.getMinutes() + vTimezoneDiff);
-      }
-      const timeDiff = endDate.getTime() - startDate.getTime() + 1;
-      let daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-      const weeks = Math.floor(daysDiff / 7);
-
-      daysDiff = daysDiff - weeks * 2;
-
-      // Special case
-      const startDay = startDate.getDay();
-      const endDay = endDate.getDay();
-
-      // Remove weekend days not previously removed
-      if (startDay - endDay > 1) {
-        daysDiff -= 2;
-      }
-
-      // Remove start day if span starts on Sunday but ends before Saturday
-      if (startDay === 0 && endDay !== 6) {
-        daysDiff -= 1;
-      }
-
-      // Remove end day if span ends on Saturday but starts after Sunday
-      if (endDay === 6 && startDay !== 0) {
-        daysDiff -= 1;
-      }
-
-      // Ensure at least 1 day
-
-      const countBack = Math.max(daysDiff, 1);
-      const url = `${this.baseUrl}/stock-insight/v2/stock/bars-long-term`;
-
+      // VND Direct API endpoint and parameters
+      const url = `${this.baseUrl}/history`;
       const queryParams = new URLSearchParams({
-        resolution: "D", // Daily resolution
-        ticker: params.symbol,
-        type: "stock",
+        resolution: "1D", // Daily resolution
+        symbol: params.symbol, // Stock symbol
+        from: startTimestamp.toString(),
         to: endTimestamp.toString(),
-        countBack: countBack.toString(),
       });
-
-      console.log(`📊 Fetching TCBS historical data for ${params.symbol}`);
 
       const response = await fetch(`${url}?${queryParams}`, {
         method: "GET",
@@ -213,16 +196,19 @@ export class TCBSDataSource implements IStockDataSource {
       });
 
       if (!response.ok) {
-        throw new Error(`TCBS API error: ${response.status} - ${response.statusText}`);
+        throw new Error(`VND Direct API error: ${response.status} - ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data: VNDHistoricalResponse = await response.json();
 
-      console.log(`✅ Successfully fetched ${data.data.length} historical records for ${params.symbol}`);
-      return this.transformHistoricalData(data.data, params.symbol);
+      // Check if VND Direct API returned success status
+      if (data.s !== "ok") {
+        throw new Error(`VND Direct API returned status: ${data.s}`);
+      }
+
+      return this.transformHistoricalData(data, params.symbol);
     } catch (error) {
       this.lastError = error as Error;
-      console.error("❌ TCBS fetchHistoricalData error:", error);
       throw error;
     }
   }
@@ -231,40 +217,37 @@ export class TCBSDataSource implements IStockDataSource {
     await this.rateLimiter.waitIfNeeded();
 
     try {
-      const url = `${this.baseUrl}/tcanalysis/v1/ticker/${symbol}/overview`;
+      // For current data, fetch the most recent historical data (last 2 days)
+      const endDate = new Date();
+      const startDate = new Date(endDate);
 
-      console.log(`📈 Fetching TCBS current data for ${symbol}`);
+      startDate.setDate(startDate.getDate() - 2); // Last 2 days to ensure we get latest data
 
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        signal: AbortSignal.timeout(5000),
+      const historicalData = await this.fetchHistoricalData({
+        symbol,
+        startDate: this.formatDate(startDate),
+        endDate: this.formatDate(endDate),
       });
 
-      if (!response.ok) {
-        throw new Error(`TCBS API error: ${response.status} - ${response.statusText}`);
+      if (historicalData.length === 0) {
+        throw new Error(`No current data available for ${symbol}`);
       }
 
-      const data = await response.json();
-      console.log(`✅ Successfully fetched current data for ${symbol}`);
-      return this.transformCurrentData(data, symbol);
+      // Return the most recent data point (last in array)
+      const latestData = historicalData[historicalData.length - 1];
+
+      return latestData!;
     } catch (error) {
       this.lastError = error as Error;
-      console.error(`❌ TCBS fetchCurrentData error for ${symbol}:`, error);
       throw error;
     }
   }
 
   async fetchMultipleCurrentData(symbols: string[]): Promise<StandardStockData[]> {
-    console.log(`📊 Fetching current data for ${symbols.length} symbols: ${symbols.join(", ")}`);
-
     const promises = symbols.map(async (symbol) => {
       try {
         return await this.fetchCurrentData(symbol);
       } catch (error) {
-        console.error(`❌ Error fetching data for ${symbol}:`, error);
         return null;
       }
     });
@@ -272,116 +255,87 @@ export class TCBSDataSource implements IStockDataSource {
     const results = await Promise.all(promises);
     const successfulResults = results.filter((result): result is StandardStockData => result !== null);
 
-    console.log(`✅ Successfully fetched data for ${successfulResults.length}/${symbols.length} symbols`);
     return successfulResults;
   }
 
-  private transformHistoricalData(data: any[], symbol: string): StandardStockData[] {
-    return data.map((item) => ({
-      symbol,
-      date: this.formatDateForUI(item.tradingDate),
-      dateObj: new Date(item.tradingDate),
-      openPrice: item.open || 0,
-      closePrice: item.close || 0,
-      highestPrice: item.high || 0,
-      lowestPrice: item.low || 0,
-      adjustedPrice: item.adjClose || item.close || 0,
-      volume: item.volume || 0,
-      negotiatedVolume: item.dealVolume || 0,
-      negotiatedValue: item.dealValue || 0,
-      priceChange: {
-        value: item.change || 0,
-        percentage: item.pctChange || 0,
-      },
-      source: "TCBS" as DataSource,
-      fetchedAt: new Date(),
-    }));
+  // REFACTORED: Complete rewrite to handle VND Direct array format and ensure OHLC data
+  private transformHistoricalData(data: VNDHistoricalResponse, symbol: string): StandardStockData[] {
+    const result: StandardStockData[] = [];
+
+    // Validate that all arrays have the same length
+    const length = data.t.length;
+
+    if (!data.o || !data.h || !data.l || !data.c || !data.v) {
+      throw new Error("Missing OHLC data in VND Direct response");
+    }
+
+    // Transform each data point to StandardStockData with full OHLC support
+    for (let i = 0; i < length; i++) {
+      const timestamp = data.t[i]! * 1000; // Convert to milliseconds
+      const dateObj = new Date(timestamp);
+
+      // Extract OHLC values
+      const openPrice = data.o[i] || 0;
+      const highPrice = data.h[i] || 0;
+      const lowPrice = data.l[i] || 0;
+      const closePrice = data.c[i] || 0;
+      const volume = data.v[i] || 0;
+
+      // Calculate price change from previous day (if available)
+      const previousPrice = i > 0 ? data.c[i - 1]! : closePrice;
+      const priceChange = closePrice - previousPrice;
+      const priceChangePercentage = previousPrice > 0 ? (priceChange / previousPrice) * 100 : 0;
+
+      // Create StandardStockData with full OHLC candlestick data
+      const dataPoint: StandardStockData = {
+        symbol,
+        date: this.formatDateForUI(dateObj),
+        dateObj,
+        // CANDLESTICK OHLC DATA - Essential for candlestick charts
+        openPrice, // Opening price
+        closePrice, // Closing price
+        highestPrice: highPrice, // Highest price (high)
+        lowestPrice: lowPrice, // Lowest price (low)
+        adjustedPrice: closePrice, // VND doesn't provide adjusted close, use close price
+        volume, // Trading volume
+        negotiatedVolume: 0, // VND doesn't provide this field
+        negotiatedValue: 0, // VND doesn't provide this field
+        priceChange: {
+          value: priceChange,
+          percentage: priceChangePercentage,
+        },
+        source: "TCBS" as DataSource, // Keep the source name as TCBS for compatibility
+        fetchedAt: new Date(),
+      };
+
+      result.push(dataPoint);
+
+      // Log first few data points for debugging
+      if (i < 3) {
+        console.log(
+          `📈 ${i + 1}. ${dataPoint.date}: O=${openPrice}, H=${highPrice}, L=${lowPrice}, C=${closePrice}, V=${volume.toLocaleString()}`,
+        );
+      }
+    }
+
+    // Sort by date to ensure chronological order for proper candlestick display
+    const sortedResult = result.sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+
+    return sortedResult;
   }
 
-  private transformCurrentData(data: any, symbol: string): StandardStockData {
-    return {
-      symbol,
-      date: this.formatDateForUI(new Date()),
-      dateObj: new Date(),
-      openPrice: data.openPrice || 0,
-      closePrice: data.lastPrice || 0,
-      highestPrice: data.highestPrice || 0,
-      lowestPrice: data.lowestPrice || 0,
-      adjustedPrice: data.lastPrice || 0,
-      volume: data.totalVol || 0,
-      negotiatedVolume: data.nmVolume || 0,
-      negotiatedValue: data.nmValue || 0,
-      priceChange: {
-        value: data.change || 0,
-        percentage: data.pctChange || 0,
-      },
-      source: "TCBS" as DataSource,
-      fetchedAt: new Date(),
-    };
+  // Helper method to format dates for API calls
+  private formatDate(date: Date): string {
+    return date.toISOString().split("T")[0]!; // YYYY-MM-DD format
   }
 
   private formatDateForUI(date: string | Date): string {
     const d = typeof date === "string" ? new Date(date) : date;
-    return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}/${d.getFullYear()}`;
-  }
-}
+    const day = d.getDate().toString().padStart(2, "0");
+    const month = (d.getMonth() + 1).toString().padStart(2, "0");
+    const year = d.getFullYear();
 
-export class VietCapDataSource implements IStockDataSource {
-  private baseUrl = "https://api.vietcap.com.vn/data-mt";
-  private config: StockDataSourceConfig;
-  private rateLimiter: RateLimiter;
-  private lastError: Error | null = null;
-
-  constructor(config: StockDataSourceConfig) {
-    this.config = config;
-    this.rateLimiter = new RateLimiter(config.rateLimit?.requestsPerMinute || 30, 60 * 1000);
-  }
-
-  getName(): DataSource {
-    return "VIETCAP";
-  }
-
-  isEnabled(): boolean {
-    return this.config.enabled;
-  }
-
-  getRateLimit() {
-    return this.config.rateLimit || { requestsPerMinute: 30, burstLimit: 5 };
-  }
-
-  getLastError(): Error | null {
-    return this.lastError;
-  }
-
-  async healthCheck(): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.baseUrl}/graphql`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: "{ __typename }" }),
-        signal: AbortSignal.timeout(5000),
-      });
-      return response.ok;
-    } catch (error) {
-      this.lastError = error as Error;
-      return false;
-    }
-  }
-
-  async fetchHistoricalData(params: HistoricalDataParams): Promise<StandardStockData[]> {
-    // TODO: Implement VietCap historical data fetching
-    // Using GraphQL endpoint based on vnstock research
-    throw new Error("VietCap historical data not implemented yet");
-  }
-
-  async fetchCurrentData(symbol: string): Promise<StandardStockData> {
-    // TODO: Implement VietCap current data fetching
-    throw new Error("VietCap current data not implemented yet");
-  }
-
-  async fetchMultipleCurrentData(symbols: string[]): Promise<StandardStockData[]> {
-    // TODO: Implement VietCap batch data fetching
-    throw new Error("VietCap batch data not implemented yet");
+    return `${day}/${month}/${year}`;
   }
 }
 
@@ -418,9 +372,11 @@ export class SSIDataSource implements IStockDataSource {
       const response = await fetch(`${this.baseUrl}/statistics/financial/health`, {
         signal: AbortSignal.timeout(5000),
       });
+
       return response.ok;
     } catch (error) {
       this.lastError = error as Error;
+
       return false;
     }
   }
@@ -444,7 +400,7 @@ export class SSIDataSource implements IStockDataSource {
 export class StockDataSourceManager {
   private sources = new Map<DataSource, IStockDataSource>();
   private config = new Map<DataSource, StockDataSourceConfig>();
-  private defaultSource: DataSource = "TCBS";
+  private defaultSource: DataSource = "VNDIRECT";
   private cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
 
   constructor() {
@@ -455,27 +411,19 @@ export class StockDataSourceManager {
   private initializeConfigurations() {
     const configs: StockDataSourceConfig[] = [
       {
-        name: "TCBS",
-        displayName: "TCBS Securities",
-        baseUrl: "https://apipubaws.tcbs.com.vn",
-        enabled: true,
+        name: "VNDIRECT",
+        displayName: "VND Direct",
+        baseUrl: "https://dchart-api.vndirect.com.vn/dchart",
+        enabled: true, // Enable VND Direct
         priority: 1,
         rateLimit: { requestsPerMinute: 60, burstLimit: 10 },
-      },
-      {
-        name: "VIETCAP",
-        displayName: "VietCap Securities",
-        baseUrl: "https://api.vietcap.com.vn/data-mt",
-        enabled: false, // Enable when implemented
-        priority: 2,
-        rateLimit: { requestsPerMinute: 30, burstLimit: 5 },
       },
       {
         name: "SSI",
         displayName: "SSI Securities",
         baseUrl: "https://iboard-api.ssi.com.vn",
         enabled: false, // Enable when implemented
-        priority: 3,
+        priority: 2,
         rateLimit: { requestsPerMinute: 40, burstLimit: 8 },
       },
     ];
@@ -486,16 +434,14 @@ export class StockDataSourceManager {
   }
 
   private initializeSources() {
-    // Initialize TCBS source
-    const tcbsConfig = this.config.get("TCBS")!;
-    this.sources.set("TCBS", new TCBSDataSource(tcbsConfig));
+    // Initialize VND Direct source (new)
+    const vndConfig = this.config.get("VNDIRECT")!;
 
-    // Initialize VietCap source (ready for when implemented)
-    const vietcapConfig = this.config.get("VIETCAP")!;
-    this.sources.set("VIETCAP", new VietCapDataSource(vietcapConfig));
+    this.sources.set("VNDIRECT", new VNDDataSource(vndConfig));
 
     // Initialize SSI source (ready for when implemented)
     const ssiConfig = this.config.get("SSI")!;
+
     this.sources.set("SSI", new SSIDataSource(ssiConfig));
   }
 
@@ -529,10 +475,12 @@ export class StockDataSourceManager {
 
   private getFromCache<T>(key: string): T | null {
     const cached = this.cache.get(key);
+
     if (cached && Date.now() - cached.timestamp < cached.ttl) {
       return cached.data as T;
     }
     this.cache.delete(key);
+
     return null;
   }
 
@@ -543,6 +491,7 @@ export class StockDataSourceManager {
   async fetchHistoricalData(params: HistoricalDataParams, preferredSource?: DataSource): Promise<StandardStockData[]> {
     const cacheKey = this.getCacheKey("historical", params);
     const cached = this.getFromCache<StandardStockData[]>(cacheKey);
+
     if (cached) return cached;
 
     const source = preferredSource || this.defaultSource;
@@ -554,10 +503,11 @@ export class StockDataSourceManager {
 
     try {
       const data = await dataSource.fetchHistoricalData(params);
+
       this.setToCache(cacheKey, data, 60000); // Cache for 1 minute
+
       return data;
     } catch (error) {
-      console.error(`Error fetching from ${source}, trying fallback:`, error);
       return this.fallbackFetchHistoricalData(params, source);
     }
   }
@@ -565,6 +515,7 @@ export class StockDataSourceManager {
   async fetchCurrentData(symbol: string, preferredSource?: DataSource): Promise<StandardStockData> {
     const cacheKey = this.getCacheKey("current", { symbol });
     const cached = this.getFromCache<StandardStockData>(cacheKey);
+
     if (cached) return cached;
 
     const source = preferredSource || this.defaultSource;
@@ -576,10 +527,11 @@ export class StockDataSourceManager {
 
     try {
       const data = await dataSource.fetchCurrentData(symbol);
+
       this.setToCache(cacheKey, data, 10000); // Cache for 10 seconds
+
       return data;
-    } catch (error) {
-      console.error(`Error fetching from ${source}, trying fallback:`, error);
+    } catch (_error) {
       return this.fallbackFetchCurrentData(symbol, source);
     }
   }
@@ -596,6 +548,7 @@ export class StockDataSourceManager {
       return await dataSource.fetchMultipleCurrentData(symbols);
     } catch (error) {
       console.error(`Error fetching multiple from ${source}, trying fallback:`, error);
+
       return this.fallbackFetchMultipleCurrentData(symbols, source);
     }
   }
@@ -610,7 +563,6 @@ export class StockDataSourceManager {
 
     for (const [name, source] of availableSources) {
       try {
-        console.log(`Trying fallback source for historical data: ${name}`);
         return await source.fetchHistoricalData(params);
       } catch (error) {
         console.error(`Fallback source ${name} also failed:`, error);
@@ -627,7 +579,6 @@ export class StockDataSourceManager {
 
     for (const [name, source] of availableSources) {
       try {
-        console.log(`Trying fallback source for current data: ${name}`);
         return await source.fetchCurrentData(symbol);
       } catch (error) {
         console.error(`Fallback source ${name} also failed:`, error);
@@ -647,7 +598,6 @@ export class StockDataSourceManager {
 
     for (const [name, source] of availableSources) {
       try {
-        console.log(`Trying fallback source for multiple current data: ${name}`);
         return await source.fetchMultipleCurrentData(symbols);
       } catch (error) {
         console.error(`Fallback source ${name} also failed:`, error);
@@ -663,8 +613,7 @@ export class StockDataSourceManager {
     const healthCheckPromises = Array.from(this.sources.entries()).map(async ([name, source]) => {
       if (source.isEnabled()) {
         try {
-          const isHealthy = await source.healthCheck();
-          results[name] = isHealthy;
+          results[name] = await source.healthCheck();
         } catch {
           results[name] = false;
         }
@@ -674,6 +623,7 @@ export class StockDataSourceManager {
     });
 
     await Promise.all(healthCheckPromises);
+
     return results;
   }
 

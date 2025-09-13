@@ -1,7 +1,6 @@
 import { X as CloseIcon } from "lucide-react";
 import React from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-
 import ComparisonTooltip from "@repo/ui/components/organisms/ComparisonTooltip";
 import { Card, CardHeader, CardContent } from "@repo/ui/components/atoms/card";
 import { Button } from "@repo/ui/components/atoms/button";
@@ -60,8 +59,8 @@ const StockComparisonChart: React.FC<ComparisonChartProps> = ({
 
     processedStockData.forEach((stock) => {
       if (stock.data.length > 0) {
-        const stockStart = new Date(stock.data[0].date.split("/").reverse().join("-"));
-        const stockEnd = new Date(stock.data[stock.data.length - 1].date.split("/").reverse().join("-"));
+        const stockStart = new Date(stock.data[0]!.date.split("/").reverse().join("-"));
+        const stockEnd = new Date(stock.data[stock.data.length - 1]!.date.split("/").reverse().join("-"));
 
         if (stockStart > latestStart) latestStart = stockStart;
         if (stockEnd < earliestEnd) earliestEnd = stockEnd;
@@ -109,7 +108,7 @@ const StockComparisonChart: React.FC<ComparisonChartProps> = ({
 
         if (point && baselinePrices[stock.symbol]) {
           const baselinePrice = baselinePrices[stock.symbol];
-          const percentageChange = ((point.closePrice - baselinePrice) / baselinePrice) * 100;
+          const percentageChange = ((point.closePrice - baselinePrice!) / baselinePrice!) * 100;
 
           dataPoint[`${stock.symbol}_change`] = date === earliestCommonDate ? 0 : percentageChange;
           dataPoint[`${stock.symbol}_price`] = point.closePrice;
@@ -123,7 +122,7 @@ const StockComparisonChart: React.FC<ComparisonChartProps> = ({
   if (!stocksData.length) return null;
 
   return (
-    <Card className={`w-full ${className}`}>
+    <Card className={`w-full ${className}`} variant="holographic">
       <CardHeader className="flex flex-wrap gap-2">
         <div className="flex-1">
           <h4 className="text-lg font-semibold">{title}</h4>
@@ -135,11 +134,11 @@ const StockComparisonChart: React.FC<ComparisonChartProps> = ({
               <Button
                 key={stock.symbol}
                 className="min-w-[100px]"
-                variant="outline"
                 style={{
                   borderColor: STOCK_COLORS[index % STOCK_COLORS.length],
                   color: STOCK_COLORS[index % STOCK_COLORS.length],
                 }}
+                variant="holographic"
               >
                 {stock.symbol}
                 {onRemoveStock && (

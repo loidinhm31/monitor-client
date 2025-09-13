@@ -78,6 +78,7 @@ const SheetOverlay = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Ove
     <SheetPrimitive.Overlay className={cn(sheetOverlayVariants({ variant }), className)} {...props} ref={ref} />
   ),
 );
+
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 interface SheetContentProps
@@ -139,6 +140,7 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Con
     );
   },
 );
+
 SheetContent.displayName = SheetPrimitive.Content.displayName;
 
 interface SheetHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -168,6 +170,7 @@ const SheetHeader = ({ className, variant, ...props }: SheetHeaderProps) => {
     />
   );
 };
+
 SheetHeader.displayName = "SheetHeader";
 
 interface SheetFooterProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -201,6 +204,7 @@ const SheetFooter = ({ className, variant, ...props }: SheetFooterProps) => {
     />
   );
 };
+
 SheetFooter.displayName = "SheetFooter";
 
 interface SheetTitleProps extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Title> {
@@ -238,6 +242,7 @@ const SheetTitle = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Title
     return <SheetPrimitive.Title ref={ref} className={cn(getTitleClasses(), className)} {...props} />;
   },
 );
+
 SheetTitle.displayName = SheetPrimitive.Title.displayName;
 
 interface SheetDescriptionProps extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Description> {
@@ -264,6 +269,7 @@ const SheetDescription = React.forwardRef<React.ElementRef<typeof SheetPrimitive
     return <SheetPrimitive.Description ref={ref} className={cn(getDescriptionClasses(), className)} {...props} />;
   },
 );
+
 SheetDescription.displayName = SheetPrimitive.Description.displayName;
 
 export {

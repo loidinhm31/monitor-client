@@ -1,6 +1,5 @@
 import { Plus } from "lucide-react";
 import React, { useMemo } from "react";
-
 import { Input } from "@repo/ui/components/atoms/input";
 import { Button } from "@repo/ui/components/atoms/button";
 import StockComparisonChart from "@repo/ui/components/templates/analytic-stocks/StockComparisonChart";
@@ -71,9 +70,9 @@ const PortfolioComparison: React.FC<PortfolioComparisonProps> = ({
           />
         </div>
         <Button
-          variant="default"
           disabled={loading || !compareSymbol || portfolioData.some((item) => item.symbol === compareSymbol)}
           size="lg"
+          variant="default"
           onClick={handleAddStock}
         >
           <Plus className="w-4 h-4" />

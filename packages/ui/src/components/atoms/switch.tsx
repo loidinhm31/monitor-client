@@ -53,6 +53,7 @@ const Switch = React.forwardRef<React.ElementRef<typeof SwitchPrimitives.Root>, 
     </SwitchPrimitives.Root>
   ),
 );
+
 Switch.displayName = SwitchPrimitives.Root.displayName;
 
 export { Switch, switchVariants };

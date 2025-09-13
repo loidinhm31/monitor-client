@@ -22,9 +22,9 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
     <div className="flex flex-wrap gap-4 mb-4">
       <div className="flex items-center space-x-2">
         <Switch
-          variant="holographic"
           checked={indicators.highLow}
           id="high-low-switch"
+          variant="holographic"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, highLow: value })}
         />
         <Label className="text-sm font-medium cursor-pointer" htmlFor="high-low-switch">
@@ -34,9 +34,9 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
 
       <div className="flex items-center space-x-2">
         <Switch
-          variant="holographic"
           checked={indicators.pivotPoints}
           id="pivot-points-switch"
+          variant="holographic"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, pivotPoints: value })}
         />
         <Label className="text-sm font-medium cursor-pointer" htmlFor="pivot-points-switch">
@@ -46,9 +46,9 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
 
       <div className="flex items-center space-x-2">
         <Switch
-          variant="holographic"
           checked={indicators.sma}
           id="sma-switch"
+          variant="holographic"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, sma: value })}
         />
         <Label className="text-sm font-medium cursor-pointer" htmlFor="sma-switch">
@@ -58,9 +58,9 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
 
       <div className="flex items-center space-x-2">
         <Switch
-          variant="holographic"
           checked={indicators.ema}
           id="ema-switch"
+          variant="holographic"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, ema: value })}
         />
         <Label className="text-sm font-medium cursor-pointer" htmlFor="ema-switch">
@@ -70,9 +70,9 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
 
       <div className="flex items-center space-x-2">
         <Switch
-          variant="holographic"
           checked={indicators.macd}
           id="macd-switch"
+          variant="holographic"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, macd: value })}
         />
         <Label className="text-sm font-medium cursor-pointer" htmlFor="macd-switch">

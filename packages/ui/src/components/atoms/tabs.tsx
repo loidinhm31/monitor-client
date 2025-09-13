@@ -77,6 +77,7 @@ const TabsList = React.forwardRef<React.ElementRef<typeof TabsPrimitive.List>, T
     <TabsPrimitive.List ref={ref} className={cn(tabsListVariants({ variant }), className)} {...props} />
   ),
 );
+
 TabsList.displayName = TabsPrimitive.List.displayName;
 
 interface TabsTriggerProps
@@ -88,6 +89,7 @@ const TabsTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Trigg
     <TabsPrimitive.Trigger ref={ref} className={cn(tabsTriggerVariants({ variant }), className)} {...props} />
   ),
 );
+
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
 
 const TabsContent = React.forwardRef<
@@ -103,6 +105,7 @@ const TabsContent = React.forwardRef<
     {...props}
   />
 ));
+
 TabsContent.displayName = TabsPrimitive.Content.displayName;
 
 export { Tabs, TabsList, TabsTrigger, TabsContent, tabsListVariants, tabsTriggerVariants };

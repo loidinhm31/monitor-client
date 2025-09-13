@@ -1,9 +1,9 @@
 import { Button } from "@repo/ui/components/atoms/button";
-import { Input } from "@repo/ui/components/atoms/input";
 import { Plus } from "lucide-react";
 import React, { useState } from "react";
-
 import ComparisonChart from "@repo/ui/components/templates/analytic-stocks/StockComparisonChart";
+import { InputLabel } from "@repo/ui/components/atoms/input-label";
+
 interface StockComparisonProps {
   stocksData: {
     symbol: string;
@@ -33,19 +33,19 @@ const StockComparison: React.FC<StockComparisonProps> = ({ stocksData, onAddStoc
     <div className="w-full space-y-4">
       <div className="flex flex-wrap items-end gap-4">
         <div className="flex-none w-32">
-          <Input
+          <InputLabel
             label="Compare with"
             placeholder="Symbol"
             type="text"
             value={compareSymbol}
-            variant="outline"
+            variant="holographic"
             onChange={(e) => setCompareSymbol(e.target.value.toUpperCase())}
           />
         </div>
         <Button
-          variant="default"
           disabled={!compareSymbol || stocksData.some((s) => s.symbol === compareSymbol)}
           size="lg"
+          variant="holographic"
           onClick={handleAddStock}
         >
           <Plus className="w-4 h-4" />

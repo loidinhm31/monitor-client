@@ -2,7 +2,6 @@ import type { TransformedStockData } from "@repo/ui/types/stock";
 
 import { Trash2 } from "lucide-react";
 import React from "react";
-
 import { Button } from "@repo/ui/components/atoms/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/components/atoms/table";
 import { COLUMN_LABELS } from "@repo/ui/lib/stock-utils";
@@ -28,7 +27,7 @@ const PortfolioDataTable: React.FC<PortfolioDataTableProps> = ({ data, onRemoveS
   const renderCell = (column: { key: string }, row: TransformedStockData & { symbol: string }) => {
     if (column.key === "actions") {
       return (
-        <Button variant="destructive" size="sm" onClick={() => onRemoveStock(row.symbol)}>
+        <Button size="sm" variant="destructive" onClick={() => onRemoveStock(row.symbol)}>
           <Trash2 className="w-4 h-4" />
         </Button>
       );

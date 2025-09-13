@@ -34,6 +34,7 @@ export const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
         stockDataSourceManager.healthCheckAll(),
         Promise.resolve(stockDataSourceManager.getSourceErrors()),
       ]);
+
       setHealthStatus(status);
       setSourceErrors(errors);
     } catch (error) {
@@ -48,6 +49,7 @@ export const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
     if (showHealthStatus) {
       checkHealth();
       const interval = setInterval(checkHealth, 30000); // Check every 30 seconds
+
       return () => clearInterval(interval);
     }
   }, [showHealthStatus, checkHealth]);
@@ -68,9 +70,8 @@ export const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
 
   const getSourceDescription = (source: DataSource) => {
     const descriptions = {
-      TCBS: "TCBS Securities - Primary data source with real-time updates",
-      VIETCAP: "VietCap Securities - GraphQL API (Coming Soon)",
-      SSI: "SSI Securities - iBoard API (Coming Soon)",
+      VNDIRECT: "VNDIRECT Securities - D-Board API",
+      SSI: "SSI Securities - iBoard API ",
     };
 
     return descriptions[source];
@@ -79,20 +80,23 @@ export const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
   return (
     <TooltipProvider>
       <div className={`flex items-center gap-2 ${className}`}>
-        <Select  disabled={disabled} value={currentSource} onValueChange={(value: DataSource) => onSourceChange(value)}>
-          <SelectTrigger variant="holographic" className="w-48">
+        <Select disabled={disabled} value={currentSource} onValueChange={(value: DataSource) => onSourceChange(value)}>
+          <SelectTrigger className="w-48" variant="holographic">
             <SelectValue placeholder="Select data source" />
           </SelectTrigger>
           <SelectContent variant="holographic">
             {availableSources.map((source) => (
-              <SelectItem key={source.name} value={source.name}>
+              <SelectItem key={source.name} value={source.name} variant="holographic">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-2">
                     <span>{source.displayName}</span>
                     {showHealthStatus && getHealthIcon(source.name)}
                   </div>
                   <div className="flex items-center gap-1 ml-2">
-                    <Badge className="text-xs" variant={source.priority === 1 ? "holographic" : "secondary"}>
+                    <Badge
+                      className="text-xs"
+                      variant={source.priority === 1 ? "holographic" : "holographic-secondary"}
+                    >
                       {source.priority === 1 ? "Primary" : "Secondary"}
                     </Badge>
                   </div>
@@ -106,11 +110,11 @@ export const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
           <>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={checkHealth} disabled={checkingHealth}>
+                <Button disabled={checkingHealth} size="sm" variant="default" onClick={checkHealth}>
                   <RefreshCw className={`w-4 h-4 ${checkingHealth ? "animate-spin" : ""}`} />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent variant="holographic">
                 <p>Check data source health</p>
               </TooltipContent>
             </Tooltip>
@@ -118,7 +122,10 @@ export const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-1">
-                  <Badge className="text-xs" variant={healthStatus[currentSource] === true ? "holographic" : "destructive"}>
+                  <Badge
+                    className="text-xs"
+                    variant={healthStatus[currentSource] === true ? "holographic" : "holographic-destructive"}
+                  >
                     {currentSource}
                   </Badge>
                   {!healthStatus[currentSource] && sourceErrors[currentSource] && (
@@ -126,7 +133,7 @@ export const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
                   )}
                 </div>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent variant="holographic">
                 <div className="space-y-1">
                   <p>{getSourceDescription(currentSource)}</p>
                   {!healthStatus[currentSource] && sourceErrors[currentSource] && (

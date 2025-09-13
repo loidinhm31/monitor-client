@@ -259,7 +259,7 @@ const SaveDataControl = ({ getCurrentFrame, isStreaming }: SaveDataControlProps)
 
       {/* Control buttons */}
       <div className="flex gap-2 flex-wrap">
-        <Button variant="holographic" disabled={!isStreaming} onClick={captureCurrentFrame}>
+        <Button disabled={!isStreaming} variant="holographic" onClick={captureCurrentFrame}>
           Capture Image
         </Button>
 

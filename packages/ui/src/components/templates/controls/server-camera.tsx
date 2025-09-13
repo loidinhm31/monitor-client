@@ -332,7 +332,7 @@ const ServerCamera = ({ hostConnection }: ServerCameraProps) => {
                 )}
               </div>
 
-              <Button variant="holographic" size="sm" onClick={toggleFullScreen}>
+              <Button size="sm" variant="holographic" onClick={toggleFullScreen}>
                 {isFullScreen ? <Minimize size={16} /> : <Maximize size={16} />}
               </Button>
             </CardFooter>
@@ -341,8 +341,9 @@ const ServerCamera = ({ hostConnection }: ServerCameraProps) => {
 
         {/* Camera Controls */}
         <div className="flex gap-4 justify-center mt-2">
-          <Button variant="holographic"
+          <Button
             disabled={!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN || isStarted}
+            variant="holographic"
             onClick={handleStartCamera}
           >
             Start Camera

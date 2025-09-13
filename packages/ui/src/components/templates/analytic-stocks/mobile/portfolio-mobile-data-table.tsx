@@ -85,10 +85,7 @@ const PortfolioMobileDataTable: React.FC<PortfolioMobileDataTableProps> = ({
           <div className="p-0">
             {/* Main Row */}
             <div className="flex w-full">
-              <Button
-                className="flex-1 px-3 py-4"
-                onClick={() => toggleRow(`${row.symbol}-${row.date}`)}
-              >
+              <Button className="flex-1 px-3 py-4" onClick={() => toggleRow(`${row.symbol}-${row.date}`)}>
                 <div className="grid grid-cols-4 gap-2 w-full items-center">
                   <div className="flex justify-start">
                     {expandedRows[`${row.symbol}-${row.date}`] ? (
@@ -105,12 +102,7 @@ const PortfolioMobileDataTable: React.FC<PortfolioMobileDataTableProps> = ({
                 </div>
               </Button>
               {actionColumn && (
-                <Button
-                  size="icon"
-                  className="m-2"
-                  variant="destructive"
-                  onClick={() => onRemoveStock(row.symbol)}
-                >
+                <Button className="m-2" size="icon" variant="destructive" onClick={() => onRemoveStock(row.symbol)}>
                   <Trash2 className="w-4 h-4" />
                 </Button>
               )}

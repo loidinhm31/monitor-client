@@ -162,7 +162,7 @@ const TabbedAnalytics = () => {
 
   return (
     <div className="w-full space-y-6">
-      <Card>
+      <Card variant="holographic">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -266,12 +266,12 @@ const TabbedAnalytics = () => {
 
       {/* Main Content Tabs */}
       <Tabs className="py-4" value={selectedTab} onValueChange={(key) => setSelectedTab(key)}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger className="flex items-center gap-2" value="analysis">
+        <TabsList className="grid w-full grid-cols-2" variant="holographic">
+          <TabsTrigger className="flex items-center gap-2" value="analysis" variant="holographic">
             <TrendingUp className="w-4 h-4" />
             Market Analysis
           </TabsTrigger>
-          <TabsTrigger className="flex items-center gap-2" value="portfolio">
+          <TabsTrigger className="flex items-center gap-2" value="portfolio" variant="holographic">
             <Activity className="w-4 h-4" />
             Portfolio ({portfolioSymbols.length})
           </TabsTrigger>
@@ -293,8 +293,8 @@ const TabbedAnalytics = () => {
                       label="Stock Symbol"
                       placeholder="e.g., VN30, TCB, VIC"
                       type="text"
-                      variant="holographic"
                       value={inputSymbol}
+                      variant="holographic"
                       onChange={(e: { target: { value: string } }) => setInputSymbol(e.target.value.toUpperCase())}
                     />
                   </div>
@@ -360,7 +360,7 @@ const TabbedAnalytics = () => {
 
           {/* Getting Started Guide */}
           {!mainStock && !isLoading && (
-            <Card>
+            <Card variant="holographic">
               <CardContent className="text-center py-12">
                 <TrendingUp className="w-16 h-16 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Start Your Analysis</h3>
@@ -374,7 +374,7 @@ const TabbedAnalytics = () => {
                       key={symbol}
                       className="text-gray-600 hover:text-gray-900"
                       size="sm"
-                      variant="ghost"
+                      variant="default"
                       onClick={() => setInputSymbol(symbol)}
                     >
                       {symbol}
@@ -386,7 +386,7 @@ const TabbedAnalytics = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="portfolio" className="space-y-6">
+        <TabsContent className="space-y-6" value="portfolio">
           {/* Portfolio Tab */}
           <Portfolio
             dateControls={{

@@ -177,6 +177,7 @@ const SelectTrigger = React.forwardRef<React.ElementRef<typeof SelectPrimitive.T
     </SelectPrimitive.Trigger>
   ),
 );
+
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
 const SelectScrollUpButton = React.forwardRef<
@@ -212,6 +213,7 @@ const SelectScrollUpButton = React.forwardRef<
     </SelectPrimitive.ScrollUpButton>
   );
 });
+
 SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
 
 const SelectScrollDownButton = React.forwardRef<
@@ -247,6 +249,7 @@ const SelectScrollDownButton = React.forwardRef<
     </SelectPrimitive.ScrollDownButton>
   );
 });
+
 SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayName;
 
 interface SelectContentProps
@@ -282,6 +285,7 @@ const SelectContent = React.forwardRef<React.ElementRef<typeof SelectPrimitive.C
     </SelectPrimitive.Portal>
   ),
 );
+
 SelectContent.displayName = SelectPrimitive.Content.displayName;
 
 const SelectLabel = React.forwardRef<
@@ -315,6 +319,7 @@ const SelectLabel = React.forwardRef<
     />
   );
 });
+
 SelectLabel.displayName = SelectPrimitive.Label.displayName;
 
 interface SelectItemProps
@@ -352,6 +357,7 @@ const SelectItem = React.forwardRef<React.ElementRef<typeof SelectPrimitive.Item
     );
   },
 );
+
 SelectItem.displayName = SelectPrimitive.Item.displayName;
 
 const SelectSeparator = React.forwardRef<
@@ -385,6 +391,7 @@ const SelectSeparator = React.forwardRef<
     />
   );
 });
+
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
 
 export {

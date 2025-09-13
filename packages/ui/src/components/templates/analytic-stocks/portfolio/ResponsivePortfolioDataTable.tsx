@@ -1,7 +1,6 @@
 import type { TransformedStockData } from "@repo/ui/types/stock";
 
 import React, { useEffect, useState } from "react";
-
 import PortfolioMobileDataTable from "@repo/ui/components/templates/analytic-stocks/mobile/portfolio-mobile-data-table";
 import PortfolioDataTable from "@repo/ui/components/templates/analytic-stocks/portfolio/PortfolioDataTable";
 interface ResponsivePortfolioDataTableProps {

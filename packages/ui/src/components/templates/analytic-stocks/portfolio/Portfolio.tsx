@@ -68,6 +68,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateControls, portfolioProps }) =
     if (!newSymbol.trim() || !addSymbol) return;
 
     const success = await addSymbol(newSymbol.trim());
+
     if (success) {
       setNewSymbol("");
     }
@@ -115,24 +116,24 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateControls, portfolioProps }) =
         <div className="flex flex-wrap items-end gap-4 p-4 bg-gray-50 rounded-lg">
           <div className="flex-1 min-w-32">
             <Input
+              disabled={loading}
               label="Add Stock Symbol"
               placeholder="e.g., TCB, VIC, HPG"
               value={newSymbol}
               onChange={(e) => setNewSymbol(e.target.value.toUpperCase())}
               onKeyPress={handleKeyPress}
-              disabled={loading}
             />
           </div>
           <Button
-            onClick={handleAddSymbol}
-            disabled={loading || !newSymbol.trim() || portfolioSymbols.includes(newSymbol.trim())}
             className="flex items-center gap-2"
+            disabled={loading || !newSymbol.trim() || portfolioSymbols.includes(newSymbol.trim())}
+            onClick={handleAddSymbol}
           >
             <Plus className="w-4 h-4" />
             Add to Portfolio
           </Button>
           {portfolioSymbols.length > 0 && (
-            <Button variant="outline" onClick={refreshHoldings} disabled={loading} className="flex items-center gap-2">
+            <Button className="flex items-center gap-2" disabled={loading} variant="outline" onClick={refreshHoldings}>
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
               Refresh Data
             </Button>
@@ -190,10 +191,10 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateControls, portfolioProps }) =
                   {["TCB", "VCB", "HPG", "VIC", "MSN"].map((symbol) => (
                     <Button
                       key={symbol}
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setNewSymbol(symbol)}
                       className="text-gray-600 hover:text-gray-900"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setNewSymbol(symbol)}
                     >
                       {symbol}
                     </Button>

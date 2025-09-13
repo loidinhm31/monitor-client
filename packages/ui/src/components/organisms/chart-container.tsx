@@ -1,18 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-
 import CustomTooltip from "@repo/ui/components/organisms/CustomTooltip";
 import { Indicators } from "@repo/ui/components/templates/analytic-stocks/indicator-controls";
-import { ZoomableContainer } from "@repo/ui/components/organisms/ZoomableContainer";
+import { ZoomableContainer } from "@repo/ui/components/organisms/zoomable-container";
 import { ChartData } from "@repo/ui/types/stock";
-import { Card, CardContent } from "@repo/ui/components/atoms/card";
+import { Card, CardContent, CardHeader } from "@repo/ui/components/atoms/card";
 
 interface EnhancedChartProps {
   data: ChartData[];
   indicators: Indicators;
 }
 
-const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({ data = [], indicators }) => {
+const ChartContainer: React.FC<EnhancedChartProps> = ({ data = [], indicators }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [orientation, setOrientation] = useState("portrait");
 
@@ -226,7 +225,7 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({ data = [], indic
   );
 
   return (
-    <Card className="w-full mt-4">
+    <Card className="w-full mt-4" variant="holographic">
       <CardContent>
         <ZoomableContainer data={data}>{(displayData) => renderChart(displayData)}</ZoomableContainer>
       </CardContent>
@@ -234,4 +233,4 @@ const EnhancedChartContainer: React.FC<EnhancedChartProps> = ({ data = [], indic
   );
 };
 
-export default EnhancedChartContainer;
+export default ChartContainer;

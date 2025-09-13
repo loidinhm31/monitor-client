@@ -6,7 +6,6 @@ import {
   stockDataSourceManager,
   transformToLegacyFormat,
 } from "@repo/ui/lib/data-sources/stock-data-source-manager";
-
 import { TransformedStockData } from "@repo/ui/types/stock";
 
 interface UseStockDataOptions {
@@ -48,10 +47,12 @@ export const useStockData = ({ startDate, endDate, dataSource }: UseStockDataOpt
       if (fetchInProgress.current[cacheKey]) {
         // Wait for ongoing fetch to complete
         let attempts = 0;
+
         while (fetchInProgress.current[cacheKey] && attempts < 100) {
           await new Promise((resolve) => setTimeout(resolve, 100));
           attempts++;
         }
+
         return [];
       }
 
@@ -140,6 +141,7 @@ export const useStockData = ({ startDate, endDate, dataSource }: UseStockDataOpt
 
           setError(message);
         }
+
         return false;
       } finally {
         if (isMounted.current) {

@@ -64,7 +64,6 @@ const InputLabel = React.forwardRef<HTMLInputElement, InputWithLabelProps>(
       <div className={cn("space-y-2", containerClassName)}>
         {label && (
           <Label
-            htmlFor={inputId}
             className={cn(
               "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
               getLabelColor(),
@@ -72,23 +71,24 @@ const InputLabel = React.forwardRef<HTMLInputElement, InputWithLabelProps>(
               required && "after:content-['*'] after:text-red-400 after:ml-1",
               labelClassName,
             )}
+            htmlFor={inputId}
           >
             {label}
           </Label>
         )}
         <Input
           ref={ref}
-          id={inputId}
-          variant={variant}
-          className={cn(error && "border-red-400/50 focus:border-red-400", className)}
           aria-describedby={description ? `${inputId}-description` : undefined}
           aria-invalid={error ? true : undefined}
+          className={cn(error && "border-red-400/50 focus:border-red-400", className)}
+          id={inputId}
+          variant={variant}
           {...props}
         />
         {description && (
           <p
-            id={`${inputId}-description`}
             className={cn("text-xs", getDescriptionColor(), isHolographic && "font-mono")}
+            id={`${inputId}-description`}
           >
             {description}
           </p>
@@ -98,6 +98,7 @@ const InputLabel = React.forwardRef<HTMLInputElement, InputWithLabelProps>(
     );
   },
 );
+
 InputLabel.displayName = "InputWithLabel";
 
 export { InputLabel, type InputWithLabelProps };

@@ -132,6 +132,7 @@ function formatDate(date: Date | undefined) {
   if (!date) {
     return "";
   }
+
   return date.toLocaleDateString("en-US", {
     day: "2-digit",
     month: "long",
@@ -145,6 +146,7 @@ function formatCalendarDate(date: CalendarDate | undefined) {
   }
   // Convert CalendarDate to Date for formatting
   const jsDate = new Date(date.year, date.month - 1, date.day);
+
   return formatDate(jsDate);
 }
 
@@ -152,6 +154,7 @@ function isValidDate(date: Date | undefined) {
   if (!date) {
     return false;
   }
+
   return !isNaN(date.getTime());
 }
 
@@ -206,6 +209,7 @@ export function DatePicker({
     if (defaultValue) {
       return defaultValue instanceof Date ? defaultValue : calendarDateToDate(defaultValue);
     }
+
     return undefined;
   };
 
@@ -216,6 +220,7 @@ export function DatePicker({
   // Update internal state when value prop changes
   React.useEffect(() => {
     const newDate = getInitialDate();
+
     setDate(newDate);
     setMonth(newDate);
     setInputValue(formatDate(newDate));
@@ -235,9 +240,11 @@ export function DatePicker({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
+
     setInputValue(newValue);
 
     const parsedDate = new Date(newValue);
+
     if (isValidDate(parsedDate)) {
       setDate(parsedDate);
       setMonth(parsedDate);
@@ -253,23 +260,23 @@ export function DatePicker({
       <div className="flex flex-col gap-3 w-full">
         {label && (
           <Label
-            htmlFor={id || "date"}
             className={cn(
               labelVariants({ variant }),
               "px-1",
               isRequired && "after:content-['*'] after:ml-1 after:text-red-500",
             )}
+            htmlFor={id || "date"}
           >
             {label}
           </Label>
         )}
         <div className="relative flex gap-2">
           <Input
-            id={id || "date"}
-            value={inputValue}
-            placeholder={placeholder || formatDate(new Date())}
-            disabled={disabled}
             className={cn(inputVariants({ variant }))}
+            disabled={disabled}
+            id={id || "date"}
+            placeholder={placeholder || formatDate(new Date())}
+            value={inputValue}
             onChange={handleInputChange}
             onKeyDown={(e) => {
               if (e.key === "ArrowDown") {
@@ -281,25 +288,24 @@ export function DatePicker({
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <Button
+                className={cn(buttonVariants({ variant }))}
+                disabled={disabled}
                 id={`${id || "date"}-picker`}
                 variant="ghost"
-                disabled={disabled}
-                className={cn(buttonVariants({ variant }))}
               >
                 <CalendarIcon className="size-3.5" />
                 <span className="sr-only">Select date</span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto overflow-hidden p-0" align="end" alignOffset={-8} sideOffset={10}>
+            <PopoverContent align="end" alignOffset={-8} className="w-auto overflow-hidden p-0" sideOffset={10}>
               <Calendar
-                mode="single"
-                selected={date}
                 captionLayout={showMonthAndYearPickers ? "dropdown" : "label"}
+                disabled={disabled}
+                mode="single"
                 month={month}
+                selected={date}
                 onMonthChange={setMonth}
                 onSelect={handleDateSelect}
-                variant={variant}
-                disabled={disabled}
               />
             </PopoverContent>
           </Popover>

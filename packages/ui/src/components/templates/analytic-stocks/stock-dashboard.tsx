@@ -4,9 +4,9 @@ import { Card, CardContent, CardHeader } from "@repo/ui/components/atoms/card";
 import { Spinner } from "@repo/ui/components/atoms/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/atoms/tabs";
 import React, { useEffect, useMemo, useState } from "react";
-import EnhancedChartContainer from "@repo/ui/components/organisms/ChartContainer";
+import ChartContainer from "@repo/ui/components/organisms/chart-container";
 import ResponsiveDataTable from "@repo/ui/components/templates/analytic-stocks/ResponsiveDataTable";
-import StockComparison from "@repo/ui/components/templates/analytic-stocks/StockComparison";
+import StockComparison from "@repo/ui/components/templates/analytic-stocks/stock-comparison";
 import { filterDataByTimeframe } from "@repo/ui/lib/stock-utils";
 import {
   calculateDailyPivotPoints,
@@ -117,7 +117,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
 
   return (
     <div className="w-full mx-auto">
-      <Card className="w-full">
+      <Card className="w-full" variant="holographic">
         <CardHeader className="flex flex-col sm:flex-row gap-4 px-6 py-4">
           <div className="w-full">
             <h4 className="text-xl font-bold">Stock Market Analysis</h4>
@@ -128,16 +128,20 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
           <IndicatorControls indicators={indicators} onIndicatorChange={setIndicators} />
 
           <Tabs className="mb-4" value={selectedTab} onValueChange={(key) => setSelectedTab(key)}>
-            <TabsList>
-              <TabsTrigger value="price">Price</TabsTrigger>
-              <TabsTrigger value="compare">Compare</TabsTrigger>
-              <TabsTrigger disabled={filteredData.length === 0} value="table">
+            <TabsList variant="holographic">
+              <TabsTrigger value="price" variant="holographic">
+                Price
+              </TabsTrigger>
+              <TabsTrigger value="compare" variant="holographic">
+                Compare
+              </TabsTrigger>
+              <TabsTrigger disabled={filteredData.length === 0} value="table" variant="holographic">
                 Data Table
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="price">
-              <EnhancedChartContainer data={filteredData} indicators={indicators} />
+              <ChartContainer data={filteredData} indicators={indicators} />
             </TabsContent>
 
             <TabsContent value="compare">

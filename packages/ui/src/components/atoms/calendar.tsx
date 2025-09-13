@@ -101,7 +101,7 @@ function Calendar({
       }}
       components={{
         Root: ({ className, rootRef, ...props }) => {
-          return <div data-slot="calendar" ref={rootRef} className={cn(className)} {...props} />;
+          return <div ref={rootRef} className={cn(className)} data-slot="calendar" {...props} />;
         },
         Chevron: ({ className, orientation, ...props }) => {
           if (orientation === "left") {
@@ -159,7 +159,7 @@ function CalendarDayButton({ className, day, modifiers, ...props }: React.Compon
         modifiers.selected && !modifiers.range_start && !modifiers.range_end && !modifiers.range_middle
       }
       size="icon"
-      variant="holographic"
+      variant="ghost"
       {...props}
     />
   );

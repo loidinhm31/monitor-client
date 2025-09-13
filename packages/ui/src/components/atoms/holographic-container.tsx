@@ -18,7 +18,6 @@ const HolographicContainer: React.FC<HolographicContainerProps> = ({
 
   return (
     <Card
-      variant={cardVariant as any}
       animated
       className={cn(
         // Animation delay
@@ -28,6 +27,7 @@ const HolographicContainer: React.FC<HolographicContainerProps> = ({
       style={{
         animationDelay: delay > 0 ? `${delay}ms` : undefined,
       }}
+      variant={cardVariant as any}
       {...props}
     >
       {children}
