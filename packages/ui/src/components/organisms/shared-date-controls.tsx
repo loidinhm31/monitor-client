@@ -1,16 +1,13 @@
-import React, { useState } from "react";
-import { ResolutionOption, TimeframeOption } from "@repo/ui/types/stock";
 import { CalendarDate } from "@internationalized/date";
-import { Calendar } from "@repo/ui/components/atoms/calendar";
-import { Button } from "@repo/ui/components/atoms/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/atoms/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/atoms/select";
-import { Label } from "@repo/ui/components/atoms/label";
-import { CalendarIcon, TrendingUp } from "lucide-react";
-import { cn } from "@repo/ui/lib/utils";
 import { DatePicker } from "@repo/ui/components/atoms/date-picker";
+import { Label } from "@repo/ui/components/atoms/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/atoms/select";
+import { AlertCircle, TrendingUp } from "lucide-react";
+import { cn } from "@repo/ui/lib/utils";
+import React from "react";
+import { ResolutionOption, TimeframeOption } from "@repo/ui/types/stock";
 
-interface DateRange {
+export interface DateRange {
   from: CalendarDate;
   to: CalendarDate;
 }
@@ -19,7 +16,7 @@ interface SharedDateControlsProps {
   startDate: CalendarDate;
   endDate: CalendarDate;
   timeframe: TimeframeOption;
-  resolution?: ResolutionOption;
+  resolution: ResolutionOption;
   onStartDateChange: (date: CalendarDate) => void;
   onEndDateChange: (date: CalendarDate) => void;
   onTimeframeChange: (timeframe: TimeframeOption) => void;
@@ -29,6 +26,7 @@ interface SharedDateControlsProps {
   showResolution?: boolean;
   disabled?: boolean;
   className?: string;
+  currentSymbol?: string; // Add this prop to determine if it's VNGOLD
 }
 
 const formatCustomDate = (date: CalendarDate): string => {
@@ -65,39 +63,14 @@ const SharedDateControls: React.FC<SharedDateControlsProps> = ({
   showResolution = true,
   disabled = false,
   className = "",
+  currentSymbol,
 }) => {
-  const [open, setOpen] = useState(false);
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
-    from: calendarDateToDate(startDate),
-    to: calendarDateToDate(endDate),
-  });
-
-  const handleDateRangeSelect = (range: { from: Date | undefined; to: Date | undefined }) => {
-    setDateRange(range);
-
-    if (range.from && range.to) {
-      const newStartDate = dateToCalendarDate(range.from);
-      const newEndDate = dateToCalendarDate(range.to);
-
-      onStartDateChange(newStartDate);
-      onEndDateChange(newEndDate);
-
-      if (onDateRangeChange) {
-        onDateRangeChange({
-          from: newStartDate,
-          to: newEndDate,
-        });
-      }
-
-      setOpen(false);
-    }
-  };
+  // Check if current symbol is Vietnamese Gold
+  const isVNGold = currentSymbol === "VNGOLD";
+  const resolutionDisabled = disabled || isVNGold;
 
   const handleResolutionChange = (newResolution: ResolutionOption) => {
-    if (onResolutionChange) {
+    if (onResolutionChange && !resolutionDisabled) {
       onResolutionChange(newResolution);
     }
   };
@@ -135,29 +108,43 @@ const SharedDateControls: React.FC<SharedDateControlsProps> = ({
 
       {showResolution && (
         <div className="flex-none w-40">
-          <Label className="text-cyan-400/70 text-sm font-medium mb-2 block">Resolution</Label>
-          <Select disabled={disabled} value={resolution} onValueChange={handleResolutionChange}>
-            <SelectTrigger className="w-full" variant="holographic">
+          <Label className="text-cyan-400/70 text-sm font-medium mb-2 block">
+            Resolution
+            {isVNGold && <span className="ml-2 text-xs text-amber-400/70">(Gold: 1D Only)</span>}
+          </Label>
+          <Select
+            disabled={resolutionDisabled}
+            value={isVNGold ? "1D" : resolution}
+            onValueChange={handleResolutionChange}
+          >
+            <SelectTrigger className={cn("w-full", isVNGold && "opacity-60 cursor-not-allowed")} variant="holographic">
               <TrendingUp className="mr-2 h-4 w-4" />
               <SelectValue placeholder="Resolution" />
             </SelectTrigger>
             <SelectContent variant="holographic">
               <SelectItem value="1D">Daily (1D)</SelectItem>
-              <SelectItem value="60">Hourly (1H)</SelectItem>
-              <SelectItem value="30">30 Minutes</SelectItem>
-              <SelectItem value="15">15 Minutes</SelectItem>
-              <SelectItem value="5">5 Minutes</SelectItem>
-              <SelectItem value="1">1 Minutes</SelectItem>
+              {!isVNGold && (
+                <>
+                  <SelectItem value="1W">Weekly (1W)</SelectItem>
+                  <SelectItem value="1M">Monthly (1M)</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
+          {isVNGold && (
+            <div className="flex items-center mt-1 text-xs text-amber-400/70">
+              <AlertCircle className="w-3 h-3 mr-1" />
+              Vietnamese Gold data only supports daily resolution
+            </div>
+          )}
         </div>
       )}
 
       <div className="flex-1 min-w-48">
         <Label className="text-cyan-400/70 text-sm font-medium mb-2 block">Quick Timeframe</Label>
         <Select disabled={disabled} value={timeframe} onValueChange={onTimeframeChange}>
-          <SelectTrigger aria-label="Select timeframe" className="w-full" variant="holographic">
-            <SelectValue placeholder="Select timeframe" />
+          <SelectTrigger className="w-32" variant="holographic">
+            <SelectValue placeholder="Timeframe" />
           </SelectTrigger>
           <SelectContent variant="holographic">
             <SelectItem value="1W">1 Week</SelectItem>

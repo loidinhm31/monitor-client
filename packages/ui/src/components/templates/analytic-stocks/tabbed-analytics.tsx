@@ -42,8 +42,8 @@ const TabbedAnalytics = () => {
     setMainStockSymbol,
     addComparisonStock,
     removeComparisonStock,
-    currentDataSource: stockDataSource,
-    changeDataSource: changeStockDataSource,
+    currentDataSource,
+    changeStockDataSource,
     checkSourceHealth,
   } = useStockData({
     startDate,
@@ -190,11 +190,11 @@ const TabbedAnalytics = () => {
                   <div className="flex items-center gap-1">
                     <TrendingUp className="w-4 h-4" />
                     <span>
-                      Analysis: <strong>{stockDataSource}</strong>
+                      Analysis: <strong>{currentDataSource}</strong>
                     </span>
-                    {sourceHealth[stockDataSource] !== undefined && (
+                    {sourceHealth[currentDataSource] !== undefined && (
                       <div
-                        className={`w-2 h-2 rounded-full ${sourceHealth[stockDataSource] ? "bg-green-500" : "bg-red-500"}`}
+                        className={`w-2 h-2 rounded-full ${sourceHealth[currentDataSource] ? "bg-green-500" : "bg-red-500"}`}
                       />
                     )}
                   </div>
@@ -225,10 +225,9 @@ const TabbedAnalytics = () => {
                   <TrendingUp className="w-4 h-4" />
                 </div>
                 <DataSourceSelector
-                  className="w-full"
-                  currentSource={stockDataSource}
+                  availableSources={[]}
+                  currentSource={currentDataSource}
                   disabled={isLoading}
-                  showHealthStatus={true}
                   onSourceChange={handleStockDataSourceChange}
                 />
                 <p className="text-xs text-gray-500">
@@ -241,10 +240,9 @@ const TabbedAnalytics = () => {
                   <Activity className="w-4 h-4" />
                 </div>
                 <DataSourceSelector
-                  className="w-full"
+                  availableSources={[]}
                   currentSource={currentPortfolioSource}
                   disabled={isLoading}
-                  showHealthStatus={true}
                   onSourceChange={handlePortfolioDataSourceChange}
                 />
                 <p className="text-xs text-gray-500">
@@ -338,20 +336,20 @@ const TabbedAnalytics = () => {
                 <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t">
                   <div className="flex items-center gap-4">
                     <span>
-                      Data source: <strong>{stockDataSource}</strong>
+                      Data source: <strong>{currentDataSource}</strong>
                     </span>
                     {lastFetchTime && <span>Last updated: {lastFetchTime.toLocaleTimeString()}</span>}
                   </div>
-                  {sourceHealth[stockDataSource] !== undefined && (
+                  {sourceHealth[currentDataSource] !== undefined && (
                     <div className="flex items-center gap-1">
                       <span>Status:</span>
                       <div
-                        className={`flex items-center gap-1 ${sourceHealth[stockDataSource] ? "text-green-600" : "text-red-600"}`}
+                        className={`flex items-center gap-1 ${sourceHealth[currentDataSource] ? "text-green-600" : "text-red-600"}`}
                       >
                         <div
-                          className={`w-2 h-2 rounded-full ${sourceHealth[stockDataSource] ? "bg-green-500" : "bg-red-500"}`}
+                          className={`w-2 h-2 rounded-full ${sourceHealth[currentDataSource] ? "bg-green-500" : "bg-red-500"}`}
                         />
-                        <span>{sourceHealth[stockDataSource] ? "Online" : "Offline"}</span>
+                        <span>{sourceHealth[currentDataSource] ? "Online" : "Offline"}</span>
                       </div>
                     </div>
                   )}
@@ -380,7 +378,7 @@ const TabbedAnalytics = () => {
                 <TrendingUp className="w-16 h-16 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Start Your Analysis</h3>
                 <p className="text-gray-500 mb-4">
-                  Enter a stock symbol above to begin technical analysis with real-time data from {stockDataSource}.
+                  Enter a stock symbol above to begin technical analysis with real-time data from {currentDataSource}.
                 </p>
                 <div className="flex items-center justify-center gap-4 text-sm text-gray-400">
                   <span>Popular symbols:</span>

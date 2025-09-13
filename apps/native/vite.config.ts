@@ -29,23 +29,25 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
     proxy: {
-      // "/api/vndirect": {
-      //   target: "https://dchart-api.vndirect.com.vn/dchart",
-      //   configure: (
-      //     proxy: { on: (arg0: string, arg1: (proxyReq: any, _req: any, res: any) => void) => void },
-      //     _options: any,
-      //   ) => {
-      //     proxy.on("proxyReq", (proxyReq, _req, _res) => {
-      //       // Add proper headers to mimic browser request
-      //       proxyReq.setHeader("Referer", "https://dchart.vndirect.com.vn");
-      //       proxyReq.setHeader("Origin", "https://dchart.vndirect.com.vn");
-      //       proxyReq.setHeader(
-      //         "User-Agent",
-      //         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      //       );
-      //     });
-      //   },
-      // },
+      "/api/sjc": {
+        target: "https://sjc.com.vn/GoldPrice/Services/PriceService.ashx",
+        changeOrigin: true,
+        secure: false,
+        configure: (
+          proxy: { on: (arg0: string, arg1: (proxyReq: any, _req: any, res: any) => void) => void },
+          _options: any,
+        ) => {
+          proxy.on("proxyReq", (proxyReq, _req, _res) => {
+            // Add proper headers to mimic browser request
+            proxyReq.setHeader("Referer", "https://sjc.com.vn/bieu-do-gia-vang");
+            proxyReq.setHeader("Origin", "https://sjc.com.vn");
+            proxyReq.setHeader(
+              "User-Agent",
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            );
+          });
+        },
+      },
     },
   },
 }));

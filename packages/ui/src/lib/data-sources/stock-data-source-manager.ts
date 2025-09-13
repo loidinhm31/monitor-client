@@ -1,6 +1,7 @@
 import { ResolutionOption } from "@repo/ui/types/stock.js";
+import { VNGoldDataSource } from "@repo/ui/lib/data-sources/vn-gold-data-source";
 
-export type DataSource = "VNDIRECT" | "SSI";
+export type DataSource = "VNDIRECT" | "SSI" | "VNGOLD";
 
 export interface StockDataSourceConfig {
   name: DataSource;
@@ -265,7 +266,7 @@ export class VNDDataSource implements IStockDataSource {
   private transformHistoricalData(
     data: VNDHistoricalResponse,
     symbol: string,
-    resolution: ResolutionOption
+    resolution: ResolutionOption,
   ): StandardStockData[] {
     const result: StandardStockData[] = [];
     const length = data.t.length;
@@ -288,8 +289,7 @@ export class VNDDataSource implements IStockDataSource {
         negotiatedValue: 0,
         priceChange: {
           value: (data.c[i] || 0) - (i > 0 ? data.c[i - 1]! : data.c[i] || 0),
-          percentage: i > 0 && data.c[i - 1] ?
-            (((data.c[i] || 0) - data.c[i - 1]!) / data.c[i - 1]!) * 100 : 0,
+          percentage: i > 0 && data.c[i - 1] ? (((data.c[i] || 0) - data.c[i - 1]!) / data.c[i - 1]!) * 100 : 0,
         },
         source: "VNDIRECT" as DataSource,
         fetchedAt: new Date(),
@@ -422,6 +422,14 @@ export class StockDataSourceManager {
         priority: 2,
         rateLimit: { requestsPerMinute: 40, burstLimit: 8 },
       },
+      {
+        name: "VNGOLD",
+        displayName: "Vietnamese Gold (SJC)",
+        baseUrl: "https://sjc.com.vn/GoldPrice/Services/PriceService.ashx",
+        enabled: true,
+        priority: 3,
+        rateLimit: { requestsPerMinute: 30, burstLimit: 5 },
+      },
     ];
 
     configs.forEach((config) => {
@@ -439,6 +447,35 @@ export class StockDataSourceManager {
     const ssiConfig = this.config.get("SSI")!;
 
     this.sources.set("SSI", new SSIDataSource(ssiConfig));
+
+    // Initialize VN Gold source
+    const goldConfig = this.config.get("VNGOLD")!;
+
+    this.sources.set("VNGOLD", new VNGoldDataSource(goldConfig));
+  }
+
+  // Helper method to determine the appropriate data source for a symbol
+  private getDataSourceForSymbol(symbol: string, preferredSource?: DataSource): DataSource {
+    if (symbol === "VNGOLD") {
+      return "VNGOLD";
+    }
+
+    return preferredSource || this.defaultSource;
+  }
+
+  // Helper method to get supported resolutions for a symbol
+  getSupportedResolutions(symbol: string): ResolutionOption[] {
+    if (symbol === "VNGOLD") {
+      return ["1D"]; // Only daily resolution for gold
+    }
+
+    // Standard resolutions for stocks
+    return ["1D", "1", "5", "15", "30", "60"];
+  }
+
+  // Helper method to check if a symbol is a gold symbol
+  isGoldSymbol(symbol: string): boolean {
+    return symbol === "VNGOLD";
   }
 
   setDefaultSource(source: DataSource) {
@@ -490,20 +527,32 @@ export class StockDataSourceManager {
 
     if (cached) return cached;
 
-    const source = preferredSource || this.defaultSource;
+    // Auto-select data source based on symbol
+    const source = this.getDataSourceForSymbol(params.symbol, preferredSource);
     const dataSource = this.sources.get(source);
 
     if (!dataSource || !dataSource.isEnabled()) {
+      if (params.symbol === "VNGOLD") {
+        throw new Error("Vietnamese Gold data source is not available");
+      }
+
       return this.fallbackFetchHistoricalData(params);
     }
 
     try {
       const data = await dataSource.fetchHistoricalData(params);
 
-      this.setToCache(cacheKey, data, 60000); // Cache for 1 minute
+      // Cache for different durations based on data source
+      const cacheDuration = source === "VNGOLD" ? 300000 : 60000; // 5 min for gold, 1 min for stocks
+
+      this.setToCache(cacheKey, data, cacheDuration);
 
       return data;
     } catch (error) {
+      if (params.symbol === "VNGOLD") {
+        throw error; // Don't fallback for gold data
+      }
+
       return this.fallbackFetchHistoricalData(params, source);
     }
   }
@@ -522,16 +571,27 @@ export class StockDataSourceManager {
     const dataSource = this.sources.get(source);
 
     if (!dataSource || !dataSource.isEnabled()) {
+      if (symbol === "VNGOLD") {
+        throw new Error("Vietnamese Gold data source is not available");
+      }
+
       return this.fallbackFetchCurrentData(symbol, resolution);
     }
 
     try {
       const data = await dataSource.fetchCurrentData(symbol, resolution);
 
-      this.setToCache(cacheKey, data, 10000); // Cache for 10 seconds
+      // Cache for different durations based on data source
+      const cacheDuration = source === "VNGOLD" ? 60000 : 30000; // 1 min for gold, 30s for stocks
+
+      this.setToCache(cacheKey, data, cacheDuration);
 
       return data;
-    } catch (_error) {
+    } catch (error) {
+      if (symbol === "VNGOLD") {
+        throw error; // Don't fallback for gold data
+      }
+
       return this.fallbackFetchCurrentData(symbol, resolution, source);
     }
   }

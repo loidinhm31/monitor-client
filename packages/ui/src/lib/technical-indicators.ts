@@ -1,3 +1,5 @@
+import { TransformedStockData } from "@repo/ui/types/stock.js";
+
 export const calculateSMA = (data: number[], period: number): (null | number)[] => {
   return data.map((_, index) => {
     if (index < period - 1) return null;
@@ -86,8 +88,6 @@ export const calculatePivotPoints = (high: number, low: number, close: number): 
   };
 };
 
-export const calculateDailyPivotPoints = (
-  data: Array<{ highestPrice: number; lowestPrice: number; closePrice: number }>,
-): PivotPoints[] => {
+export const calculateDailyPivotPoints = (data: TransformedStockData[]): PivotPoints[] => {
   return data.map((day) => calculatePivotPoints(day.highestPrice, day.lowestPrice, day.closePrice));
 };

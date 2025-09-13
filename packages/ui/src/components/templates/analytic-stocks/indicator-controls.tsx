@@ -15,9 +15,10 @@ export interface Indicators {
 interface IndicatorControlsProps {
   indicators: Indicators;
   onIndicatorChange: (updatedIndicators: Indicators) => void;
+  isVNGold: boolean;
 }
 
-const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onIndicatorChange }) => {
+const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onIndicatorChange, isVNGold }) => {
   return (
     <div className="flex flex-wrap gap-4 mb-4">
       <div className="flex items-center space-x-2">
@@ -91,16 +92,18 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
         </Label>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <Switch
-          checked={indicators.volume}
-          id="volume-switch"
-          onCheckedChange={(value) => onIndicatorChange({ ...indicators, volume: value })}
-        />
-        <Label className="text-sm font-medium cursor-pointer" htmlFor="volume-switch">
-          Volume
-        </Label>
-      </div>
+      {!isVNGold && (
+        <div className="flex items-center space-x-2">
+          <Switch
+            checked={indicators.volume}
+            id="volume-switch"
+            onCheckedChange={(value) => onIndicatorChange({ ...indicators, volume: value })}
+          />
+          <Label className="text-sm font-medium cursor-pointer" htmlFor="volume-switch">
+            Volume
+          </Label>
+        </div>
+      )}
     </div>
   );
 };

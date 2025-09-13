@@ -36,28 +36,42 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
   timeframe,
   resolution,
 }) => {
-  const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState("price");
   const [indicators, setIndicators] = useState<Indicators>({
     sma: false,
     ema: false,
-    macd: false,
     rsi: false,
+    macd: false,
     volume: false,
     highLow: false,
     pivotPoints: false,
   });
 
-  // Memoize the enriched data calculation
-  const enrichedData = useMemo(() => {
+  const [loading, setLoading] = useState(false);
+
+  // Check if current symbol is Vietnamese Gold
+  const isVNGold = symbol === "VNGOLD";
+
+  // Filter data by timeframe
+  const filteredData = useMemo(() => {
+    if (!stockData?.length) return [];
+
+    return filterDataByTimeframe(stockData, timeframe);
+  }, [stockData, timeframe]);
+
+  // Apply technical indicators to filtered data - following the pattern from tabbed-analytics.tsx
+  const enrichedData = useMemo((): ChartData[] => {
+    if (!filteredData?.length) return [];
+
     try {
-      const sortedData = [...stockData].sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+      const sortedData = [...filteredData].sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
       const prices = sortedData.map((d) => d.closePrice);
+
+      // Calculate technical indicators
       const smaData = calculateSMA(prices, 20);
       const emaData = calculateEMA(prices, 20);
       const macdData = calculateMACD(prices);
       const rsiData = calculateRSI(prices);
-      const pivotPointsData = calculateDailyPivotPoints(sortedData);
+      const pivotPointsData = indicators.pivotPoints ? calculateDailyPivotPoints(sortedData) : sortedData;
 
       return sortedData.map((item, index) => ({
         ...item,
@@ -67,24 +81,20 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
         signal: macdData.signal[index],
         histogram: macdData.histogram[index],
         rsi: rsiData[index],
-        ...(pivotPointsData[index] || {}),
+        ...(indicators.pivotPoints ? pivotPointsData[index] : {}),
       })) as ChartData[];
     } catch (error) {
       console.error("Error enriching data:", error);
 
       return [] as ChartData[];
     }
-  }, [stockData]);
+  }, [filteredData, indicators.pivotPoints]);
 
-  // Memoize filtered data
-  const filteredData = useMemo(() => filterDataByTimeframe(enrichedData, timeframe), [enrichedData, timeframe]);
+  useEffect(() => {
+    setLoading(false);
+  }, [enrichedData]);
 
-  // Memoize table data (reverse chronological order)
-  const tableData = useMemo(
-    () => [...filteredData].sort((a, b) => b.dateObj.getTime() - a.dateObj.getTime()),
-    [filteredData],
-  );
-
+  // Prepare comparison data
   const comparisonData = useMemo(() => {
     const mainStockData = {
       symbol,
@@ -105,70 +115,86 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
     return [mainStockData, ...compareStocks];
   }, [symbol, filteredData, compareStocksData, timeframe]);
 
-  useEffect(() => {
-    setLoading(false);
-  }, [enrichedData]);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Spinner size="lg" />
+        <Spinner className="h-8 w-8" />
       </div>
     );
   }
 
-  return (
-    <div className="w-full mx-auto">
-      <Card className="w-full" variant="holographic">
-        <CardHeader className="flex flex-col sm:flex-row gap-4 px-6 py-4">
-          <div className="w-full">
-            <h4 className="text-xl font-bold">Stock Market Analysis</h4>
-            <p className="text-sm text-default-500">Technical analysis and comparison tools</p>
-          </div>
-        </CardHeader>
+  if (!stockData?.length) {
+    return (
+      <Card className="p-8 text-center" variant="holographic">
         <CardContent>
-          <IndicatorControls indicators={indicators} onIndicatorChange={setIndicators} />
-
-          <Tabs className="mb-4" value={selectedTab} onValueChange={(key) => setSelectedTab(key)}>
-            <TabsList variant="holographic">
-              <TabsTrigger value="price" variant="holographic">
-                Price
-              </TabsTrigger>
-              <TabsTrigger value="compare" variant="holographic">
-                Compare
-              </TabsTrigger>
-              <TabsTrigger disabled={filteredData.length === 0} value="table" variant="holographic">
-                Data Table
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="price">
-              <ChartContainer data={filteredData} indicators={indicators} resolution={resolution} />
-            </TabsContent>
-
-            <TabsContent value="compare">
-              <StockComparison
-                mainSymbol={symbol}
-                stocksData={comparisonData}
-                onAddStock={onAddCompareStock}
-                onRemoveStock={onRemoveCompareStock}
-              />
-            </TabsContent>
-
-            <TabsContent value="table">
-              <ResponsiveDataTable data={tableData} />
-            </TabsContent>
-          </Tabs>
+          <p className="text-cyan-400/70">
+            {isVNGold ? "Enter VNGOLD to view Vietnamese Gold prices" : "Enter a stock symbol to view data"}
+          </p>
+          {isVNGold && (
+            <p className="text-amber-400/70 text-sm mt-2">
+              Vietnamese Gold data is sourced from SJC and supports daily resolution only
+            </p>
+          )}
         </CardContent>
       </Card>
+    );
+  }
 
-      <div className="py-2 text-sm text-gray-500">
-        <p>* SMA: Simple Moving Average (20 periods)</p>
-        <p>* EMA: Exponential Moving Average (20 periods)</p>
-        <p>* MACD: Moving Average Convergence Divergence (12, 26, 9)</p>
-        <p>* RSI: Relative Strength Index (14 periods)</p>
-        <p>* PP: Pivot Points (Classic) with Support (S1) and Resistance (R1) levels</p>
-      </div>
+  return (
+    <div className="space-y-6">
+      <Tabs className="w-full" defaultValue="overview">
+        <TabsList className="grid w-full grid-cols-3" variant="holographic">
+          <TabsTrigger value="overview">{isVNGold ? "Gold Price Overview" : "Stock Overview"}</TabsTrigger>
+          <TabsTrigger value="comparison">Price Comparison</TabsTrigger>
+          <TabsTrigger value="data">Raw Data</TabsTrigger>
+        </TabsList>
+
+        <TabsContent className="space-y-4" value="overview">
+          <div className="grid gap-4">
+            {/* Technical Indicators Control - Hide for VN Gold as it's daily only */}
+            <Card variant="holographic">
+              <CardHeader>
+                <h3 className="text-lg font-semibold text-cyan-400">Technical Analysis</h3>
+              </CardHeader>
+              <CardContent>
+                <IndicatorControls indicators={indicators} onIndicatorChange={setIndicators} isVNGold={isVNGold} />
+              </CardContent>
+            </Card>
+
+            {/* Price Chart */}
+            <Card variant="holographic">
+              <CardHeader>
+                <h3 className="text-lg font-semibold text-cyan-400">
+                  {isVNGold ? `Vietnamese Gold Price (${symbol})` : `${symbol} Price Chart`}
+                </h3>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer data={enrichedData} indicators={indicators} resolution={resolution} />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent className="space-y-4" value="comparison">
+          <StockComparison
+            mainSymbol={symbol}
+            stocksData={comparisonData}
+            onAddStock={onAddCompareStock}
+            onRemoveStock={onRemoveCompareStock}
+          />
+        </TabsContent>
+
+        <TabsContent className="space-y-4" value="data">
+          <Card variant="holographic">
+            <CardHeader>
+              <h3 className="text-lg font-semibold text-cyan-400">{isVNGold ? "Gold Price Data" : "Stock Data"}</h3>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveDataTable data={enrichedData} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

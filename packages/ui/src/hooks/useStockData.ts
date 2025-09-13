@@ -44,75 +44,100 @@ export const useStockData = ({ startDate, endDate, resolution = "1D", dataSource
     setCurrentResolution(resolution);
   }, [resolution]);
 
+  // Helper to get supported resolutions for current symbol
+  const getSupportedResolutions = useCallback((symbol?: string) => {
+    if (!symbol) return ["1D", "1W", "1M"];
+
+    return stockDataSourceManager.getSupportedResolutions(symbol);
+  }, []);
+
+  // Helper to validate resolution for symbol
+  const validateResolution = useCallback(
+    (symbol: string, resolution: ResolutionOption): ResolutionOption => {
+      const supportedResolutions = getSupportedResolutions(symbol);
+
+      if (!supportedResolutions.includes(resolution)) {
+        console.warn(`Resolution ${resolution} not supported for ${symbol}, falling back to 1D`);
+
+        return "1D";
+      }
+
+      return resolution;
+    },
+    [getSupportedResolutions],
+  );
+
   // Fetch all historical data for a symbol
   const fetchAllData = useCallback(
-    async (stockSymbol: string, preferredSource?: DataSource): Promise<TransformedStockData[]> => {
-      const source = preferredSource || currentDataSource;
-      const cacheKey = `${stockSymbol}-${source}-${formatDateForApi(startDate)}-${formatDateForApi(endDate)}`;
-
-      // Check if fetch is already in progress
-      if (fetchInProgress.current[cacheKey]) {
-        // Wait for ongoing fetch to complete
-        let attempts = 0;
-
-        while (fetchInProgress.current[cacheKey] && attempts < 100) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          attempts++;
-        }
-
+    async (
+      stockSymbol: string,
+      preferredSource?: DataSource,
+      forcedResolution?: ResolutionOption,
+    ): Promise<TransformedStockData[]> => {
+      if (!stockSymbol || fetchInProgress.current[stockSymbol]) {
         return [];
       }
 
+      fetchInProgress.current[stockSymbol] = true;
+
       try {
-        fetchInProgress.current[cacheKey] = true;
+        // Validate and adjust resolution for the symbol
+        const validResolution = validateResolution(stockSymbol, forcedResolution || currentResolution);
 
         const params: HistoricalDataParams = {
-          symbol: stockSymbol,
+          symbol: stockSymbol.toUpperCase(),
           startDate: formatDateForApi(startDate),
           endDate: formatDateForApi(endDate),
-          resolution: currentResolution,
+          resolution: validResolution,
         };
 
-        const standardData = await stockDataSourceManager.fetchHistoricalData(params, source);
+        // For VNGOLD, always use VNGOLD data source
+        const sourceToUse = stockSymbol === "VNGOLD" ? "VNGOLD" : preferredSource || currentDataSource;
 
-        // Transform to legacy format for backward compatibility with existing components
-        const transformedData = transformToLegacyFormat(standardData);
+        const standardData = await stockDataSourceManager.fetchHistoricalData(params, sourceToUse);
 
-        return transformedData;
+        return transformToLegacyFormat(standardData);
       } catch (error) {
-        throw new Error(
-          `Failed to fetch data for ${stockSymbol}: ${error instanceof Error ? error.message : "Unknown error"}`,
-        );
+        console.error(`Error fetching data for ${stockSymbol}:`, error);
+        throw error;
       } finally {
-        fetchInProgress.current[cacheKey] = false;
+        fetchInProgress.current[stockSymbol] = false;
       }
     },
-    [startDate, endDate, currentResolution, formatDateForApi, currentDataSource],
+    [startDate, endDate, currentResolution, currentDataSource, formatDateForApi, validateResolution],
   );
 
   // Set main stock symbol
   const setMainStockSymbol = useCallback(
-    async (newSymbol: string, preferredSource?: DataSource) => {
-      if (loading) return;
+    async (symbol: string) => {
+      if (!symbol || loading) return;
 
       setLoading(true);
       setError("");
 
       try {
-        const data = await fetchAllData(newSymbol, preferredSource);
+        const upperSymbol = symbol.toUpperCase();
+
+        // Validate resolution for the new symbol
+        const validResolution = validateResolution(upperSymbol, currentResolution);
+
+        if (validResolution !== currentResolution) {
+          setCurrentResolution(validResolution);
+        }
+
+        const data = await fetchAllData(upperSymbol, currentDataSource, validResolution);
 
         if (isMounted.current) {
           setMainStock({
-            symbol: newSymbol,
-            data: data,
-            resolution: currentResolution,
+            symbol: upperSymbol,
+            data,
+            resolution: validResolution,
           });
         }
       } catch (error) {
         if (isMounted.current) {
-          const message = error instanceof Error ? error.message : "Failed to fetch stock data";
-
-          setError(message);
+          setError(error instanceof Error ? error.message : "Failed to fetch stock data");
+          setMainStock(null);
         }
       } finally {
         if (isMounted.current) {
@@ -120,45 +145,42 @@ export const useStockData = ({ startDate, endDate, resolution = "1D", dataSource
         }
       }
     },
-    [fetchAllData, loading],
+    [loading, currentResolution, currentDataSource, fetchAllData, validateResolution],
   );
 
   // Add comparison stock
   const addComparisonStock = useCallback(
-    async (newSymbol: string, preferredSource?: DataSource) => {
-      if (newSymbol === mainStock?.symbol || newSymbol in comparisonStocks) {
-        return false;
-      }
+    async (symbol: string) => {
+      if (!symbol || comparisonStocks[symbol] || loading) return;
 
       setLoading(true);
       setError("");
 
       try {
-        const data = await fetchAllData(newSymbol, preferredSource);
+        const upperSymbol = symbol.toUpperCase();
+
+        // For comparison stocks, always use 1D resolution if it's VNGOLD
+        const resolutionToUse = upperSymbol === "VNGOLD" ? "1D" : currentResolution;
+
+        const data = await fetchAllData(upperSymbol, currentDataSource, resolutionToUse);
 
         if (isMounted.current) {
           setComparisonStocks((prev) => ({
             ...prev,
-            [newSymbol]: data,
+            [upperSymbol]: data,
           }));
         }
-
-        return true;
       } catch (error) {
         if (isMounted.current) {
-          const message = error instanceof Error ? error.message : "Failed to fetch comparison data";
-
-          setError(message);
+          setError(error instanceof Error ? error.message : "Failed to fetch comparison data");
         }
-
-        return false;
       } finally {
         if (isMounted.current) {
           setLoading(false);
         }
       }
     },
-    [mainStock?.symbol, comparisonStocks, currentResolution, fetchAllData],
+    [comparisonStocks, loading, currentDataSource, currentResolution, fetchAllData],
   );
 
   // Remove comparison stock
@@ -173,46 +195,49 @@ export const useStockData = ({ startDate, endDate, resolution = "1D", dataSource
   }, []);
 
   // Change data source and refresh data
-  const changeDataSource = useCallback(
+  const changeStockDataSource = useCallback(
     async (newSource: DataSource) => {
-      setCurrentDataSource(newSource);
-      stockDataSourceManager.setDefaultSource(newSource);
+      // Don't allow changing data source if main stock is VNGOLD
+      if (mainStock?.symbol === "VNGOLD" && newSource !== "VNGOLD") {
+        setError("Cannot change data source for Vietnamese Gold data");
 
-      // Clear cache to force fresh data from new source
+        return;
+      }
+
+      setCurrentDataSource(newSource);
       stockDataSourceManager.clearCache();
 
-      // Reload current data with new source if we have a main stock
-      if (mainStock) {
-        setLoading(true);
-        try {
-          await setMainStockSymbol(mainStock.symbol, newSource);
+      // Refresh main stock data with new source
+      if (mainStock && mainStock.symbol !== "VNGOLD") {
+        await setMainStockSymbol(mainStock.symbol);
+      }
 
-          // Reload comparison stocks too
-          const comparisonPromises = Object.keys(comparisonStocks).map(async (symbol) => {
-            try {
-              const data = await fetchAllData(symbol, newSource);
+      // Refresh comparison stocks (except VNGOLD)
+      const comparisonPromises = Object.keys(comparisonStocks)
+        .filter((symbol) => symbol !== "VNGOLD")
+        .map(async (symbol) => {
+          try {
+            const data = await fetchAllData(symbol, newSource);
 
-              return { symbol, data };
-            } catch (_error) {
-              return null;
-            }
-          });
+            return { symbol, data };
+          } catch (error) {
+            console.error(`Error refreshing ${symbol}:`, error);
 
-          const results = await Promise.all(comparisonPromises);
-          const newComparisonStocks: Record<string, TransformedStockData[]> = {};
+            return null;
+          }
+        });
 
-          results.forEach((result) => {
-            if (result) {
-              newComparisonStocks[result.symbol] = result.data;
-            }
-          });
+      const results = await Promise.all(comparisonPromises);
+      const updatedComparisons: Record<string, TransformedStockData[]> = { ...comparisonStocks };
 
-          setComparisonStocks(newComparisonStocks);
-        } catch (error) {
-          setError(`Failed to switch to ${newSource}: ${error instanceof Error ? error.message : "Unknown error"}`);
-        } finally {
-          setLoading(false);
+      results.forEach((result) => {
+        if (result) {
+          updatedComparisons[result.symbol] = result.data;
         }
+      });
+
+      if (isMounted.current) {
+        setComparisonStocks(updatedComparisons);
       }
     },
     [mainStock, comparisonStocks, setMainStockSymbol, fetchAllData],
@@ -225,6 +250,7 @@ export const useStockData = ({ startDate, endDate, resolution = "1D", dataSource
       // Re-fetch main stock with new resolution
       if (mainStock) {
         const data = await fetchAllData(mainStock.symbol);
+
         setMainStock({
           symbol: mainStock.symbol,
           data,
@@ -239,7 +265,7 @@ export const useStockData = ({ startDate, endDate, resolution = "1D", dataSource
       // Clear old resolution data and fetch new
       setComparisonStocks({});
       for (const symbol of uniqueSymbols) {
-        await addComparisonStock(symbol!, currentDataSource);
+        await addComparisonStock(symbol!);
       }
     },
     [mainStock, comparisonStocks, fetchAllData, addComparisonStock],
@@ -247,7 +273,14 @@ export const useStockData = ({ startDate, endDate, resolution = "1D", dataSource
 
   // Get available data sources
   const getAvailableDataSources = useCallback(() => {
-    return stockDataSourceManager.getAvailableSources();
+    const allSources = stockDataSourceManager.getAvailableSources();
+
+    if (mainStock?.symbol === "VNGOLD") {
+      return allSources.filter((source) => source.name === "VNGOLD");
+    }
+
+    // Otherwise, show all sources except VNGOLD (unless specifically needed)
+    return allSources.filter((source) => source.name !== "VNGOLD");
   }, []);
 
   // Health check for all sources
@@ -296,7 +329,7 @@ export const useStockData = ({ startDate, endDate, resolution = "1D", dataSource
 
     // Data source management
     currentDataSource,
-    changeDataSource,
+    changeStockDataSource,
     getAvailableDataSources,
     checkSourceHealth,
     getSourceErrors,

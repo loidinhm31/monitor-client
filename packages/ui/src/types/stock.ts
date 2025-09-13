@@ -28,6 +28,8 @@ export interface TransformedStockData {
   openPrice: number;
   highestPrice: number;
   lowestPrice: number;
+
+  pivotPoint?: number;
 }
 
 export interface ChartData extends TransformedStockData {
