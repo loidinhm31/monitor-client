@@ -19,7 +19,7 @@ export function ZoomableContainer<T>({ data, children }: ZoomableContainerProps<
   }, [data]);
 
   const handleZoom = (e: React.WheelEvent<HTMLDivElement>) => {
-    e.preventDefault();
+    // e.preventDefault();
     if (!chartRef.current) return;
 
     const zoomFactor = 0.1;

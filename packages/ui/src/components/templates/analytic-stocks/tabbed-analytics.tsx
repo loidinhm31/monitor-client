@@ -45,10 +45,10 @@ const TabbedAnalytics = () => {
     currentDataSource: stockDataSource,
     changeDataSource: changeStockDataSource,
     checkSourceHealth,
-    changeResolution,
   } = useStockData({
     startDate,
     endDate,
+    resolution,
   });
 
   const {
@@ -318,7 +318,7 @@ const TabbedAnalytics = () => {
                     startDate={startDate}
                     timeframe={timeframe}
                     onEndDateChange={setEndDate}
-                    onResolutionChange={changeResolution}
+                    onResolutionChange={setResolution}
                     onStartDateChange={setStartDate}
                     onTimeframeChange={handleTimeframeChange}
                   />
@@ -364,6 +364,7 @@ const TabbedAnalytics = () => {
           {mainStock && (
             <StockDashboard
               compareStocksData={comparisonStocks}
+              resolution={resolution}
               stockData={mainStock.data}
               symbol={mainStock.symbol}
               timeframe={timeframe}
@@ -412,7 +413,7 @@ const TabbedAnalytics = () => {
               onStartDateChange: setStartDate,
               onEndDateChange: setEndDate,
               onTimeframeChange: handleTimeframeChange,
-              onResolutionChange: changeResolution,
+              onResolutionChange: setResolution,
             }}
             portfolioProps={{
               portfolioSymbols,

@@ -146,7 +146,6 @@ const SharedDateControls: React.FC<SharedDateControlsProps> = ({
               <SelectItem value="60">Hourly (1H)</SelectItem>
               <SelectItem value="30">30 Minutes</SelectItem>
               <SelectItem value="15">15 Minutes</SelectItem>
-              <SelectItem value="10">10 Minutes</SelectItem>
               <SelectItem value="5">5 Minutes</SelectItem>
               <SelectItem value="1">1 Minutes</SelectItem>
             </SelectContent>

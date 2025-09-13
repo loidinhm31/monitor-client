@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import CustomTooltip from "@repo/ui/components/organisms/CustomTooltip";
+import CustomTooltip from "@repo/ui/components/organisms/custom-tooltip";
 import { Indicators } from "@repo/ui/components/templates/analytic-stocks/indicator-controls";
 import { ZoomableContainer } from "@repo/ui/components/organisms/zoomable-container";
-import { ChartData } from "@repo/ui/types/stock";
+import { ChartData, ResolutionOption } from "@repo/ui/types/stock";
 import { Card, CardContent } from "@repo/ui/components/atoms/card";
 
-interface EnhancedChartProps {
+interface ChartProps {
   data: ChartData[];
   indicators: Indicators;
+  resolution?: ResolutionOption;
 }
 
-const ChartContainer: React.FC<EnhancedChartProps> = ({ data = [], indicators }) => {
+const ChartContainer: React.FC<ChartProps> = ({ data = [], indicators, resolution = "1D" }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [orientation, setOrientation] = useState("portrait");
 
@@ -225,8 +226,8 @@ const ChartContainer: React.FC<EnhancedChartProps> = ({ data = [], indicators })
   );
 
   return (
-    <Card className="w-full mt-4" variant="holographic">
-      <CardContent>
+    <Card className="w-full border-cyan-400/20 bg-slate-900/50 backdrop-blur-sm">
+      <CardContent className="p-6">
         <ZoomableContainer data={data}>{(displayData) => renderChart(displayData)}</ZoomableContainer>
       </CardContent>
     </Card>

@@ -51,7 +51,7 @@ export interface StandardStockData {
   closePrice: number;
   highestPrice: number;
   lowestPrice: number;
-  adjustedPrice: number;
+  adjustedPrice?: number;
 
   // Volume data
   volume: number;
@@ -209,7 +209,7 @@ export class VNDDataSource implements IStockDataSource {
         throw new Error(`VND Direct API returned status: ${data.s}`);
       }
 
-      return this.transformHistoricalData(data, params.symbol);
+      return this.transformHistoricalData(data, params.symbol, params.resolution);
     } catch (error) {
       this.lastError = error as Error;
       throw error;
@@ -262,70 +262,43 @@ export class VNDDataSource implements IStockDataSource {
     return successfulResults;
   }
 
-  // REFACTORED: Complete rewrite to handle VND Direct array format and ensure OHLC data
-  private transformHistoricalData(data: VNDHistoricalResponse, symbol: string): StandardStockData[] {
+  private transformHistoricalData(
+    data: VNDHistoricalResponse,
+    symbol: string,
+    resolution: ResolutionOption
+  ): StandardStockData[] {
     const result: StandardStockData[] = [];
-
-    // Validate that all arrays have the same length
     const length = data.t.length;
 
-    if (!data.o || !data.h || !data.l || !data.c || !data.v) {
-      throw new Error("Missing OHLC data in VND Direct response");
-    }
-
-    // Transform each data point to StandardStockData with full OHLC support
     for (let i = 0; i < length; i++) {
-      const timestamp = data.t[i]! * 1000; // Convert to milliseconds
+      const timestamp = data.t[i]! * 1000;
       const dateObj = new Date(timestamp);
 
-      // Extract OHLC values
-      const openPrice = data.o[i] || 0;
-      const highPrice = data.h[i] || 0;
-      const lowPrice = data.l[i] || 0;
-      const closePrice = data.c[i] || 0;
-      const volume = data.v[i] || 0;
-
-      // Calculate price change from previous day (if available)
-      const previousPrice = i > 0 ? data.c[i - 1]! : closePrice;
-      const priceChange = closePrice - previousPrice;
-      const priceChangePercentage = previousPrice > 0 ? (priceChange / previousPrice) * 100 : 0;
-
-      // Create StandardStockData with full OHLC candlestick data
       const dataPoint: StandardStockData = {
         symbol,
-        date: this.formatDateForUI(dateObj),
-        dateObj,
-        // CANDLESTICK OHLC DATA - Essential for candlestick charts
-        openPrice, // Opening price
-        closePrice, // Closing price
-        highestPrice: highPrice, // Highest price (high)
-        lowestPrice: lowPrice, // Lowest price (low)
-        adjustedPrice: closePrice, // VND doesn't provide adjusted close, use close price
-        volume, // Trading volume
-        negotiatedVolume: 0, // VND doesn't provide this field
-        negotiatedValue: 0, // VND doesn't provide this field
+        date: this.formatDateForUI(dateObj, resolution),
+        dateObj, // Keep original for chart processing
+        openPrice: data.o[i] || 0,
+        closePrice: data.c[i] || 0,
+        highestPrice: data.h[i] || 0,
+        lowestPrice: data.l[i] || 0,
+        adjustedPrice: data.c[i] || 0,
+        volume: data.v[i] || 0,
+        negotiatedVolume: 0,
+        negotiatedValue: 0,
         priceChange: {
-          value: priceChange,
-          percentage: priceChangePercentage,
+          value: (data.c[i] || 0) - (i > 0 ? data.c[i - 1]! : data.c[i] || 0),
+          percentage: i > 0 && data.c[i - 1] ?
+            (((data.c[i] || 0) - data.c[i - 1]!) / data.c[i - 1]!) * 100 : 0,
         },
-        source: "TCBS" as DataSource, // Keep the source name as TCBS for compatibility
+        source: "VNDIRECT" as DataSource,
         fetchedAt: new Date(),
       };
 
       result.push(dataPoint);
-
-      // Log first few data points for debugging
-      if (i < 3) {
-        console.log(
-          `📈 ${i + 1}. ${dataPoint.date}: O=${openPrice}, H=${highPrice}, L=${lowPrice}, C=${closePrice}, V=${volume.toLocaleString()}`,
-        );
-      }
     }
 
-    // Sort by date to ensure chronological order for proper candlestick display
-    const sortedResult = result.sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
-
-    return sortedResult;
+    return result.sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
   }
 
   // Helper method to format dates for API calls
@@ -333,13 +306,32 @@ export class VNDDataSource implements IStockDataSource {
     return date.toISOString().split("T")[0]!; // YYYY-MM-DD format
   }
 
-  private formatDateForUI(date: string | Date): string {
+  private formatDateForUI(date: string | Date, resolution?: ResolutionOption): string {
     const d = typeof date === "string" ? new Date(date) : date;
-    const day = d.getDate().toString().padStart(2, "0");
-    const month = (d.getMonth() + 1).toString().padStart(2, "0");
-    const year = d.getFullYear();
 
-    return `${day}/${month}/${year}`;
+    // Check if resolution is intraday (less than 1 day)
+    const isIntraday = resolution && ["1", "5", "15", "30", "60"].includes(resolution);
+
+    if (isIntraday) {
+      // For intraday resolutions, show time format
+      const hours = d.getHours().toString().padStart(2, "0");
+      const minutes = d.getMinutes().toString().padStart(2, "0");
+
+      // For very short timeframes, include date + time
+      const day = d.getDate().toString().padStart(2, "0");
+      const month = (d.getMonth() + 1).toString().padStart(2, "0");
+      const year = d.getFullYear();
+
+      // Return format: HH:MM for same day, or DD/MM HH:MM for multi-day
+      return `${day}/${month}/${year} ${hours}:${minutes}`;
+    } else {
+      // For daily or longer resolutions, show date format
+      const day = d.getDate().toString().padStart(2, "0");
+      const month = (d.getMonth() + 1).toString().padStart(2, "0");
+      const year = d.getFullYear();
+
+      return `${day}/${month}/${year}`;
+    }
   }
 }
 

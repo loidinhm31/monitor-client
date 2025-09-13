@@ -1,4 +1,4 @@
-import type { ChartData, TimeframeOption, TransformedStockData } from "@repo/ui/types/stock";
+import type { ChartData, ResolutionOption, TimeframeOption, TransformedStockData } from "@repo/ui/types/stock";
 
 import { Card, CardContent, CardHeader } from "@repo/ui/components/atoms/card";
 import { Spinner } from "@repo/ui/components/atoms/spinner";
@@ -24,6 +24,7 @@ interface StockDashboardProps {
   onAddCompareStock: (symbol: string) => void;
   onRemoveCompareStock: (symbol: string) => void;
   timeframe: TimeframeOption;
+  resolution: ResolutionOption;
 }
 
 const StockDashboard: React.FC<StockDashboardProps> = ({
@@ -33,6 +34,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
   onAddCompareStock,
   onRemoveCompareStock,
   timeframe,
+  resolution,
 }) => {
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState("price");
@@ -141,7 +143,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
             </TabsList>
 
             <TabsContent value="price">
-              <ChartContainer data={filteredData} indicators={indicators} />
+              <ChartContainer data={filteredData} indicators={indicators} resolution={resolution} />
             </TabsContent>
 
             <TabsContent value="compare">

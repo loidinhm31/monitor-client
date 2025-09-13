@@ -1,5 +1,5 @@
 export type TimeframeOption = "1W" | "1M" | "3M" | "6M" | "1Y" | "2Y" | "ALL";
-export type ResolutionOption = "1D" | "60" | "30" | "15" | "10" | "5" | "1";
+export type ResolutionOption = "1D" | "60" | "30" | "15" | "5" | "1";
 
 export interface RawStockData {
   date: string;
