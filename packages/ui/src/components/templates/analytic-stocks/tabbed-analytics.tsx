@@ -22,7 +22,17 @@ const TabbedAnalytics = () => {
   const [showSourceSettings, setShowSourceSettings] = useState(false);
   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
 
-  const { startDate, endDate, timeframe, setStartDate, setEndDate, setTimeframe, currentDate } = useSharedDates();
+  const {
+    startDate,
+    endDate,
+    timeframe,
+    resolution,
+    setStartDate,
+    setEndDate,
+    setTimeframe,
+    setResolution,
+    currentDate,
+  } = useSharedDates();
 
   const {
     mainStock,
@@ -35,6 +45,7 @@ const TabbedAnalytics = () => {
     currentDataSource: stockDataSource,
     changeDataSource: changeStockDataSource,
     checkSourceHealth,
+    changeResolution,
   } = useStockData({
     startDate,
     endDate,
@@ -301,10 +312,13 @@ const TabbedAnalytics = () => {
 
                   <SharedDateControls
                     endDate={endDate}
+                    resolution={resolution}
                     showDatePickers={true}
+                    showResolution={true}
                     startDate={startDate}
                     timeframe={timeframe}
                     onEndDateChange={setEndDate}
+                    onResolutionChange={changeResolution}
                     onStartDateChange={setStartDate}
                     onTimeframeChange={handleTimeframeChange}
                   />
@@ -394,9 +408,11 @@ const TabbedAnalytics = () => {
               endDate,
               timeframe,
               currentDate,
+              resolution,
               onStartDateChange: setStartDate,
               onEndDateChange: setEndDate,
               onTimeframeChange: handleTimeframeChange,
+              onResolutionChange: changeResolution,
             }}
             portfolioProps={{
               portfolioSymbols,

@@ -6,11 +6,12 @@ import {
   stockDataSourceManager,
   transformToLegacyFormat,
 } from "@repo/ui/lib/data-sources/stock-data-source-manager";
-import { TransformedStockData } from "@repo/ui/types/stock";
+import { ResolutionOption, TransformedStockData } from "@repo/ui/types/stock";
 
 interface UseStockDataOptions {
   startDate: CalendarDate;
   endDate: CalendarDate;
+  resolution?: ResolutionOption;
   symbol?: string;
   dataSource?: DataSource;
 }
@@ -18,9 +19,10 @@ interface UseStockDataOptions {
 export interface StockDataItem {
   symbol: string;
   data: TransformedStockData[];
+  resolution: ResolutionOption;
 }
 
-export const useStockData = ({ startDate, endDate, dataSource }: UseStockDataOptions) => {
+export const useStockData = ({ startDate, endDate, resolution = "1D", dataSource }: UseStockDataOptions) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [mainStock, setMainStock] = useState<StockDataItem | null>(null);
@@ -28,6 +30,7 @@ export const useStockData = ({ startDate, endDate, dataSource }: UseStockDataOpt
   const [currentDataSource, setCurrentDataSource] = useState<DataSource>(
     dataSource || stockDataSourceManager.getDefaultSource(),
   );
+  const [currentResolution, setCurrentResolution] = useState<ResolutionOption>(resolution);
 
   const fetchInProgress = useRef<Record<string, boolean>>({});
   const isMounted = useRef(true);
@@ -36,6 +39,10 @@ export const useStockData = ({ startDate, endDate, dataSource }: UseStockDataOpt
   const formatDateForApi = useCallback((date: CalendarDate): string => {
     return `${date.year}-${date.month.toString().padStart(2, "0")}-${date.day.toString().padStart(2, "0")}`;
   }, []);
+
+  useEffect(() => {
+    setCurrentResolution(resolution);
+  }, [resolution]);
 
   // Fetch all historical data for a symbol
   const fetchAllData = useCallback(
@@ -63,6 +70,7 @@ export const useStockData = ({ startDate, endDate, dataSource }: UseStockDataOpt
           symbol: stockSymbol,
           startDate: formatDateForApi(startDate),
           endDate: formatDateForApi(endDate),
+          resolution: currentResolution,
         };
 
         const standardData = await stockDataSourceManager.fetchHistoricalData(params, source);
@@ -79,7 +87,7 @@ export const useStockData = ({ startDate, endDate, dataSource }: UseStockDataOpt
         fetchInProgress.current[cacheKey] = false;
       }
     },
-    [startDate, endDate, formatDateForApi, currentDataSource],
+    [startDate, endDate, currentResolution, formatDateForApi, currentDataSource],
   );
 
   // Set main stock symbol
@@ -97,6 +105,7 @@ export const useStockData = ({ startDate, endDate, dataSource }: UseStockDataOpt
           setMainStock({
             symbol: newSymbol,
             data: data,
+            resolution: currentResolution,
           });
         }
       } catch (error) {
@@ -149,7 +158,7 @@ export const useStockData = ({ startDate, endDate, dataSource }: UseStockDataOpt
         }
       }
     },
-    [mainStock?.symbol, comparisonStocks, fetchAllData],
+    [mainStock?.symbol, comparisonStocks, currentResolution, fetchAllData],
   );
 
   // Remove comparison stock
@@ -209,6 +218,33 @@ export const useStockData = ({ startDate, endDate, dataSource }: UseStockDataOpt
     [mainStock, comparisonStocks, setMainStockSymbol, fetchAllData],
   );
 
+  const changeResolution = useCallback(
+    async (newResolution: ResolutionOption): Promise<void> => {
+      setCurrentResolution(newResolution);
+
+      // Re-fetch main stock with new resolution
+      if (mainStock) {
+        const data = await fetchAllData(mainStock.symbol);
+        setMainStock({
+          symbol: mainStock.symbol,
+          data,
+          resolution: newResolution,
+        });
+      }
+
+      // Re-fetch comparison stocks with new resolution
+      const stockSymbols = Object.keys(comparisonStocks).map((key) => key.split("_")[0]);
+      const uniqueSymbols = [...new Set(stockSymbols)];
+
+      // Clear old resolution data and fetch new
+      setComparisonStocks({});
+      for (const symbol of uniqueSymbols) {
+        await addComparisonStock(symbol!, currentDataSource);
+      }
+    },
+    [mainStock, comparisonStocks, fetchAllData, addComparisonStock],
+  );
+
   // Get available data sources
   const getAvailableDataSources = useCallback(() => {
     return stockDataSourceManager.getAvailableSources();
@@ -223,6 +259,17 @@ export const useStockData = ({ startDate, endDate, dataSource }: UseStockDataOpt
   const getSourceErrors = useCallback(() => {
     return stockDataSourceManager.getSourceErrors();
   }, []);
+
+  // Auto-refresh when date range or resolution changes
+  useEffect(() => {
+    const refreshData = async () => {
+      if (mainStock) {
+        await setMainStockSymbol(mainStock.symbol);
+      }
+    };
+
+    refreshData();
+  }, [startDate, endDate, currentResolution]);
 
   // Clean up on unmount
   useEffect(() => {
@@ -239,6 +286,7 @@ export const useStockData = ({ startDate, endDate, dataSource }: UseStockDataOpt
     comparisonStocks,
     loading,
     error,
+    currentResolution,
 
     // Data management
     setMainStockSymbol,
@@ -252,5 +300,6 @@ export const useStockData = ({ startDate, endDate, dataSource }: UseStockDataOpt
     getAvailableDataSources,
     checkSourceHealth,
     getSourceErrors,
+    changeResolution,
   };
 };

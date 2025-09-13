@@ -8,17 +8,20 @@ import { Activity, Database, Plus, RefreshCw } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import ResponsivePortfolioDataTable from "@repo/ui/components/templates/analytic-stocks/portfolio/ResponsivePortfolioDataTable";
 import StockComparisonChart from "@repo/ui/components/templates/analytic-stocks/StockComparisonChart";
-import { TimeframeOption } from "@repo/ui/types/stock";
+import { ResolutionOption, TimeframeOption } from "@repo/ui/types/stock";
+import { DataSource } from "@repo/ui/lib/data-sources/stock-data-source-manager";
 
 export interface PortfolioProps {
   dateControls: {
     startDate: CalendarDate;
     endDate: CalendarDate;
     timeframe: TimeframeOption;
+    resolution: ResolutionOption;
     currentDate: CalendarDate;
     onStartDateChange: (date: CalendarDate) => void;
     onEndDateChange: (date: CalendarDate) => void;
     onTimeframeChange: (timeframe: TimeframeOption) => void;
+    onResolutionChange: (resolution: ResolutionOption) => void;
   };
   portfolioProps?: {
     portfolioSymbols: string[];
@@ -47,7 +50,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ dateControls, portfolioProps }) =
     removeSymbol,
     refreshHoldings,
     loadComparisonData,
-    currentDataSource = "TCBS",
+    currentDataSource,
   } = portfolioProps || {};
 
   // Auto-refresh holdings when switching to portfolio tab

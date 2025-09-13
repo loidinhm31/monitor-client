@@ -1,6 +1,6 @@
 import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
 import { useState } from "react";
-import { TimeframeOption } from "@repo/ui/types/stock";
+import { ResolutionOption, TimeframeOption } from "@repo/ui/types/stock";
 
 export const useSharedDates = () => {
   const currentDate = today(getLocalTimeZone());
@@ -8,7 +8,8 @@ export const useSharedDates = () => {
 
   const [startDate, setStartDate] = useState<CalendarDate>(threeMonthsAgo);
   const [endDate, setEndDate] = useState<CalendarDate>(currentDate);
-  const [timeframe, setTimeframe] = useState<TimeframeOption>("ALL");
+  const [timeframe, setTimeframe] = useState<TimeframeOption>("3M");
+  const [resolution, setResolution] = useState<ResolutionOption>("1D");
 
   const formatDateForApi = (date: CalendarDate): string => {
     return `${date.year}-${date.month.toString().padStart(2, "0")}-${date.day.toString().padStart(2, "0")}`;
@@ -23,5 +24,7 @@ export const useSharedDates = () => {
     setTimeframe,
     formatDateForApi,
     currentDate,
+    resolution,
+    setResolution,
   };
 };

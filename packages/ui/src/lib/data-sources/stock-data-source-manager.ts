@@ -1,3 +1,5 @@
+import { ResolutionOption } from "@repo/ui/types/stock.js";
+
 export type DataSource = "VNDIRECT" | "SSI";
 
 export interface StockDataSourceConfig {
@@ -19,8 +21,8 @@ export interface IStockDataSource {
 
   // Core data fetching methods
   fetchHistoricalData(params: HistoricalDataParams): Promise<StandardStockData[]>;
-  fetchCurrentData(symbol: string): Promise<StandardStockData>;
-  fetchMultipleCurrentData(symbols: string[]): Promise<StandardStockData[]>;
+  fetchCurrentData(symbol: string, resolution: ResolutionOption): Promise<StandardStockData>;
+  fetchMultipleCurrentData(symbols: string[], resolution: ResolutionOption): Promise<StandardStockData[]>;
 
   // Optional real-time support
   fetchRealtimeData?(symbol: string): Promise<StandardStockData>;
@@ -34,6 +36,7 @@ export interface HistoricalDataParams {
   symbol: string;
   startDate: string; // YYYY-MM-DD format
   endDate: string;
+  resolution: ResolutionOption;
   page?: number;
 }
 
@@ -181,7 +184,7 @@ export class VNDDataSource implements IStockDataSource {
       // VND Direct API endpoint and parameters
       const url = `${this.baseUrl}/history`;
       const queryParams = new URLSearchParams({
-        resolution: "1D", // Daily resolution
+        resolution: params.resolution, // Daily resolution
         symbol: params.symbol, // Stock symbol
         from: startTimestamp.toString(),
         to: endTimestamp.toString(),
@@ -213,7 +216,7 @@ export class VNDDataSource implements IStockDataSource {
     }
   }
 
-  async fetchCurrentData(symbol: string): Promise<StandardStockData> {
+  async fetchCurrentData(symbol: string, resolution: ResolutionOption): Promise<StandardStockData> {
     await this.rateLimiter.waitIfNeeded();
 
     try {
@@ -227,6 +230,7 @@ export class VNDDataSource implements IStockDataSource {
         symbol,
         startDate: this.formatDate(startDate),
         endDate: this.formatDate(endDate),
+        resolution: resolution,
       });
 
       if (historicalData.length === 0) {
@@ -243,10 +247,10 @@ export class VNDDataSource implements IStockDataSource {
     }
   }
 
-  async fetchMultipleCurrentData(symbols: string[]): Promise<StandardStockData[]> {
+  async fetchMultipleCurrentData(symbols: string[], resolution: ResolutionOption): Promise<StandardStockData[]> {
     const promises = symbols.map(async (symbol) => {
       try {
-        return await this.fetchCurrentData(symbol);
+        return await this.fetchCurrentData(symbol, resolution);
       } catch (error) {
         return null;
       }
@@ -512,7 +516,11 @@ export class StockDataSourceManager {
     }
   }
 
-  async fetchCurrentData(symbol: string, preferredSource?: DataSource): Promise<StandardStockData> {
+  async fetchCurrentData(
+    symbol: string,
+    resolution: ResolutionOption,
+    preferredSource?: DataSource,
+  ): Promise<StandardStockData> {
     const cacheKey = this.getCacheKey("current", { symbol });
     const cached = this.getFromCache<StandardStockData>(cacheKey);
 
@@ -522,34 +530,38 @@ export class StockDataSourceManager {
     const dataSource = this.sources.get(source);
 
     if (!dataSource || !dataSource.isEnabled()) {
-      return this.fallbackFetchCurrentData(symbol);
+      return this.fallbackFetchCurrentData(symbol, resolution);
     }
 
     try {
-      const data = await dataSource.fetchCurrentData(symbol);
+      const data = await dataSource.fetchCurrentData(symbol, resolution);
 
       this.setToCache(cacheKey, data, 10000); // Cache for 10 seconds
 
       return data;
     } catch (_error) {
-      return this.fallbackFetchCurrentData(symbol, source);
+      return this.fallbackFetchCurrentData(symbol, resolution, source);
     }
   }
 
-  async fetchMultipleCurrentData(symbols: string[], preferredSource?: DataSource): Promise<StandardStockData[]> {
+  async fetchMultipleCurrentData(
+    symbols: string[],
+    resolution: ResolutionOption,
+    preferredSource?: DataSource,
+  ): Promise<StandardStockData[]> {
     const source = preferredSource || this.defaultSource;
     const dataSource = this.sources.get(source);
 
     if (!dataSource || !dataSource.isEnabled()) {
-      return this.fallbackFetchMultipleCurrentData(symbols);
+      return this.fallbackFetchMultipleCurrentData(symbols, resolution);
     }
 
     try {
-      return await dataSource.fetchMultipleCurrentData(symbols);
+      return await dataSource.fetchMultipleCurrentData(symbols, resolution);
     } catch (error) {
       console.error(`Error fetching multiple from ${source}, trying fallback:`, error);
 
-      return this.fallbackFetchMultipleCurrentData(symbols, source);
+      return this.fallbackFetchMultipleCurrentData(symbols, resolution, source);
     }
   }
 
@@ -572,14 +584,18 @@ export class StockDataSourceManager {
     throw new Error(`All data sources failed to fetch historical data for ${params.symbol}`);
   }
 
-  private async fallbackFetchCurrentData(symbol: string, excludeSource?: DataSource): Promise<StandardStockData> {
+  private async fallbackFetchCurrentData(
+    symbol: string,
+    resolution: ResolutionOption,
+    excludeSource?: DataSource,
+  ): Promise<StandardStockData> {
     const availableSources = Array.from(this.sources.entries())
       .filter(([name, source]) => name !== excludeSource && source.isEnabled())
       .sort((a, b) => (this.config.get(a[0])?.priority || 999) - (this.config.get(b[0])?.priority || 999));
 
     for (const [name, source] of availableSources) {
       try {
-        return await source.fetchCurrentData(symbol);
+        return await source.fetchCurrentData(symbol, resolution);
       } catch (error) {
         console.error(`Fallback source ${name} also failed:`, error);
       }
@@ -590,6 +606,7 @@ export class StockDataSourceManager {
 
   private async fallbackFetchMultipleCurrentData(
     symbols: string[],
+    resolution: ResolutionOption,
     excludeSource?: DataSource,
   ): Promise<StandardStockData[]> {
     const availableSources = Array.from(this.sources.entries())
@@ -598,7 +615,7 @@ export class StockDataSourceManager {
 
     for (const [name, source] of availableSources) {
       try {
-        return await source.fetchMultipleCurrentData(symbols);
+        return await source.fetchMultipleCurrentData(symbols, resolution);
       } catch (error) {
         console.error(`Fallback source ${name} also failed:`, error);
       }

@@ -1,26 +1,16 @@
-export interface StockApiResponse {
-  Data: {
-    TotalCount: number;
-    Data: RawStockDataPoint[];
-  };
-  Message: string | null;
-  Success: boolean;
-}
-
 export type TimeframeOption = "1W" | "1M" | "3M" | "6M" | "1Y" | "2Y" | "ALL";
+export type ResolutionOption = "1D" | "60" | "30" | "15" | "10" | "5" | "1";
 
-export interface RawStockDataPoint {
-  Ngay: string;
-  GiaDongCua: number;
-  ThayDoi: string;
-  KhoiLuongKhopLenh: number;
-  GiaTriKhopLenh: number;
-  GiaDieuChinh: number;
-  KLThoaThuan: number;
-  GtThoaThuan: number;
-  GiaMoCua: number;
-  GiaCaoNhat: number;
-  GiaThapNhat: number;
+export interface RawStockData {
+  date: string;
+  adjusted_close: string;
+  close: string;
+  volume: string;
+  negotiated_volume: string;
+  negotiated_value: string;
+  open: string;
+  high: string;
+  low: string;
 }
 
 export interface TransformedStockData {
