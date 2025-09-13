@@ -1,43 +1,4 @@
-import type { RawStockDataPoint, TimeframeOption, TransformedStockData } from "@/types/stock";
-
-// Helper type for price change parsing
-export interface ParsedPriceChange {
-  value: number;
-  percentage: number;
-}
-
-export const parsePriceChange = (change: string): ParsedPriceChange => {
-  const matches = change.match(/(-?\d+\.?\d*)\((-?\d+\.?\d*) %\)/);
-
-  if (!matches) {
-    return { value: 0, percentage: 0 };
-  }
-
-  return {
-    value: parseFloat(matches[1]),
-    percentage: parseFloat(matches[2]),
-  };
-};
-
-export const transformStockData = (data: RawStockDataPoint): TransformedStockData => {
-  const priceChange = parsePriceChange(data.ThayDoi);
-  const [day, month, year] = data.Ngay.split("/");
-  const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-
-  return {
-    date: data.Ngay,
-    dateObj,
-    adjustedPrice: data.GiaDieuChinh,
-    closePrice: data.GiaDongCua,
-    priceChange,
-    volume: data.KhoiLuongKhopLenh,
-    negotiatedVolume: data.KLThoaThuan,
-    negotiatedValue: data.GtThoaThuan,
-    openPrice: data.GiaMoCua,
-    highestPrice: data.GiaCaoNhat,
-    lowestPrice: data.GiaThapNhat,
-  };
-};
+import { TimeframeOption, TransformedStockData } from "@repo/ui/types/stock";
 
 export const filterDataByTimeframe = (
   data: TransformedStockData[],
