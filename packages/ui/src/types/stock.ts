@@ -1,5 +1,6 @@
 export type TimeframeOption = "1W" | "1M" | "3M" | "6M" | "1Y" | "2Y" | "ALL";
 export type ResolutionOption = "1D" | "60" | "30" | "15" | "5" | "1";
+export type DataSource = "VNDIRECT" | "SSI" | "VNGOLD";
 
 export interface RawStockData {
   date: string;
@@ -43,4 +44,11 @@ export interface ChartData extends TransformedStockData {
 
 export interface ChartProps {
   data: ChartData[];
+}
+
+export interface DataSourceOption {
+  name: DataSource;
+  displayName: string;
+  enabled: boolean;
+  priority: number;
 }

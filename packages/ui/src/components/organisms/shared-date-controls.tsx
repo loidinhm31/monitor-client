@@ -141,7 +141,7 @@ const SharedDateControls: React.FC<SharedDateControlsProps> = ({
       )}
 
       <div className="flex-1 min-w-48">
-        <Label className="text-cyan-400/70 text-sm font-medium mb-2 block">Quick Timeframe</Label>
+        <Label className="text-cyan-400/70 text-sm font-medium font-mono mb-2 block">Quick Timeframe</Label>
         <Select disabled={disabled} value={timeframe} onValueChange={onTimeframeChange}>
           <SelectTrigger className="w-32" variant="holographic">
             <SelectValue placeholder="Timeframe" />

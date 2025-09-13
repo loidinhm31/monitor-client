@@ -144,9 +144,15 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
     <div className="space-y-6">
       <Tabs className="w-full" defaultValue="overview">
         <TabsList className="grid w-full grid-cols-3" variant="holographic">
-          <TabsTrigger value="overview">{isVNGold ? "Gold Price Overview" : "Stock Overview"}</TabsTrigger>
-          <TabsTrigger value="comparison">Price Comparison</TabsTrigger>
-          <TabsTrigger value="data">Raw Data</TabsTrigger>
+          <TabsTrigger value="overview" variant="holographic">
+            {isVNGold ? "Gold Price Overview" : "Stock Overview"}
+          </TabsTrigger>
+          <TabsTrigger value="comparison" variant="holographic">
+            Price Comparison
+          </TabsTrigger>
+          <TabsTrigger value="data" variant="holographic">
+            Raw Data
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent className="space-y-4" value="overview">
@@ -154,17 +160,17 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
             {/* Technical Indicators Control - Hide for VN Gold as it's daily only */}
             <Card variant="holographic">
               <CardHeader>
-                <h3 className="text-lg font-semibold text-cyan-400">Technical Analysis</h3>
+                <h3 className="text-lg font-semibold font-mono text-cyan-400">Technical Analysis</h3>
               </CardHeader>
               <CardContent>
-                <IndicatorControls indicators={indicators} onIndicatorChange={setIndicators} isVNGold={isVNGold} />
+                <IndicatorControls indicators={indicators} isVNGold={isVNGold} onIndicatorChange={setIndicators} />
               </CardContent>
             </Card>
 
             {/* Price Chart */}
             <Card variant="holographic">
               <CardHeader>
-                <h3 className="text-lg font-semibold text-cyan-400">
+                <h3 className="text-lg font-semibold font-mono text-cyan-400">
                   {isVNGold ? `Vietnamese Gold Price (${symbol})` : `${symbol} Price Chart`}
                 </h3>
               </CardHeader>

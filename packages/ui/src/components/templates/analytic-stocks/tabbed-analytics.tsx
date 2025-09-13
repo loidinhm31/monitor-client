@@ -10,8 +10,7 @@ import StockDashboard from "@repo/ui/components/templates/analytic-stocks/stock-
 import { useSharedDates } from "@repo/ui/hooks/useSharedDates";
 import { useStockData } from "@repo/ui/hooks/useStockData";
 import { usePortfolio } from "@repo/ui/hooks/usePortfolio";
-import { TimeframeOption } from "@repo/ui/types/stock";
-import { DataSource } from "@repo/ui/lib/data-sources/stock-data-source-manager";
+import { DataSource, TimeframeOption } from "@repo/ui/types/stock";
 import { DataSourceSelector } from "@repo/ui/components/organisms/data-source-selector";
 import { DataSourceStatus } from "@repo/ui/components/organisms/data-source-status";
 import { InputLabel } from "@repo/ui/components/atoms/input-label";
@@ -45,6 +44,7 @@ const TabbedAnalytics = () => {
     currentDataSource,
     changeStockDataSource,
     checkSourceHealth,
+    getAvailableDataSources,
   } = useStockData({
     startDate,
     endDate,
@@ -77,6 +77,8 @@ const TabbedAnalytics = () => {
 
   // Get source health status
   const [sourceHealth, setSourceHealth] = useState<Partial<Record<DataSource, boolean>>>({});
+
+  const availableDataSources = getAvailableDataSources();
 
   const handleMainStockSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,10 +179,10 @@ const TabbedAnalytics = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Database className="w-5 h-5" />
-              <h3 className="text-lg font-semibold">Data Source Management</h3>
+              <Database className="w-5 h-5 text-cyan-400" />
+              <h3 className="text-lg font-mono text-cyan-400">Data Source Management</h3>
               <Button size="sm" variant="ghost" onClick={() => setShowSourceSettings(!showSourceSettings)}>
-                <Settings className="w-4 h-4" />
+                <Settings className="w-4 h-4 text-cyan-400" />
               </Button>
             </div>
 
@@ -212,7 +214,8 @@ const TabbedAnalytics = () => {
                 </div>
               )}
 
-              <DataSourceStatus />
+              {/* Detailed Source Status */}
+              <DataSourceStatus availableSources={availableDataSources} />
             </div>
           </div>
         </CardHeader>
@@ -225,8 +228,9 @@ const TabbedAnalytics = () => {
                   <TrendingUp className="w-4 h-4" />
                 </div>
                 <DataSourceSelector
-                  availableSources={[]}
+                  availableSources={availableDataSources}
                   currentSource={currentDataSource}
+                  currentSymbol={mainStock?.symbol}
                   disabled={isLoading}
                   onSourceChange={handleStockDataSourceChange}
                 />
@@ -240,8 +244,9 @@ const TabbedAnalytics = () => {
                   <Activity className="w-4 h-4" />
                 </div>
                 <DataSourceSelector
-                  availableSources={[]}
+                  availableSources={availableDataSources}
                   currentSource={currentPortfolioSource}
+                  currentSymbol={mainStock?.symbol}
                   disabled={isLoading}
                   onSourceChange={handlePortfolioDataSourceChange}
                 />
@@ -252,7 +257,7 @@ const TabbedAnalytics = () => {
             </div>
 
             {/* Detailed Source Status */}
-            <DataSourceStatus showDetails={true} />
+            <DataSourceStatus availableSources={availableDataSources} showDetails={true} />
           </CardContent>
         )}
       </Card>
@@ -290,7 +295,7 @@ const TabbedAnalytics = () => {
           {/* Analysis Tab - Stock Symbol */}
           <Card variant="holographic">
             <CardHeader>
-              <h4 className="font-medium">Stock Analysis</h4>
+              <h4 className="text-cyan-400 font-medium font-mono">Stock Analysis</h4>
             </CardHeader>
             <CardContent>
               <form className="space-y-4" onSubmit={handleMainStockSubmit}>
@@ -335,16 +340,16 @@ const TabbedAnalytics = () => {
                 {/* Data Source Info for Analysis */}
                 <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t">
                   <div className="flex items-center gap-4">
-                    <span>
+                    <span className="font-mono">
                       Data source: <strong>{currentDataSource}</strong>
                     </span>
                     {lastFetchTime && <span>Last updated: {lastFetchTime.toLocaleTimeString()}</span>}
                   </div>
                   {sourceHealth[currentDataSource] !== undefined && (
                     <div className="flex items-center gap-1">
-                      <span>Status:</span>
+                      <span className="font-mono">Status:</span>
                       <div
-                        className={`flex items-center gap-1 ${sourceHealth[currentDataSource] ? "text-green-600" : "text-red-600"}`}
+                        className={`font-mono flex items-center gap-1 ${sourceHealth[currentDataSource] ? "text-green-600" : "text-red-600"}`}
                       >
                         <div
                           className={`w-2 h-2 rounded-full ${sourceHealth[currentDataSource] ? "bg-green-500" : "bg-red-500"}`}
@@ -376,16 +381,16 @@ const TabbedAnalytics = () => {
             <Card variant="holographic">
               <CardContent className="text-center py-12">
                 <TrendingUp className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Start Your Analysis</h3>
-                <p className="text-gray-500 mb-4">
+                <h3 className="text-lg font-mono font-medium text-cyan-400/70 mb-2">Start Your Analysis</h3>
+                <p className="font-mono text-gray-500 mb-4">
                   Enter a stock symbol above to begin technical analysis with real-time data from {currentDataSource}.
                 </p>
                 <div className="flex items-center justify-center gap-4 text-sm text-gray-400">
-                  <span>Popular symbols:</span>
+                  <span className="font-mono">Popular symbols:</span>
                   {["VN30", "TCB", "VIC", "HPG", "VCB"].map((symbol) => (
                     <Button
                       key={symbol}
-                      className="text-gray-600 hover:text-gray-900"
+                      className="text-gray-600 hover:text-gray-900 font-mono"
                       size="sm"
                       variant="default"
                       onClick={() => setInputSymbol(symbol)}

@@ -1,5 +1,4 @@
 import {
-  DataSource,
   HistoricalDataParams,
   stockDataSourceManager,
   transformSingleToLegacyFormat,
@@ -7,7 +6,7 @@ import {
 } from "@repo/ui/lib/data-sources/stock-data-source-manager";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CalendarDate } from "@internationalized/date";
-import { TransformedStockData } from "@repo/ui/types/stock";
+import { DataSource, TransformedStockData } from "@repo/ui/types/stock";
 
 const PORTFOLIO_STORAGE_KEY = "stockPortfolioSymbols";
 const PORTFOLIO_SOURCE_KEY = "portfolioDataSource";

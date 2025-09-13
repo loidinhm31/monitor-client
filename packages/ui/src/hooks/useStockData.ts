@@ -1,12 +1,11 @@
 import { CalendarDate } from "@internationalized/date";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  DataSource,
   HistoricalDataParams,
   stockDataSourceManager,
   transformToLegacyFormat,
 } from "@repo/ui/lib/data-sources/stock-data-source-manager";
-import { ResolutionOption, TransformedStockData } from "@repo/ui/types/stock";
+import { DataSource, ResolutionOption, TransformedStockData } from "@repo/ui/types/stock";
 
 interface UseStockDataOptions {
   startDate: CalendarDate;
@@ -273,14 +272,7 @@ export const useStockData = ({ startDate, endDate, resolution = "1D", dataSource
 
   // Get available data sources
   const getAvailableDataSources = useCallback(() => {
-    const allSources = stockDataSourceManager.getAvailableSources();
-
-    if (mainStock?.symbol === "VNGOLD") {
-      return allSources.filter((source) => source.name === "VNGOLD");
-    }
-
-    // Otherwise, show all sources except VNGOLD (unless specifically needed)
-    return allSources.filter((source) => source.name !== "VNGOLD");
+   return stockDataSourceManager.getAvailableSources();
   }, []);
 
   // Health check for all sources

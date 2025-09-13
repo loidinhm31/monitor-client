@@ -1,7 +1,6 @@
-import { ResolutionOption } from "@repo/ui/types/stock.js";
+import { DataSource, ResolutionOption } from "@repo/ui/types/stock";
 import { VNGoldDataSource } from "@repo/ui/lib/data-sources/vn-gold-data-source";
 
-export type DataSource = "VNDIRECT" | "SSI" | "VNGOLD";
 
 export interface StockDataSourceConfig {
   name: DataSource;

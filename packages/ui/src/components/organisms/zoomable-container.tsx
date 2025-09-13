@@ -58,7 +58,13 @@ export function ZoomableContainer<T>({ data, children }: ZoomableContainerProps<
     <div className="w-full mt-4">
       <div ref={chartRef} style={{ touchAction: "none" }} onWheel={handleZoom}>
         <div className="flex justify-end mb-4">
-          <Button disabled={startIndex === 0 && endIndex === data.length - 1} size="sm" onClick={handleReset}>
+          <Button
+            className="font-mono"
+            disabled={startIndex === 0 && endIndex === data.length - 1}
+            size="sm"
+            variant="holographic"
+            onClick={handleReset}
+          >
             Reset Zoom
           </Button>
         </div>
