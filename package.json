@@ -10,7 +10,8 @@
     "clean": "turbo clean",
     "check-types": "turbo check-types",
     "shadcn": "pnpm --filter @repo/ui shadcn",
-    "tauri": "pnpm --filter native tauri"
+    "tauri": "pnpm --filter native tauri",
+    "android-build": " pnpm tauri android build --apk"
   },
   "devDependencies": {
     "@eslint/compat": "1.2.8",

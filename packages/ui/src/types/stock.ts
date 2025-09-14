@@ -2,16 +2,22 @@ export type TimeframeOption = "1W" | "1M" | "3M" | "6M" | "1Y" | "2Y" | "ALL";
 export type ResolutionOption = "1D" | "60" | "30" | "15" | "5" | "1";
 export type DataSource = "VNDIRECT" | "SSI" | "VNGOLD";
 
-export interface RawStockData {
-  date: string;
-  adjusted_close: string;
-  close: string;
-  volume: string;
-  negotiated_volume: string;
-  negotiated_value: string;
-  open: string;
-  high: string;
-  low: string;
+export interface DataRow extends TransformedStockData {
+  symbol?: string;
+  actions?: string;
+  sma?: number;
+  ema?: number;
+  macd?: number;
+  signal?: number;
+  histogram?: number;
+  rsi?: number;
+}
+
+export type ColumnKey = keyof DataRow;
+
+export interface Column {
+  key: ColumnKey;
+  label: string;
 }
 
 export interface TransformedStockData {
@@ -29,21 +35,7 @@ export interface TransformedStockData {
   openPrice: number;
   highestPrice: number;
   lowestPrice: number;
-
   pivotPoint?: number;
-}
-
-export interface ChartData extends TransformedStockData {
-  sma?: number;
-  ema?: number;
-  macd?: number;
-  signal?: number;
-  histogram?: number;
-  rsi?: number;
-}
-
-export interface ChartProps {
-  data: ChartData[];
 }
 
 export interface DataSourceOption {

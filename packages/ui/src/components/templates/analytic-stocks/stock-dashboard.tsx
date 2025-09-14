@@ -1,13 +1,19 @@
-import type { ChartData, ResolutionOption, TimeframeOption, TransformedStockData } from "@repo/ui/types/stock";
-
+import {
+  Column,
+  ColumnKey,
+  DataRow,
+  ResolutionOption,
+  TimeframeOption,
+  TransformedStockData,
+} from "@repo/ui/types/stock";
 import { Card, CardContent, CardHeader } from "@repo/ui/components/atoms/card";
 import { Spinner } from "@repo/ui/components/atoms/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/atoms/tabs";
 import React, { useEffect, useMemo, useState } from "react";
 import ChartContainer from "@repo/ui/components/organisms/chart-container";
-import ResponsiveDataTable from "@repo/ui/components/templates/analytic-stocks/ResponsiveDataTable";
+import ResponsiveDataTable from "@repo/ui/components/templates/analytic-stocks/responsive-data-table";
 import StockComparison from "@repo/ui/components/templates/analytic-stocks/stock-comparison";
-import { filterDataByTimeframe } from "@repo/ui/lib/stock-utils";
+import { COLUMN_LABELS, filterDataByTimeframe } from "@repo/ui/lib/stock-utils";
 import {
   calculateDailyPivotPoints,
   calculateEMA,
@@ -46,6 +52,16 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
     pivotPoints: false,
   });
 
+  const columns: Column[] = [
+    { key: "date" as ColumnKey, label: COLUMN_LABELS.date },
+    { key: "closePrice" as ColumnKey, label: COLUMN_LABELS.closePrice },
+    { key: "priceChange" as ColumnKey, label: COLUMN_LABELS.change },
+    { key: "volume" as ColumnKey, label: COLUMN_LABELS.volume },
+    { key: "openPrice" as ColumnKey, label: COLUMN_LABELS.openPrice },
+    { key: "highestPrice" as ColumnKey, label: COLUMN_LABELS.highestPrice },
+    { key: "lowestPrice" as ColumnKey, label: COLUMN_LABELS.lowestPrice },
+  ];
+
   const [loading, setLoading] = useState(false);
 
   // Check if current symbol is Vietnamese Gold
@@ -59,7 +75,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
   }, [stockData, timeframe]);
 
   // Apply technical indicators to filtered data - following the pattern from tabbed-analytics.tsx
-  const enrichedData = useMemo((): ChartData[] => {
+  const enrichedData = useMemo((): DataRow[] => {
     if (!filteredData?.length) return [];
 
     try {
@@ -82,11 +98,11 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
         histogram: macdData.histogram[index],
         rsi: rsiData[index],
         ...(indicators.pivotPoints ? pivotPointsData[index] : {}),
-      })) as ChartData[];
+      })) as DataRow[];
     } catch (error) {
       console.error("Error enriching data:", error);
 
-      return [] as ChartData[];
+      return [] as DataRow[];
     }
   }, [filteredData, indicators.pivotPoints]);
 
@@ -160,7 +176,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
             {/* Technical Indicators Control - Hide for VN Gold as it's daily only */}
             <Card variant="holographic">
               <CardHeader>
-                <h3 className="text-lg font-semibold font-mono text-cyan-400">Technical Analysis</h3>
+                <h3 className="text-lg font-semibold text-cyan-400">Technical Analysis</h3>
               </CardHeader>
               <CardContent>
                 <IndicatorControls indicators={indicators} isVNGold={isVNGold} onIndicatorChange={setIndicators} />
@@ -196,7 +212,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({
               <h3 className="text-lg font-semibold text-cyan-400">{isVNGold ? "Gold Price Data" : "Stock Data"}</h3>
             </CardHeader>
             <CardContent>
-              <ResponsiveDataTable data={enrichedData} />
+              <ResponsiveDataTable columns={columns} data={enrichedData} />
             </CardContent>
           </Card>
         </TabsContent>

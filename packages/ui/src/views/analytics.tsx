@@ -2,7 +2,7 @@ import TabbedAnalytics from "@repo/ui/components/templates/analytic-stocks/tabbe
 
 export default function AnalyticsPage() {
   return (
-    <section className="py-8 md:py-10">
+    <section className="py-8 md:py-10 font-mono ">
       <div className="max-w-[1200px] mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">Stock Market Analytics</h1>

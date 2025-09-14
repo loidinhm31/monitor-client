@@ -45,7 +45,7 @@ export const useStockData = ({ startDate, endDate, resolution = "1D", dataSource
 
   // Helper to get supported resolutions for current symbol
   const getSupportedResolutions = useCallback((symbol?: string) => {
-    if (!symbol) return ["1D", "1W", "1M"];
+    if (!symbol) return ["1D", "5", "15", "30", "60"];
 
     return stockDataSourceManager.getSupportedResolutions(symbol);
   }, []);
@@ -76,6 +76,7 @@ export const useStockData = ({ startDate, endDate, resolution = "1D", dataSource
       if (!stockSymbol || fetchInProgress.current[stockSymbol]) {
         return [];
       }
+      console.log("params", stockSymbol);
 
       fetchInProgress.current[stockSymbol] = true;
 
@@ -92,6 +93,8 @@ export const useStockData = ({ startDate, endDate, resolution = "1D", dataSource
 
         // For VNGOLD, always use VNGOLD data source
         const sourceToUse = stockSymbol === "VNGOLD" ? "VNGOLD" : preferredSource || currentDataSource;
+
+        console.log("fetched", sourceToUse);
 
         const standardData = await stockDataSourceManager.fetchHistoricalData(params, sourceToUse);
 
@@ -161,6 +164,7 @@ export const useStockData = ({ startDate, endDate, resolution = "1D", dataSource
         // For comparison stocks, always use 1D resolution if it's VNGOLD
         const resolutionToUse = upperSymbol === "VNGOLD" ? "1D" : currentResolution;
 
+        console.log("reso", resolutionToUse);
         const data = await fetchAllData(upperSymbol, currentDataSource, resolutionToUse);
 
         if (isMounted.current) {
@@ -272,7 +276,7 @@ export const useStockData = ({ startDate, endDate, resolution = "1D", dataSource
 
   // Get available data sources
   const getAvailableDataSources = useCallback(() => {
-   return stockDataSourceManager.getAvailableSources();
+    return stockDataSourceManager.getAvailableSources();
   }, []);
 
   // Health check for all sources

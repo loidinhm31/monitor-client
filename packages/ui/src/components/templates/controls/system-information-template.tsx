@@ -37,13 +37,13 @@ const SystemInformationTemplate = ({
     <>
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div>
-          <Label className="text-cyan-400/70 font-mono">OS Type</Label>
+          <Label className="text-cyan-400/70 ">OS Type</Label>
           <Badge className="mt-1 w-full justify-center bg-cyan-400/10 text-cyan-400 border-cyan-400/30" variant="glass">
             {systemInfo.os_type}
           </Badge>
         </div>
         <div>
-          <Label className="text-cyan-400/70 font-mono">OS Release</Label>
+          <Label className="text-cyan-400/70 ">OS Release</Label>
           <Badge className="mt-1 w-full justify-center bg-cyan-400/10 text-cyan-400 border-cyan-400/30" variant="glass">
             {systemInfo.os_release}
           </Badge>
@@ -51,7 +51,7 @@ const SystemInformationTemplate = ({
       </div>
 
       <div>
-        <Label className="text-cyan-400 font-mono mb-2 block">Available Eyes</Label>
+        <Label className="text-cyan-400  mb-2 block">Available Eyes</Label>
         <Select onValueChange={selectEyes}>
           <SelectTrigger className="w-full bg-black/20 border-cyan-400/30 text-cyan-400">
             <SelectValue placeholder="Select eyes" />

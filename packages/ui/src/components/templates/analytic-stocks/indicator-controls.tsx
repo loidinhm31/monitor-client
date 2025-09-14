@@ -28,7 +28,7 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
           variant="holographic"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, highLow: value })}
         />
-        <Label className="text-sm text-cyan-400/70 font-mono font-medium cursor-pointer" htmlFor="high-low-switch">
+        <Label className="text-sm text-cyan-400/70 font-medium cursor-pointer" htmlFor="high-low-switch">
           Highest/Lowest Price
         </Label>
       </div>
@@ -40,7 +40,7 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
           variant="holographic"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, pivotPoints: value })}
         />
-        <Label className="text-sm text-cyan-400/70 font-mono font-medium cursor-pointer" htmlFor="pivot-points-switch">
+        <Label className="text-sm text-cyan-400/70 font-medium cursor-pointer" htmlFor="pivot-points-switch">
           Pivot Points
         </Label>
       </div>
@@ -52,7 +52,7 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
           variant="holographic"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, sma: value })}
         />
-        <Label className="text-sm text-cyan-400/70 font-mono font-medium cursor-pointer" htmlFor="sma-switch">
+        <Label className="text-sm text-cyan-400/70 font-medium cursor-pointer" htmlFor="sma-switch">
           SMA (20)
         </Label>
       </div>
@@ -64,7 +64,7 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
           variant="holographic"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, ema: value })}
         />
-        <Label className="text-sm text-cyan-400/70 font-mono font-medium cursor-pointer" htmlFor="ema-switch">
+        <Label className="text-sm text-cyan-400/70 font-medium cursor-pointer" htmlFor="ema-switch">
           EMA (20)
         </Label>
       </div>
@@ -76,7 +76,7 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
           variant="holographic"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, macd: value })}
         />
-        <Label className="text-sm text-cyan-400/70 font-mono font-medium cursor-pointer" htmlFor="macd-switch">
+        <Label className="text-sm text-cyan-400/70 font-medium cursor-pointer" htmlFor="macd-switch">
           MACD
         </Label>
       </div>
@@ -88,7 +88,7 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
           variant="holographic"
           onCheckedChange={(value) => onIndicatorChange({ ...indicators, rsi: value })}
         />
-        <Label className="text-sm text-cyan-400/70 font-mono font-medium cursor-pointer" htmlFor="rsi-switch">
+        <Label className="text-sm text-cyan-400/70 font-medium cursor-pointer" htmlFor="rsi-switch">
           RSI
         </Label>
       </div>
@@ -101,7 +101,7 @@ const IndicatorControls: React.FC<IndicatorControlsProps> = ({ indicators, onInd
             variant="holographic"
             onCheckedChange={(value) => onIndicatorChange({ ...indicators, volume: value })}
           />
-          <Label className="text-sm text-cyan-400/70 font-mono font-medium cursor-pointer" htmlFor="volume-switch">
+          <Label className="text-sm text-cyan-400/70 font-medium cursor-pointer" htmlFor="volume-switch">
             Volume
           </Label>
         </div>

@@ -1,7 +1,6 @@
 import { DataSource, ResolutionOption } from "@repo/ui/types/stock";
 import { VNGoldDataSource } from "@repo/ui/lib/data-sources/vn-gold-data-source";
 
-
 export interface StockDataSourceConfig {
   name: DataSource;
   displayName: string;
@@ -36,7 +35,7 @@ export interface HistoricalDataParams {
   symbol: string;
   startDate: string; // YYYY-MM-DD format
   endDate: string;
-  resolution: ResolutionOption;
+  resolution?: ResolutionOption;
   page?: number;
 }
 
@@ -184,7 +183,7 @@ export class VNDDataSource implements IStockDataSource {
       // VND Direct API endpoint and parameters
       const url = `${this.baseUrl}/history`;
       const queryParams = new URLSearchParams({
-        resolution: params.resolution, // Daily resolution
+        resolution: params.resolution!, // Daily resolution
         symbol: params.symbol, // Stock symbol
         from: startTimestamp.toString(),
         to: endTimestamp.toString(),
@@ -209,7 +208,7 @@ export class VNDDataSource implements IStockDataSource {
         throw new Error(`VND Direct API returned status: ${data.s}`);
       }
 
-      return this.transformHistoricalData(data, params.symbol, params.resolution);
+      return this.transformHistoricalData(data, params.symbol, params.resolution!);
     } catch (error) {
       this.lastError = error as Error;
       throw error;
@@ -257,9 +256,8 @@ export class VNDDataSource implements IStockDataSource {
     });
 
     const results = await Promise.all(promises);
-    const successfulResults = results.filter((result): result is StandardStockData => result !== null);
 
-    return successfulResults;
+    return results.filter((result): result is StandardStockData => result !== null);
   }
 
   private transformHistoricalData(

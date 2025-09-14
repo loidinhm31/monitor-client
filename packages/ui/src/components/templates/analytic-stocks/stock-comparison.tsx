@@ -1,7 +1,7 @@
 import { Button } from "@repo/ui/components/atoms/button";
 import { Plus } from "lucide-react";
 import React, { useState } from "react";
-import ComparisonChart from "@repo/ui/components/templates/analytic-stocks/StockComparisonChart";
+import ComparisonChart from "@repo/ui/components/templates/analytic-stocks/stock-comparison-chart";
 import { InputLabel } from "@repo/ui/components/atoms/input-label";
 
 interface StockComparisonProps {

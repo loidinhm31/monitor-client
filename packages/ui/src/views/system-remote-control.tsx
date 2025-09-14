@@ -42,9 +42,9 @@ export default function SystemRemoteControl() {
   }, [appliedHostConnection]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-mono">
       <div>
-        <h2 className="text-xl md:text-2xl font-mono text-cyan-400 mb-4 uppercase tracking-wider">System Dashboard</h2>
+        <h2 className="text-xl md:text-2xl  text-cyan-400 mb-4 uppercase tracking-wider">System Dashboard</h2>
 
         {/* Connection Status */}
         <HostConnectionControl
@@ -75,7 +75,7 @@ export default function SystemRemoteControl() {
             ) : (
               <div className="flex items-center gap-2 justify-center py-8">
                 <Spinner size="sm" variant="liquid" />
-                <span className="text-sm text-cyan-400/70 font-mono">Loading system information...</span>
+                <span className="text-sm text-cyan-400/70 ">Loading system information...</span>
               </div>
             )}
           </HolographicContainer>

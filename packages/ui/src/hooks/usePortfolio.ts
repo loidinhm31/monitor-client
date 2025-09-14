@@ -1,12 +1,13 @@
 import {
   HistoricalDataParams,
+  StandardStockData,
   stockDataSourceManager,
   transformSingleToLegacyFormat,
   transformToLegacyFormat,
 } from "@repo/ui/lib/data-sources/stock-data-source-manager";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CalendarDate } from "@internationalized/date";
-import { DataSource, TransformedStockData } from "@repo/ui/types/stock";
+import { DataSource, ResolutionOption, TransformedStockData } from "@repo/ui/types/stock";
 
 const PORTFOLIO_STORAGE_KEY = "stockPortfolioSymbols";
 const PORTFOLIO_SOURCE_KEY = "portfolioDataSource";
@@ -14,7 +15,6 @@ const PORTFOLIO_SOURCE_KEY = "portfolioDataSource";
 interface UsePortfolioOptions {
   startDate: CalendarDate;
   endDate: CalendarDate;
-  currentDate: CalendarDate;
   dataSource?: DataSource;
 }
 
@@ -26,7 +26,7 @@ interface HoldingsData {
   [symbol: string]: TransformedStockData;
 }
 
-export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: UsePortfolioOptions) => {
+export const usePortfolio = ({ startDate, endDate, dataSource }: UsePortfolioOptions) => {
   const [portfolioSymbols, setPortfolioSymbols] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem(PORTFOLIO_STORAGE_KEY);
@@ -53,8 +53,20 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
   const [error, setError] = useState<string>("");
 
   const isMounted = useRef(true);
+  const operationInProgress = useRef<string | null>(null); // Track current operation
+  const lastFetchTime = useRef<number>(0); // Debounce rapid requests
 
-  // Format date for API
+  // Clean up on unmount and ensure proper mounting state
+  useEffect(() => {
+    isMounted.current = true;
+    operationInProgress.current = null;
+
+    return () => {
+      isMounted.current = false;
+      operationInProgress.current = null;
+    };
+  }, []);
+
   const formatDateForApi = useCallback((date: CalendarDate): string => {
     return `${date.year}-${date.month.toString().padStart(2, "0")}-${date.day.toString().padStart(2, "0")}`;
   }, []);
@@ -63,7 +75,10 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
   const fetchCurrentData = useCallback(
     async (symbol: string): Promise<TransformedStockData> => {
       try {
-        const standardData = await stockDataSourceManager.fetchCurrentData(symbol, currentPortfolioSource);
+        // For VNGOLD, always use VNGOLD data source
+        const sourceToUse = symbol === "VNGOLD" ? "VNGOLD" : currentPortfolioSource;
+
+        const standardData = await stockDataSourceManager.fetchCurrentData(symbol, "1D", sourceToUse);
 
         return transformSingleToLegacyFormat(standardData);
       } catch (error) {
@@ -82,9 +97,13 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
           symbol: symbol,
           startDate: formatDateForApi(startDate),
           endDate: formatDateForApi(endDate),
+          resolution: "1D",
         };
 
-        const standardData = await stockDataSourceManager.fetchHistoricalData(params, currentPortfolioSource);
+        // For VNGOLD, always use VNGOLD data source
+        const sourceToUse = symbol === "VNGOLD" ? "VNGOLD" : currentPortfolioSource;
+
+        const standardData = await stockDataSourceManager.fetchHistoricalData(params, sourceToUse);
 
         return transformToLegacyFormat(standardData);
       } catch (error) {
@@ -99,10 +118,29 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
   const fetchBatchCurrentData = useCallback(
     async (symbols: string[]): Promise<HoldingsData> => {
       try {
-        const standardDataArray = await stockDataSourceManager.fetchMultipleCurrentData(
+        let standardDataArray: StandardStockData[] = [];
+
+        if (symbols.includes("VNGOLD")) {
+          symbols = symbols.filter((symbol) => symbol !== "VNGOLD");
+
+          const vnGoldData = await stockDataSourceManager.fetchMultipleCurrentData(
+            ["VNGOLD"],
+            "1D" as ResolutionOption,
+            "VNGOLD",
+          );
+
+          standardDataArray.push(...vnGoldData);
+          console.log("arr", standardDataArray);
+        }
+
+        const dataArray = await stockDataSourceManager.fetchMultipleCurrentData(
           symbols,
+          "1D" as ResolutionOption,
           currentPortfolioSource,
         );
+
+        standardDataArray.push(...dataArray);
+
         const holdingsMap: HoldingsData = {};
 
         standardDataArray.forEach((standardData) => {
@@ -112,6 +150,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
         return holdingsMap;
       } catch (error) {
         console.error("Error fetching batch current data:", error);
+
         // Fallback to individual requests
         const holdingsMap: HoldingsData = {};
 
@@ -131,10 +170,26 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
     [currentPortfolioSource, fetchCurrentData],
   );
 
+  // Debounced refresh to prevent rapid API calls
+  const debouncedRefresh = useCallback((operation: () => Promise<void>, delay: number = 1000) => {
+    const now = Date.now();
+
+    if (now - lastFetchTime.current < delay) {
+      return;
+    }
+    lastFetchTime.current = now;
+
+    return operation();
+  }, []);
+
   // Refresh holdings data (current prices)
   const refreshHoldings = useCallback(async () => {
-    if (loading || portfolioSymbols.length === 0) return;
+    // Prevent multiple concurrent operations
+    if (operationInProgress.current === "refresh" || portfolioSymbols.length === 0) {
+      return;
+    }
 
+    operationInProgress.current = "refresh";
     setLoading(true);
     setError("");
 
@@ -160,13 +215,16 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
       if (isMounted.current) {
         setLoading(false);
       }
+      operationInProgress.current = null;
     }
-  }, [loading, portfolioSymbols, fetchBatchCurrentData]);
+  }, [portfolioSymbols, fetchBatchCurrentData]);
 
-  // Load comparison data (historical)
   const loadComparisonData = useCallback(async () => {
-    if (loading || portfolioSymbols.length === 0) return;
+    if (operationInProgress.current === "compare" || portfolioSymbols.length === 0) {
+      return;
+    }
 
+    operationInProgress.current = "compare";
     setLoading(true);
     setError("");
 
@@ -177,6 +235,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
       // Parallel fetch for better performance
       const fetchPromises = portfolioSymbols.map(async (symbol) => {
         try {
+          console.log("load compare", symbol);
           const data = await fetchHistoricalData(symbol);
 
           return { symbol, data };
@@ -210,16 +269,18 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
       if (isMounted.current) {
         setLoading(false);
       }
+      operationInProgress.current = null;
     }
-  }, [loading, portfolioSymbols, fetchHistoricalData]);
+  }, [portfolioSymbols, fetchHistoricalData]);
 
   // Add symbol to portfolio
   const addSymbol = useCallback(
     async (symbol: string): Promise<boolean> => {
-      if (portfolioSymbols.includes(symbol)) {
+      if (portfolioSymbols.includes(symbol) || operationInProgress.current === "add") {
         return false;
       }
 
+      operationInProgress.current = "add";
       setLoading(true);
       setError("");
 
@@ -252,6 +313,7 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
         if (isMounted.current) {
           setLoading(false);
         }
+        operationInProgress.current = null;
       }
     },
     [portfolioSymbols, fetchCurrentData],
@@ -294,22 +356,18 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
       stockDataSourceManager.clearCache();
 
       if (portfolioSymbols.length > 0) {
-        await refreshHoldings();
+        // Use setTimeout to avoid potential circular dependency issues
+        setTimeout(() => {
+          debouncedRefresh(refreshHoldings, 500);
+        }, 100);
       }
     },
-    [refreshHoldings, portfolioSymbols],
+    [portfolioSymbols, refreshHoldings, debouncedRefresh],
   );
 
   // Get available data sources
   const getAvailableDataSources = useCallback(() => {
     return stockDataSourceManager.getAvailableSources();
-  }, []);
-
-  // Clean up on unmount
-  useEffect(() => {
-    return () => {
-      isMounted.current = false;
-    };
   }, []);
 
   return {
@@ -323,8 +381,8 @@ export const usePortfolio = ({ startDate, endDate, currentDate, dataSource }: Us
     // Portfolio management
     addSymbol,
     removeSymbol,
-    refreshHoldings,
-    loadComparisonData,
+    refreshHoldings: useCallback(() => debouncedRefresh(refreshHoldings), [refreshHoldings, debouncedRefresh]),
+    loadComparisonData: useCallback(() => debouncedRefresh(loadComparisonData), [loadComparisonData, debouncedRefresh]),
 
     // Data source management
     currentPortfolioSource,

@@ -3,11 +3,11 @@ import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, T
 import CustomTooltip from "@repo/ui/components/organisms/custom-tooltip";
 import { Indicators } from "@repo/ui/components/templates/analytic-stocks/indicator-controls";
 import { ZoomableContainer } from "@repo/ui/components/organisms/zoomable-container";
-import { ChartData, ResolutionOption } from "@repo/ui/types/stock";
+import { DataRow, ResolutionOption } from "@repo/ui/types/stock";
 import { Card, CardContent } from "@repo/ui/components/atoms/card";
 
 interface ChartProps {
-  data: ChartData[];
+  data: DataRow[];
   indicators: Indicators;
   resolution?: ResolutionOption;
 }
@@ -52,7 +52,7 @@ const ChartContainer: React.FC<ChartProps> = ({ data = [], indicators, resolutio
 
   const config = isMobile ? getMobileConfig() : getDesktopConfig();
 
-  const renderChart = (displayData: ChartData[]) => (
+  const renderChart = (displayData: DataRow[]) => (
     <ResponsiveContainer height={config.height} width="100%">
       <ComposedChart data={displayData} margin={config.margin}>
         <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.6} />

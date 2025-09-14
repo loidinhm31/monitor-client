@@ -265,9 +265,7 @@ const ServerCamera = ({ hostConnection }: ServerCameraProps) => {
       {/* Error Display */}
       {error && (
         <HolographicContainer className="w-full p-4" variant="dark">
-          <div className="text-red-400 text-sm font-mono bg-red-400/10 border border-red-400/30 rounded p-2">
-            {error}
-          </div>
+          <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/30 rounded p-2">{error}</div>
         </HolographicContainer>
       )}
 
@@ -277,7 +275,7 @@ const ServerCamera = ({ hostConnection }: ServerCameraProps) => {
           <h3 className="text-sm font-semibold text-cyan-400">Camera Stream</h3>
           <div className="flex items-center gap-2">
             <StatusIndicator status={connectionStatus === "Connected" && isStarted ? "online" : "error"} />
-            <span className="text-xs font-mono text-cyan-400">{connectionStatus}</span>
+            <span className="text-xs text-cyan-400">{connectionStatus}</span>
           </div>
         </div>
 
@@ -321,7 +319,7 @@ const ServerCamera = ({ hostConnection }: ServerCameraProps) => {
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <StatusIndicator pulse={isStarted} status={isStarted ? "online" : "error"} />
-                  <span className="font-mono text-xs text-cyan-400">{isStarted ? "LIVE" : "OFFLINE"}</span>
+                  <span className=" text-xs text-cyan-400">{isStarted ? "LIVE" : "OFFLINE"}</span>
                 </div>
 
                 {isStarted && (

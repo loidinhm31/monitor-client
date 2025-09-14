@@ -203,9 +203,7 @@ const AudioControl = ({ hostConnection }: AudioControlProps) => {
         <CardContent>
           <div className="text-xs space-y-1">
             {debugInfo.map((msg, i) => (
-              <div key={i} className="font-mono">
-                {msg}
-              </div>
+              <div key={i}>{msg}</div>
             ))}
           </div>
         </CardContent>

@@ -79,10 +79,10 @@ const StreamingVideoControl = ({ wsConnection, isStreaming, getCurrentFrame }: S
         <CardContent className="pt-0">
           <div className="space-y-1 max-h-32 overflow-y-auto">
             {debugInfo.length === 0 ? (
-              <div className="text-xs text-cyan-400/50 font-mono">No debug messages yet...</div>
+              <div className="text-xs text-cyan-400/50">No debug messages yet...</div>
             ) : (
               debugInfo.map((msg, i) => (
-                <div key={i} className="text-xs text-cyan-400/70 font-mono">
+                <div key={i} className="text-xs text-cyan-400/70">
                   {msg}
                 </div>
               ))

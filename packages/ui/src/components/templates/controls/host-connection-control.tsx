@@ -67,7 +67,7 @@ const HostConnectionControl: React.FC<HostConnectionControlProps> = ({
         <HolographicContainer className="p-4 md:p-6 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <StatusIndicator status={appliedHostConnection !== null ? "online" : "offline"} />
-            <span className="font-mono text-sm text-cyan-400">
+            <span className="text-sm text-cyan-400">
               {appliedHostConnection ? `Connected to ${appliedHostConnection.host}` : "Disconnected"}
             </span>
           </div>

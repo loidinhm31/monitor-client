@@ -48,7 +48,7 @@ export const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
 
   return (
     <div className="flex-none w-64">
-      <Label className="text-cyan-400 text-sm font-mono mb-2 block">Data Source</Label>
+      <Label className="text-cyan-400 text-sm mb-2 block">Data Source</Label>
       <Select disabled={isDisabled} value={currentSource} onValueChange={onSourceChange}>
         <SelectTrigger className={"w-full"} variant="holographic">
           {getSourceIcon(currentSource)}
@@ -67,12 +67,12 @@ export const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({
         </SelectContent>
       </Select>
       {isVNGold && (
-        <div className="flex items-center mt-1 text-xs text-amber-400/70 font-mono">
+        <div className="flex items-center mt-1 text-xs text-amber-400/70">
           <Coins className="w-3 h-3 mr-1" />
           Vietnamese Gold uses dedicated SJC data source
         </div>
       )}
-      {loading && <div className="text-xs text-cyan-400/70 mt-1 font-mono">Updating data source...</div>}
+      {loading && <div className="text-xs text-cyan-400/70 mt-1">Updating data source...</div>}
     </div>
   );
 };

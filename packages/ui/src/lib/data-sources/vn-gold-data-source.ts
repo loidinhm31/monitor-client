@@ -1,11 +1,10 @@
 import {
-  DataSource,
   HistoricalDataParams,
   IStockDataSource,
   StandardStockData,
   StockDataSourceConfig,
 } from "@repo/ui/lib/data-sources/stock-data-source-manager";
-import { ResolutionOption } from "@repo/ui/types/stock";
+import { DataSource, ResolutionOption } from "@repo/ui/types/stock";
 
 interface SJCGoldResponse {
   success: boolean;

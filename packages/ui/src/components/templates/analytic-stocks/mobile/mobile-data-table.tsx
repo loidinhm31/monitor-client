@@ -1,32 +1,37 @@
-import type { TransformedStockData } from "@repo/ui/types/stock";
+import type { Column, DataRow } from "@repo/ui/types/stock";
 
-import { ChevronDown, ChevronRight } from "lucide-react";
-import React, { useState } from "react";
-import { COLUMN_LABELS } from "@repo/ui/lib/stock-utils";
+import { ChevronDown, ChevronRight, Trash2 } from "lucide-react";
+import React, { useCallback, useState } from "react";
 import { Card } from "@repo/ui/components/atoms/card";
 import { Button } from "@repo/ui/components/atoms/button";
 
 interface MobileDataTableProps {
-  data: TransformedStockData[];
+  data: DataRow[];
+  columns: Column[];
+  onRemoveStock?: (symbol: string) => void;
+  isPortfolio: boolean;
 }
 
-const MobileDataTable: React.FC<MobileDataTableProps> = ({ data }) => {
+const MobileDataTable: React.FC<MobileDataTableProps> = ({ data, columns, onRemoveStock, isPortfolio }) => {
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
 
+  const actionColumn = useCallback(() => {
+    return columns.some((col) => col.key === "actions") && onRemoveStock;
+  }, [columns, onRemoveStock]);
+
   // Core columns always visible
-  const coreColumns = [
-    { key: "date", label: COLUMN_LABELS.date },
-    { key: "closePrice", label: COLUMN_LABELS.closePrice },
-    { key: "priceChange", label: COLUMN_LABELS.change },
-  ];
+  const coreColumns = columns.filter((col) => {
+    if (isPortfolio) {
+      return ["symbol", "closePrice", "priceChange"].includes(col.key);
+    } else {
+      return ["date", "closePrice", "priceChange"].includes(col.key);
+    }
+  });
 
   // Additional columns shown when expanded
-  const expandedColumns = [
-    { key: "volume", label: COLUMN_LABELS.volume },
-    { key: "openPrice", label: COLUMN_LABELS.openPrice },
-    { key: "highestPrice", label: COLUMN_LABELS.highestPrice },
-    { key: "lowestPrice", label: COLUMN_LABELS.lowestPrice },
-  ];
+  const expandedColumns = columns.filter((col) => {
+    return ["volume", "openPrice", "highestPrice", "lowestPrice"].includes(col.key);
+  });
 
   const toggleRow = (date: string) => {
     setExpandedRows((prev) => ({
@@ -35,10 +40,10 @@ const MobileDataTable: React.FC<MobileDataTableProps> = ({ data }) => {
     }));
   };
 
-  const renderValue = (key: string, row: TransformedStockData) => {
-    if (key === "priceChange") {
-      const value = row[key]?.value;
-      const percentage = row[key]?.percentage;
+  const renderValue = (column: Column, row: DataRow): React.ReactNode => {
+    if (column.key === "priceChange") {
+      const value = row[column.key]?.value;
+      const percentage = row[column.key]?.percentage;
       const colorClass = value > 0 ? "text-success" : value < 0 ? "text-danger" : "text-warning";
 
       return (
@@ -48,25 +53,31 @@ const MobileDataTable: React.FC<MobileDataTableProps> = ({ data }) => {
       );
     }
 
-    if (key === "volume") {
-      return row[key].toLocaleString();
+    if (column.key === "volume") {
+      return row[column.key].toLocaleString();
     }
 
-    if (key === "closePrice" || key === "openPrice" || key === "highestPrice" || key === "lowestPrice") {
-      return row[key]?.toFixed(2);
+    const value = row[column.key as keyof DataRow];
+
+    if (typeof value === "number") {
+      return <span className="text-cyan-400">{value.toString()}</span>;
     }
 
-    return row[key];
+    if (value instanceof Date) {
+      return <span className="text-cyan-400">{value.toLocaleDateString()}</span>;
+    }
+
+    return <span className="text-cyan-400">{String(value ?? "")}</span>;
   };
 
   return (
     <div className="flex flex-col gap-2 w-full">
       {/* Header Card */}
-      <Card>
+      <Card variant="holographic">
         <div className="grid grid-cols-4 gap-2 py-2">
           <div className="col-span-1" />
           {coreColumns.map((column) => (
-            <div key={column.key} className="font-medium text-sm">
+            <div key={column.key} className="font-medium text-sm text-cyan-300">
               {column.label}
             </div>
           ))}
@@ -75,30 +86,50 @@ const MobileDataTable: React.FC<MobileDataTableProps> = ({ data }) => {
 
       {/* Data Rows */}
       {data.map((row, index) => (
-        <Card key={`${row.date}-${index}`} className="w-full">
+        <Card key={`${row.symbol}-${row.date}-${index}`} className="w-full" variant="holographic">
           <div className="p-0">
             {/* Main Row */}
-            <Button className="w-full px-3 py-4" onClick={() => toggleRow(row.date)}>
-              <div className="grid grid-cols-4 gap-2 w-full items-center">
-                <div className="flex justify-start">
-                  {expandedRows[row.date] ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                </div>
-                {coreColumns.map((column) => (
-                  <div key={column.key} className="text-sm text-left overflow-hidden text-ellipsis">
-                    {renderValue(column.key, row)}
+            <div className="flex w-full">
+              <Button
+                className="flex-1 px-3 py-4"
+                variant="holographic"
+                onClick={() => toggleRow(`${row.symbol}-${row.date}`)}
+              >
+                <div className="grid grid-cols-4 gap-2 w-full items-center">
+                  <div className="flex justify-start">
+                    {expandedRows[`${row.symbol}-${row.date}`] ? (
+                      <ChevronDown className="w-4 h-4" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" />
+                    )}
                   </div>
-                ))}
-              </div>
-            </Button>
+                  {coreColumns.map((column) => (
+                    <div key={column.key} className="text-sm text-left overflow-hidden text-ellipsis">
+                      {renderValue(column, row)}
+                    </div>
+                  ))}
+                </div>
+              </Button>
+              {actionColumn() && (
+                <Button
+                  className="m-2"
+                  size="icon"
+                  variant="holographic-destructive"
+                  onClick={() => onRemoveStock!(row.symbol!)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
 
             {/* Expanded Content */}
-            {expandedRows[row.date] && (
+            {expandedRows[`${row.symbol}-${row.date}`] && (
               <div className="px-4 pb-4 pt-2">
                 <div className="grid grid-cols-2 gap-4">
                   {expandedColumns.map((column) => (
                     <div key={column.key} className="text-sm">
                       <span className="font-medium text-default-600">{column.label}:</span>
-                      <span className="ml-2">{renderValue(column.key, row)}</span>
+                      <span className="ml-2">{renderValue(column, row)}</span>
                     </div>
                   ))}
                 </div>

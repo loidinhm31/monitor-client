@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@repo/ui/components/atoms/card";
 import { Activity, Database, Info, Settings, TrendingUp } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import SharedDateControls from "@repo/ui/components/organisms/shared-date-controls";
-import Portfolio from "@repo/ui/components/templates/analytic-stocks/portfolio/Portfolio";
+import Portfolio from "@repo/ui/components/templates/analytic-stocks/portfolio/portfolio";
 import StockDashboard from "@repo/ui/components/templates/analytic-stocks/stock-dashboard";
 import { useSharedDates } from "@repo/ui/hooks/useSharedDates";
 import { useStockData } from "@repo/ui/hooks/useStockData";
@@ -66,7 +66,7 @@ const TabbedAnalytics = () => {
   } = usePortfolio({
     startDate,
     endDate,
-    currentDate,
+    dataSource: currentDataSource,
   });
 
   // Determine loading state
@@ -180,7 +180,7 @@ const TabbedAnalytics = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Database className="w-5 h-5 text-cyan-400" />
-              <h3 className="text-lg font-mono text-cyan-400">Data Source Management</h3>
+              <h3 className="text-lg text-cyan-400">Data Source Management</h3>
               <Button size="sm" variant="ghost" onClick={() => setShowSourceSettings(!showSourceSettings)}>
                 <Settings className="w-4 h-4 text-cyan-400" />
               </Button>
@@ -190,8 +190,8 @@ const TabbedAnalytics = () => {
               {!showSourceSettings && (
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-1">
-                    <TrendingUp className="w-4 h-4" />
-                    <span>
+                    <TrendingUp className="w-4 h-4 text-cyan-200" />
+                    <span className="text-cyan-200">
                       Analysis: <strong>{currentDataSource}</strong>
                     </span>
                     {sourceHealth[currentDataSource] !== undefined && (
@@ -201,8 +201,8 @@ const TabbedAnalytics = () => {
                     )}
                   </div>
                   <div className="flex items-center gap-1">
-                    <Activity className="w-4 h-4" />
-                    <span>
+                    <Activity className="w-4 h-4 text-cyan-200" />
+                    <span className="text-cyan-200">
                       Portfolio: <strong>{currentPortfolioSource}</strong>
                     </span>
                     {sourceHealth[currentPortfolioSource] !== undefined && (
@@ -295,7 +295,7 @@ const TabbedAnalytics = () => {
           {/* Analysis Tab - Stock Symbol */}
           <Card variant="holographic">
             <CardHeader>
-              <h4 className="text-cyan-400 font-medium font-mono">Stock Analysis</h4>
+              <h4 className="text-cyan-400 font-medium">Stock Analysis</h4>
             </CardHeader>
             <CardContent>
               <form className="space-y-4" onSubmit={handleMainStockSubmit}>

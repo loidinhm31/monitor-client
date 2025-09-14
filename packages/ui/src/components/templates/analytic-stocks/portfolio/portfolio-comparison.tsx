@@ -1,8 +1,8 @@
 import { Plus } from "lucide-react";
-import React, { useMemo } from "react";
-import { Input } from "@repo/ui/components/atoms/input";
+import React, { useMemo, useState } from "react";
 import { Button } from "@repo/ui/components/atoms/button";
-import StockComparisonChart from "@repo/ui/components/templates/analytic-stocks/StockComparisonChart";
+import StockComparisonChart from "@repo/ui/components/templates/analytic-stocks/stock-comparison-chart";
+import { InputLabel } from "@repo/ui/components/atoms/input-label";
 
 interface PortfolioComparisonProps {
   portfolioData: Array<{
@@ -21,7 +21,7 @@ const PortfolioComparison: React.FC<PortfolioComparisonProps> = ({
   onRemoveStock,
   loading = false,
 }) => {
-  const [compareSymbol, setCompareSymbol] = React.useState("");
+  const [compareSymbol, setCompareSymbol] = useState("");
 
   const formattedData = useMemo(() => {
     // Group data by symbol
@@ -33,7 +33,7 @@ const PortfolioComparison: React.FC<PortfolioComparisonProps> = ({
             data: [],
           };
         }
-        acc[item.symbol].data.push({
+        acc[item.symbol]!.data.push({
           date: item.date,
           closePrice: item.closePrice,
         });
@@ -59,13 +59,12 @@ const PortfolioComparison: React.FC<PortfolioComparisonProps> = ({
     <div className="w-full space-y-4">
       <div className="flex flex-wrap items-end gap-4">
         <div className="flex-none w-32">
-          <Input
+          <InputLabel
             label="Compare with"
             placeholder="Symbol"
-            size="sm"
             type="text"
             value={compareSymbol}
-            variant="outline"
+            variant="holographic"
             onChange={(e) => setCompareSymbol(e.target.value.toUpperCase())}
           />
         </div>
